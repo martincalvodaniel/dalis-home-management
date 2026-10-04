@@ -1,5 +1,6 @@
 "use client"
 
+import { adjustQuantity } from "@/components/ui/quantity-stepper-value"
 import { quantityUnitShortLabels } from "@/config/quantity-units"
 import type { QuantityUnit } from "@/schemas/quantity-unit"
 
@@ -25,11 +26,6 @@ const quantitySteps: Record<QuantityUnit, number> = {
   liter: 0.1,
 }
 
-function adjustQuantity(value: number, delta: number, minimum: number): number {
-  const adjustedValue = Math.round((value + delta) * 1000) / 1000
-  return Math.min(999_999, Math.max(minimum, adjustedValue))
-}
-
 export function QuantityStepper({
   value,
   unit,
@@ -49,7 +45,9 @@ export function QuantityStepper({
     >
       <button
         type="button"
-        onClick={() => onChange(adjustQuantity(value, -step, minimum))}
+        onClick={() =>
+          onChange(adjustQuantity(value, step, "decrease", minimum))
+        }
         disabled={disabled || !canDecrease}
         aria-label={`Reducir cantidad de ${label}`}
         className="grid size-8 place-items-center rounded-full text-base transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:cursor-not-allowed disabled:opacity-35 dark:hover:bg-white/10"
@@ -61,7 +59,9 @@ export function QuantityStepper({
       </span>
       <button
         type="button"
-        onClick={() => onChange(adjustQuantity(value, step, minimum))}
+        onClick={() =>
+          onChange(adjustQuantity(value, step, "increase", minimum))
+        }
         disabled={disabled || !canIncrease}
         aria-label={`Aumentar cantidad de ${label}`}
         className="grid size-8 place-items-center rounded-full text-base transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:cursor-not-allowed disabled:opacity-35 dark:hover:bg-white/10"
