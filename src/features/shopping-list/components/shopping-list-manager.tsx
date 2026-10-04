@@ -9,9 +9,7 @@ interface ShoppingListManagerProps {
   products: CatalogProductOption[]
   search: string
   onSearchChange: (search: string) => void
-  editingItem: ShoppingListItem | null
   isFormOpen: boolean
-  onEdit: (item: ShoppingListItem) => void
   onClose: () => void
 }
 
@@ -20,9 +18,7 @@ export function ShoppingListManager({
   products,
   search,
   onSearchChange,
-  editingItem,
   isFormOpen,
-  onEdit,
   onClose,
 }: ShoppingListManagerProps) {
   return (
@@ -32,19 +28,15 @@ export function ShoppingListManager({
         products={products}
         search={search}
         onSearchChange={onSearchChange}
-        onEdit={onEdit}
       />
       <ModalDialog
         open={isFormOpen}
-        ariaLabel={
-          editingItem ? `Editar ${editingItem.name}` : "Añadir producto"
-        }
+        ariaLabel="Añadir producto"
         onDismiss={onClose}
       >
         {isFormOpen ? (
           <ShoppingListForm
-            key={editingItem?.id ?? "new-item"}
-            item={editingItem}
+            key="new-item"
             products={products}
             initialProductSearch={search.trim()}
             onCancel={onClose}

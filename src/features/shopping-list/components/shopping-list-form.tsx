@@ -7,14 +7,9 @@ import { CatalogProductDialog } from "@/features/catalog/components/catalog-prod
 import { ProductPicker } from "@/features/catalog/components/product-picker"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import { getPurchasePlaces } from "@/features/catalog/purchase-places"
-import {
-  createShoppingListItemAction,
-  updateShoppingListItemAction,
-} from "@/features/shopping-list/actions"
-import type { ShoppingListItem } from "@/schemas/shopping-list-item"
+import { createShoppingListItemAction } from "@/features/shopping-list/actions"
 
 interface ShoppingListFormProps {
-  item: ShoppingListItem | null
   products: CatalogProductOption[]
   initialProductSearch?: string
   onCancel: () => void
@@ -22,7 +17,6 @@ interface ShoppingListFormProps {
 }
 
 export function ShoppingListForm({
-  item,
   products,
   initialProductSearch,
   onCancel,
@@ -31,16 +25,13 @@ export function ShoppingListForm({
   const productId = useId()
   const quantityId = useId()
   const [availableProducts, setAvailableProducts] = useState(products)
-  const [selectedProductId, setSelectedProductId] = useState(
-    item?.inventoryItemId ?? ""
-  )
-  const [quantity, setQuantity] = useState(String(item?.quantity ?? 1))
+  const [selectedProductId, setSelectedProductId] = useState("")
+  const [quantity, setQuantity] = useState("1")
   const [productSearch, setProductSearch] = useState(initialProductSearch ?? "")
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const isEditing = item !== null
   const selectedProduct = availableProducts.find(
     (product) => product.id === selectedProductId
   )
@@ -56,9 +47,7 @@ export function ShoppingListForm({
 
     startTransition(async () => {
       try {
-        const result = item
-          ? await updateShoppingListItemAction(item.id, input)
-          : await createShoppingListItemAction(input)
+        const result = await createShoppingListItemAction(input)
 
         if (!result.success) {
           setError(result.message)
@@ -99,51 +88,47 @@ export function ShoppingListForm({
     <section className="rounded-[1.75rem] border border-[#e6d8cb] bg-[#f8e7dd]/75 p-5 shadow-[0_18px_50px_rgba(91,57,40,0.08)] sm:p-6 dark:border-[#704735] dark:bg-[#412d24]/80">
       <header className="sticky -top-5 z-10 -mx-5 -mt-5 border-b border-[#e6d8cb] bg-[#f8e7dd] px-5 pt-5 pb-4 sm:-top-6 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6 dark:border-[#704735] dark:bg-[#412d24]">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#efb89e]">
-          {isEditing ? "Editar producto" : "Apuntar producto"}
+          Apuntar producto
         </p>
         <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-          {isEditing ? item.name : "¿Qué hace falta?"}
+          ¿Qué hace falta?
         </h2>
       </header>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="text-sm font-semibold">
-          {isEditing ? null : (
-            <>
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor={productId}>Producto</label>
-                <button
-                  type="button"
-                  onClick={() => setIsProductDialogOpen(true)}
-                  disabled={isPending}
-                  className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
-                >
-                  + Crear producto nuevo
-                </button>
-              </div>
-              <ProductPicker
-                id={productId}
-                products={availableProducts}
-                value={selectedProductId}
-                initialSearch={productSearch}
-                onSearchChange={setProductSearch}
-                onValueChange={(productId) => {
-                  setSelectedProductId(productId)
-                  const selectedProduct = availableProducts.find(
-                    (product) => product.id === productId
-                  )
-                  if (selectedProduct) {
-                    setProductSearch(selectedProduct.name)
-                  }
-                  setNotice(null)
-                }}
-                disabled={isPending}
-                searchable
-                showPurchasePlaces={false}
-                className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
-              />
-            </>
-          )}
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor={productId}>Producto</label>
+            <button
+              type="button"
+              onClick={() => setIsProductDialogOpen(true)}
+              disabled={isPending}
+              className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
+            >
+              + Crear producto nuevo
+            </button>
+          </div>
+          <ProductPicker
+            id={productId}
+            products={availableProducts}
+            value={selectedProductId}
+            initialSearch={productSearch}
+            onSearchChange={setProductSearch}
+            onValueChange={(productId) => {
+              setSelectedProductId(productId)
+              const selectedProduct = availableProducts.find(
+                (product) => product.id === productId
+              )
+              if (selectedProduct) {
+                setProductSearch(selectedProduct.name)
+              }
+              setNotice(null)
+            }}
+            disabled={isPending}
+            searchable
+            showPurchasePlaces={false}
+            className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
+          />
         </div>
 
         <div className="text-sm font-semibold">
@@ -151,9 +136,9 @@ export function ShoppingListForm({
           <QuantityInputStepper
             id={quantityId}
             value={quantity}
-            unit={selectedProduct?.unit ?? item?.unit}
+            unit={selectedProduct?.unit}
             minimum={0.01}
-            label={selectedProduct?.name ?? item?.name ?? "producto"}
+            label={selectedProduct?.name ?? "producto"}
             disabled={isPending}
             required
             onValueChange={setQuantity}
@@ -177,7 +162,7 @@ export function ShoppingListForm({
             disabled={isPending}
             className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#a75938] px-5 text-sm font-semibold text-white transition hover:bg-[#8e472c] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#412d24]"
           >
-            {isPending ? "Guardando…" : isEditing ? "Guardar" : "Añadir"}
+            {isPending ? "Guardando…" : "Añadir"}
           </button>
           <button
             type="button"
@@ -189,20 +174,18 @@ export function ShoppingListForm({
           </button>
         </div>
       </form>
-      {isEditing ? null : (
-        <CatalogProductDialog
-          key={
-            isProductDialogOpen
-              ? "catalog-product-open"
-              : "catalog-product-closed"
-          }
-          open={isProductDialogOpen}
-          initialName={productSearch.trim() || undefined}
-          purchasePlaces={getPurchasePlaces(availableProducts)}
-          onDismiss={() => setIsProductDialogOpen(false)}
-          onCreated={handleProductCreated}
-        />
-      )}
+      <CatalogProductDialog
+        key={
+          isProductDialogOpen
+            ? "catalog-product-open"
+            : "catalog-product-closed"
+        }
+        open={isProductDialogOpen}
+        initialName={productSearch.trim() || undefined}
+        purchasePlaces={getPurchasePlaces(availableProducts)}
+        onDismiss={() => setIsProductDialogOpen(false)}
+        onCreated={handleProductCreated}
+      />
     </section>
   )
 }

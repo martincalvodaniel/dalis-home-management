@@ -12,13 +12,9 @@ import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
 interface ShoppingListItemRowProps {
   item: ShoppingListItem
-  onEdit: (item: ShoppingListItem) => void
 }
 
-export function ShoppingListItemRow({
-  item,
-  onEdit,
-}: ShoppingListItemRowProps) {
+export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [quantityDraft, setQuantityDraft] = useState(String(item.quantity))
@@ -86,7 +82,26 @@ export function ShoppingListItemRow({
 
   return (
     <>
-      <article className="rounded-2xl border border-[#dde1d8] bg-white/75 p-4 shadow-[0_8px_25px_rgba(50,72,60,0.04)] dark:border-white/10 dark:bg-[#182e26]/80">
+      <article className="relative rounded-2xl border border-[#dde1d8] bg-white/75 p-4 shadow-[0_8px_25px_rgba(50,72,60,0.04)] dark:border-white/10 dark:bg-[#182e26]/80">
+        <button
+          type="button"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={isPending}
+          aria-label={`Eliminar ${item.name}`}
+          className="absolute top-3 right-3 grid size-8 place-items-center rounded-full text-[#a75938] transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#ef9f86] dark:hover:bg-red-950/30 dark:hover:text-red-200"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
         <div className="flex items-start gap-3">
           <button
             type="button"
@@ -106,7 +121,7 @@ export function ShoppingListItemRow({
             {item.isPurchased ? "✓" : null}
           </button>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pr-8">
             <div className="flex min-w-0 items-center gap-2">
               <p
                 className={`min-w-0 truncate font-semibold ${item.isPurchased ? "text-[#7f8d85] line-through" : ""}`}
@@ -135,42 +150,24 @@ export function ShoppingListItemRow({
                   </svg>
                 </span>
               ) : null}
-              <QuantityInputStepper
-                value={quantityDraft}
-                unit={item.unit}
-                minimum={0.01}
-                label={item.name}
-                disabled={isPending}
-                onValueChange={setQuantityDraft}
-                onValueCommit={updateQuantity}
-                className="ml-auto w-40 shrink-0 text-[#5c6e64] dark:text-[#c6d1ca]"
-                buttonClassName="border-[#d8dfd5] bg-[#edf0e9] text-[#5c6e64] hover:bg-[#e1e7de] dark:border-white/10 dark:bg-white/10 dark:text-[#c6d1ca] dark:hover:bg-white/15"
-                fieldClassName="border-[#d8dfd5] bg-[#f7f8f5] text-[#5c6e64] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/10 dark:bg-white/5 dark:text-[#c6d1ca]"
-              />
             </div>
+            <QuantityInputStepper
+              value={quantityDraft}
+              unit={item.unit}
+              minimum={0.01}
+              label={item.name}
+              disabled={isPending}
+              onValueChange={setQuantityDraft}
+              onValueCommit={updateQuantity}
+              className="mt-3 w-full text-[#41564b] sm:w-56 dark:text-[#d5ded8]"
+              buttonClassName="border-[#d8dfd5] bg-[#edf0e9] text-[#5c6e64] hover:bg-[#e1e7de] dark:border-white/10 dark:bg-white/10 dark:text-[#c6d1ca] dark:hover:bg-white/15"
+              fieldClassName="border-[#d8dfd5] bg-[#f7f8f5] text-[#41564b] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/10 dark:bg-white/5 dark:text-[#d5ded8]"
+            />
             {error ? (
               <p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
                 {error}
               </p>
             ) : null}
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => onEdit(item)}
-                disabled={isPending}
-                className="rounded-full bg-[#edf0e9] px-3 py-1.5 text-xs font-semibold transition hover:bg-[#e1e7de] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-50 dark:bg-white/10"
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                disabled={isPending}
-                className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
-              >
-                Eliminar
-              </button>
-            </div>
           </div>
         </div>
       </article>

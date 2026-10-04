@@ -10,7 +10,6 @@ import {
   restockAndDeletePurchasedShoppingListItems,
   setShoppingListItemPurchased,
   setShoppingListItemQuantity,
-  updateShoppingListItem,
 } from "@/lib/db/shopping-list-items"
 import { inventoryItemIdSchema } from "@/schemas/inventory-item"
 import {
@@ -82,45 +81,6 @@ export async function addInventoryItemToShoppingListAction(
   await addInventoryItemToShoppingList(item)
   revalidateShoppingList()
 
-  return { success: true }
-}
-
-export async function updateShoppingListItemAction(
-  id: unknown,
-  input: unknown
-): Promise<ShoppingListActionResult> {
-  await requireAuthorizedSession()
-  const idResult = shoppingListItemIdSchema.safeParse(id)
-  const inputResult = shoppingListItemInputSchema.safeParse(input)
-
-  if (!idResult.success || !inputResult.success) {
-    return invalidInputResult
-  }
-
-  const item = await findInventoryItemById(inputResult.data.inventoryItemId)
-  if (!item) {
-    return {
-      success: false,
-      message: "No se ha encontrado el producto del catálogo.",
-    }
-  }
-
-  const updateResult = await updateShoppingListItem(
-    idResult.data,
-    item,
-    inputResult.data.quantity
-  )
-  if (updateResult === "missing") {
-    return { success: false, message: "No se ha encontrado el producto." }
-  }
-  if (updateResult === "duplicate") {
-    return {
-      success: false,
-      message: "Ese producto ya está en la lista de la compra.",
-    }
-  }
-
-  revalidateShoppingList()
   return { success: true }
 }
 

@@ -1,6 +1,6 @@
 import "server-only"
 
-import { MongoServerError, ObjectId } from "mongodb"
+import { ObjectId } from "mongodb"
 import { getDatabase } from "@/lib/db/client"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items"
@@ -119,42 +119,6 @@ export async function applyMealPlanShoppingListAdjustments(
   )
 
   await collection.bulkWrite(operations)
-}
-
-export type UpdateShoppingListItemResult = "updated" | "missing" | "duplicate"
-
-export async function updateShoppingListItem(
-  id: string,
-  item: InventoryItem,
-  quantity: number
-): Promise<UpdateShoppingListItemResult> {
-  const collection = await getCollection<ShoppingListItemDocument>(
-    COLLECTION_NAMES.shoppingListItems
-  )
-
-  try {
-    const result = await collection.updateOne(
-      { _id: toObjectId(id), settlementState: { $exists: false } },
-      {
-        $set: {
-          inventoryItemId: toObjectId(item.id),
-          name: item.name,
-          quantity,
-          unit: item.unit,
-          isMealPlanGenerated: false,
-          updatedAt: new Date(),
-        },
-      }
-    )
-
-    return result.matchedCount > 0 ? "updated" : "missing"
-  } catch (error) {
-    if (error instanceof MongoServerError && error.code === 11000) {
-      return "duplicate"
-    }
-
-    throw error
-  }
 }
 
 export async function setShoppingListItemPurchased(

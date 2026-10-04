@@ -12,18 +12,11 @@ interface ShoppingListPageProps {
 
 export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
   const [search, setSearch] = useState("")
-  const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const pendingCount = items.filter((item) => !item.isPurchased).length
 
   function closeForm() {
     setIsFormOpen(false)
-    setEditingItem(null)
-  }
-
-  function editItem(item: ShoppingListItem) {
-    setEditingItem(item)
-    setIsFormOpen(true)
   }
 
   return (
@@ -49,10 +42,7 @@ export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
             </div>
             <button
               type="button"
-              onClick={() => {
-                setEditingItem(null)
-                setIsFormOpen(true)
-              }}
+              onClick={() => setIsFormOpen(true)}
               className="inline-flex items-center justify-center rounded-full bg-[#a75938] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#8e472c] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 sm:px-4 sm:py-2 sm:text-sm dark:ring-offset-[#10221c]"
             >
               + Añadir
@@ -65,9 +55,7 @@ export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
           products={products}
           search={search}
           onSearchChange={setSearch}
-          editingItem={editingItem}
           isFormOpen={isFormOpen}
-          onEdit={editItem}
           onClose={closeForm}
         />
       </div>
