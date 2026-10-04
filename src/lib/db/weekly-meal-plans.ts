@@ -47,6 +47,17 @@ export async function findWeeklyMealPlan(
 	return document ? toWeeklyMealPlan(document) : null;
 }
 
+export async function deleteWeeklyMealPlan(
+	weekStart: string,
+): Promise<boolean> {
+	const collection = await getCollection<WeeklyMealPlanDocument>(
+		COLLECTION_NAMES.weeklyMealPlans,
+	);
+	const result = await collection.deleteOne({ weekStart });
+
+	return result.deletedCount > 0;
+}
+
 export async function isDishUsedInMealPlans(dishId: string): Promise<boolean> {
 	const collection = await getCollection<WeeklyMealPlanDocument>(
 		COLLECTION_NAMES.weeklyMealPlans,

@@ -4,6 +4,7 @@ import {
 	addDaysToIsoDate,
 	type WeeklyMealSlot,
 } from "@/schemas/weekly-meal-plan";
+import { ClearWeekButton } from "./clear-week-button";
 import { CopyPreviousWeekButton } from "./copy-previous-week-button";
 import { GenerateShoppingListButton } from "./generate-shopping-list-button";
 import { WeeklyMealCalendar } from "./weekly-meal-calendar";
@@ -63,6 +64,9 @@ export function MealPlanPage({
 						</div>
 
 						<div className="flex flex-wrap gap-2">
+							{slots.length > 0 ? (
+								<ClearWeekButton weekStart={weekStart} />
+							) : null}
 							<Link
 								href="/meals"
 								className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#ccd5ce] bg-white/70 px-4 text-sm font-semibold transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4f40] dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
