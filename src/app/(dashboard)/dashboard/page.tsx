@@ -40,6 +40,30 @@ export default function DashboardPage() {
 							</span>
 						</div>
 					</Link>
+					<Link
+						href="/shopping-list"
+						className="group rounded-2xl border border-[#e6d8cb] bg-[#f5dfd2] p-6 text-[#563323] transition hover:-translate-y-0.5 hover:bg-[#f1d4c4] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 dark:border-[#704735] dark:bg-[#412d24] dark:text-[#fff4ed] dark:ring-offset-[#182e26]"
+					>
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9c5d40] dark:text-[#e8b59c]">
+							Disponible
+						</p>
+						<div className="mt-3 flex items-end justify-between gap-4">
+							<div>
+								<h2 className="text-2xl font-semibold tracking-[-0.04em]">
+									Lista de la compra
+								</h2>
+								<p className="mt-2 text-sm text-[#77513e] dark:text-[#ebcbbb]">
+									Apuntar, compartir y listo.
+								</p>
+							</div>
+							<span
+								className="text-2xl transition group-hover:translate-x-1"
+								aria-hidden="true"
+							>
+								→
+							</span>
+						</div>
+					</Link>
 				</div>
 			</section>
 		</main>

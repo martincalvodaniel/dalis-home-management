@@ -66,7 +66,10 @@ export function UpcomingFeatures() {
 						</div>
 					</Link>
 
-					<article className="group relative overflow-hidden rounded-[2rem] border border-[#e6d8cb] bg-[#f5dfd2] p-7 text-[#563323] sm:p-9 dark:border-[#774c38] dark:bg-[#4a3025] dark:text-[#fff4ed]">
+					<Link
+						href="/shopping-list"
+						className="group relative overflow-hidden rounded-[2rem] border border-[#e6d8cb] bg-[#f5dfd2] p-7 text-[#563323] transition hover:-translate-y-1 hover:bg-[#f1d4c4] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-4 focus:ring-offset-[#f5f4ee] sm:p-9 dark:border-[#774c38] dark:bg-[#4a3025] dark:text-[#fff4ed]"
+					>
 						<div
 							className="absolute -bottom-20 -right-12 size-56 rounded-full bg-[#edb293]/50 transition-transform duration-500 group-hover:scale-110 dark:bg-[#8c5942]/50"
 							aria-hidden="true"
@@ -86,17 +89,26 @@ export function UpcomingFeatures() {
 								</svg>
 							</div>
 							<p className="mt-10 text-xs font-semibold uppercase tracking-[0.18em] text-[#9c5d40] dark:text-[#e8b59c]">
-								Lista de la compra
+								Lista de la compra · Disponible
 							</p>
 							<h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
 								Apuntar, compartir y listo.
 							</h3>
 							<p className="mt-5 max-w-md leading-7 text-[#77513e] dark:text-[#ebcbbb]">
-								Una lista común para Dani y Pali, conectada con el inventario y
-								siempre disponible cuando haga falta.
+								Una lista común para Dani y Pali, siempre disponible cuando haga
+								falta y preparada para conectarse con el inventario.
 							</p>
+							<span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold">
+								Abrir lista
+								<span
+									className="transition group-hover:translate-x-1"
+									aria-hidden="true"
+								>
+									→
+								</span>
+							</span>
 						</div>
-					</article>
+					</Link>
 
 					<WeeklyMenuFeature />
 				</div>
