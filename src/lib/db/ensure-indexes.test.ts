@@ -25,6 +25,14 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers the shopping list sort index", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "shopping_list_items",
+			keys: { isPurchased: 1, createdAt: 1 },
+			options: { name: "is_purchased_asc_created_at_asc" },
+		});
+	});
+
 	test("rejects duplicate names within a collection", () => {
 		const specs: IndexSpec[] = [
 			{

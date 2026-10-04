@@ -1,12 +1,7 @@
 import { z } from "zod";
+import { quantityUnits } from "@/schemas/quantity-unit";
 
-export const inventoryItemUnits = [
-	"unit",
-	"gram",
-	"kilogram",
-	"milliliter",
-	"liter",
-] as const;
+export { quantityUnits as inventoryItemUnits } from "@/schemas/quantity-unit";
 
 export const inventoryItemLocations = [
 	"pantry",
@@ -20,7 +15,7 @@ export const inventoryItemSchema = z.object({
 	id: z.string().min(1),
 	name: z.string().trim().min(1).max(120),
 	quantity: z.number().finite().min(0).max(999_999),
-	unit: z.enum(inventoryItemUnits),
+	unit: z.enum(quantityUnits),
 	location: z.enum(inventoryItemLocations),
 	createdAt: z.date(),
 	updatedAt: z.date(),

@@ -27,6 +27,11 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 			collation: { locale: "es", strength: 1 },
 		},
 	},
+	{
+		collection: "shopping_list_items",
+		keys: { isPurchased: 1, createdAt: 1 },
+		options: { name: "is_purchased_asc_created_at_asc" },
+	},
 ];
 
 export function validateIndexSpecs(specs: readonly IndexSpec[]): void {

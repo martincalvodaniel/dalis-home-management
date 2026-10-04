@@ -6,6 +6,7 @@ import { getDatabase } from "@/lib/db/client";
 // Register collection names here alongside the feature that introduces them.
 export const COLLECTION_NAMES = {
 	inventoryItems: "inventory_items",
+	shoppingListItems: "shopping_list_items",
 } as const satisfies Record<string, string>;
 
 export type CollectionName =
