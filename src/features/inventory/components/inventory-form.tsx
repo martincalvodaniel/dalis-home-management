@@ -2,6 +2,7 @@
 
 import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
+import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import { SelectField } from "@/components/ui/select-field"
 import { PurchasePlaceField } from "@/features/catalog/components/purchase-place-field"
 import { normalizePurchasePlaces } from "@/features/catalog/purchase-places"
@@ -12,6 +13,7 @@ import {
 import { inventoryUnitLabels } from "@/features/inventory/inventory-options"
 import type { InventoryItem } from "@/schemas/inventory-item"
 import { inventoryItemUnits } from "@/schemas/inventory-item"
+import type { QuantityUnit } from "@/schemas/quantity-unit"
 
 interface InventoryFormProps {
   item: InventoryItem | null
@@ -37,6 +39,8 @@ export function InventoryForm({
   const quantityId = useId()
   const unitId = useId()
   const purchasePlaceId = useId()
+  const [quantity, setQuantity] = useState(String(item?.quantity ?? 1))
+  const [unit, setUnit] = useState<QuantityUnit>(item?.unit ?? "unit")
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const isEditing = item !== null
@@ -48,8 +52,8 @@ export function InventoryForm({
     const formData = new FormData(form)
     const input = {
       name: formData.get("name"),
-      quantity: Number(formData.get("quantity")),
-      unit: formData.get("unit"),
+      quantity: Number(quantity),
+      unit,
       purchasePlaces: normalizePurchasePlaces(
         [
           ...formData.getAll("purchasePlaces"),
@@ -103,27 +107,29 @@ export function InventoryForm({
           />
         </label>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-3">
-          <label className="block text-sm font-semibold" htmlFor={quantityId}>
-            Cantidad
-            <input
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="text-sm font-semibold">
+            <label htmlFor={quantityId}>Cantidad</label>
+            <QuantityInputStepper
               id={quantityId}
-              name="quantity"
-              type="number"
-              min="0"
-              max="999999"
-              step="any"
+              value={quantity}
+              unit={unit}
+              minimum={0}
+              label={item?.name ?? "producto"}
+              disabled={isPending}
               required
-              defaultValue={item?.quantity ?? 1}
-              className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-4 font-normal outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c]"
+              onValueChange={setQuantity}
+              className="mt-2"
+              buttonClassName="border-[#ccd5ca] bg-white text-[#365b43] hover:bg-[#edf0e9] dark:border-white/15 dark:bg-[#10231c] dark:text-[#cfe2d5] dark:hover:bg-white/10"
+              fieldClassName="border-[#ccd5ca] bg-white text-[#365b43] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c] dark:text-[#cfe2d5]"
             />
-          </label>
+          </div>
           <div className="block text-sm font-semibold">
             <label htmlFor={unitId}>Unidad</label>
             <SelectField
               id={unitId}
-              name="unit"
-              defaultValue={item?.unit ?? "unit"}
+              value={unit}
+              onValueChange={(value) => setUnit(value as QuantityUnit)}
               options={unitOptions}
               className="mt-2"
             />

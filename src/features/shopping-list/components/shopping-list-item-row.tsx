@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { QuantityStepper } from "@/components/ui/quantity-stepper"
+import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import {
   deleteShoppingListItemAction,
   setShoppingListItemPurchasedAction,
@@ -21,7 +21,12 @@ export function ShoppingListItemRow({
 }: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [quantityDraft, setQuantityDraft] = useState(String(item.quantity))
   const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    setQuantityDraft(String(item.quantity))
+  }, [item.quantity])
 
   function togglePurchased() {
     setError(null)
@@ -57,6 +62,10 @@ export function ShoppingListItemRow({
   }
 
   function updateQuantity(quantity: number) {
+    if (quantity === item.quantity) {
+      return
+    }
+
     setError(null)
     startTransition(async () => {
       try {
@@ -66,9 +75,11 @@ export function ShoppingListItemRow({
         )
         if (!result.success) {
           setError(result.message)
+          setQuantityDraft(String(item.quantity))
         }
       } catch {
         setError("No se ha podido actualizar la cantidad.")
+        setQuantityDraft(String(item.quantity))
       }
     })
   }
@@ -124,14 +135,17 @@ export function ShoppingListItemRow({
                   </svg>
                 </span>
               ) : null}
-              <QuantityStepper
-                value={item.quantity}
+              <QuantityInputStepper
+                value={quantityDraft}
                 unit={item.unit}
                 minimum={0.01}
                 label={item.name}
                 disabled={isPending}
-                onChange={updateQuantity}
-                className="ml-auto bg-[#edf0e9] text-[#5c6e64] dark:bg-white/10 dark:text-[#c6d1ca]"
+                onValueChange={setQuantityDraft}
+                onValueCommit={updateQuantity}
+                className="ml-auto w-40 shrink-0 text-[#5c6e64] dark:text-[#c6d1ca]"
+                buttonClassName="border-[#d8dfd5] bg-[#edf0e9] text-[#5c6e64] hover:bg-[#e1e7de] dark:border-white/10 dark:bg-white/10 dark:text-[#c6d1ca] dark:hover:bg-white/15"
+                fieldClassName="border-[#d8dfd5] bg-[#f7f8f5] text-[#5c6e64] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/10 dark:bg-white/5 dark:text-[#c6d1ca]"
               />
             </div>
             {error ? (

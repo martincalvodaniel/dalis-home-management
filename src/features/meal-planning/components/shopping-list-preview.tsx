@@ -11,9 +11,10 @@ interface ShoppingListPreviewProps {
   suggestions: ShoppingListSuggestion[]
 }
 
-export interface EditableShoppingListItem extends ShoppingListSuggestion {
-  inventoryQuantity: number
-  quantity: number
+export interface EditableShoppingListItem
+  extends Omit<ShoppingListSuggestion, "inventoryQuantity" | "quantity"> {
+  inventoryQuantity: string
+  quantity: string
 }
 
 function roundQuantity(quantity: number): number {
@@ -24,15 +25,25 @@ export function ShoppingListPreview({
   weekStart,
   suggestions,
 }: ShoppingListPreviewProps) {
-  const [items, setItems] = useState<EditableShoppingListItem[]>(suggestions)
+  const [items, setItems] = useState<EditableShoppingListItem[]>(() =>
+    suggestions.map((suggestion) => ({
+      ...suggestion,
+      inventoryQuantity: String(suggestion.inventoryQuantity),
+      quantity: String(suggestion.quantity),
+    }))
+  )
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function updateInventoryQuantity(
     inventoryItemId: string,
-    inventoryQuantity: number
+    inventoryQuantity: string
   ) {
+    const parsedInventoryQuantity = Number(inventoryQuantity)
+    const normalizedInventoryQuantity = Number.isFinite(parsedInventoryQuantity)
+      ? Math.max(parsedInventoryQuantity, 0)
+      : 0
     setMessage(null)
     setItems((currentItems) =>
       currentItems.map((item) =>
@@ -40,8 +51,13 @@ export function ShoppingListPreview({
           ? {
               ...item,
               inventoryQuantity,
-              quantity: roundQuantity(
-                Math.max(item.requiredQuantity - inventoryQuantity, 0)
+              quantity: String(
+                roundQuantity(
+                  Math.max(
+                    item.requiredQuantity - normalizedInventoryQuantity,
+                    0
+                  )
+                )
               ),
             }
           : item
@@ -51,7 +67,7 @@ export function ShoppingListPreview({
 
   function updateShoppingQuantity(
     inventoryItemId: string,
-    shoppingQuantity: number
+    shoppingQuantity: string
   ) {
     setMessage(null)
     setItems((currentItems) =>
@@ -72,8 +88,8 @@ export function ShoppingListPreview({
         const result = await prepareWeeklyShoppingListAction(weekStart, {
           items: items.map((item) => ({
             inventoryItemId: item.inventoryItemId,
-            inventoryQuantity: item.inventoryQuantity,
-            shoppingQuantity: item.quantity,
+            inventoryQuantity: Number(item.inventoryQuantity),
+            shoppingQuantity: Number(item.quantity),
           })),
         })
 
@@ -141,7 +157,7 @@ export function ShoppingListPreview({
         </div>
 
         <div
-          className="mb-2 hidden grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7rem,0.55fr))] gap-3 px-3 text-xs font-bold uppercase tracking-[0.08em] text-[#69705b] lg:grid dark:text-[#c0c7b5]"
+          className="mb-2 hidden grid-cols-[minmax(10rem,1fr)_minmax(7rem,0.45fr)_repeat(2,minmax(10rem,0.65fr))] gap-3 px-3 text-xs font-bold uppercase tracking-[0.08em] text-[#69705b] lg:grid dark:text-[#c0c7b5]"
           aria-hidden="true"
         >
           <span>Producto</span>
