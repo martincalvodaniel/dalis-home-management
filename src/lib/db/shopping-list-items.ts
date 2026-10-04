@@ -14,28 +14,24 @@ interface ShoppingListItemDocument
 		"id" | "inventoryItemId" | "isMealPlanGenerated"
 	> {
 	_id: ObjectId;
-	inventoryItemId?: ObjectId;
+	inventoryItemId: ObjectId;
 	isMealPlanGenerated?: boolean;
-	mealPlanIngredientKey?: string;
 }
 
 interface MealPlanShoppingListSuggestion {
 	name: string;
 	quantity: number;
 	unit: QuantityUnit;
-	inventoryItemId?: string;
-	mealPlanIngredientKey?: string;
+	inventoryItemId: string;
 }
 
 function toShoppingListItem(
 	document: ShoppingListItemDocument,
 	inventoryItemsById: ReadonlyMap<string, InventoryItem>,
 ): ShoppingListItem {
-	const inventoryItemId = document.inventoryItemId?.toHexString();
-	const inventoryItem = inventoryItemId
-		? inventoryItemsById.get(inventoryItemId)
-		: undefined;
-	const item: ShoppingListItem = {
+	const inventoryItemId = document.inventoryItemId.toHexString();
+	const inventoryItem = inventoryItemsById.get(inventoryItemId);
+	return {
 		id: document._id.toHexString(),
 		name: inventoryItem?.name ?? document.name,
 		quantity: document.quantity,
@@ -44,21 +40,16 @@ function toShoppingListItem(
 		isPurchased: document.isPurchased,
 		createdAt: document.createdAt,
 		updatedAt: document.updatedAt,
+		inventoryItemId,
 	};
-
-	if (inventoryItemId) {
-		item.inventoryItemId = inventoryItemId;
-	}
-
-	return item;
 }
 
 async function loadInventoryItemsById(
 	documents: readonly ShoppingListItemDocument[],
 ): Promise<Map<string, InventoryItem>> {
-	const ids = documents.flatMap((document) =>
-		document.inventoryItemId ? [document.inventoryItemId.toHexString()] : [],
-	);
+	const ids = documents.flatMap((document) => [
+		document.inventoryItemId.toHexString(),
+	]);
 	const inventoryItems = await findInventoryItemsByIds(ids);
 
 	return new Map(inventoryItems.map((item) => [item.id, item]));
@@ -144,16 +135,11 @@ export async function addMealPlanSuggestionsToShoppingList(
 
 	await collection.bulkWrite(
 		suggestions.map((suggestion) => {
-			const inventoryItemId = suggestion.inventoryItemId
-				? new ObjectId(suggestion.inventoryItemId)
-				: undefined;
-			const filter = inventoryItemId
-				? { inventoryItemId }
-				: { mealPlanIngredientKey: suggestion.mealPlanIngredientKey };
+			const inventoryItemId = new ObjectId(suggestion.inventoryItemId);
 
 			return {
 				updateOne: {
-					filter,
+					filter: { inventoryItemId },
 					update: [
 						{
 							$set: {
@@ -171,12 +157,7 @@ export async function addMealPlanSuggestionsToShoppingList(
 										suggestion.quantity,
 									],
 								},
-								...(inventoryItemId ? { inventoryItemId } : {}),
-								...(suggestion.mealPlanIngredientKey
-									? {
-											mealPlanIngredientKey: suggestion.mealPlanIngredientKey,
-										}
-									: {}),
+								inventoryItemId,
 								isMealPlanGenerated: true,
 								isPurchased: false,
 								createdAt: { $ifNull: ["$createdAt", now] },
@@ -214,7 +195,6 @@ export async function updateShoppingListItem(
 					isMealPlanGenerated: false,
 					updatedAt: new Date(),
 				},
-				$unset: { mealPlanIngredientKey: "" },
 			},
 		);
 

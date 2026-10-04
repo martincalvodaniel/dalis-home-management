@@ -6,6 +6,7 @@ import { buildMealPlanShoppingSuggestions } from "./shopping-list-suggestions";
 
 const now = new Date("2026-10-02T08:00:00.000Z");
 const tomatoId = "507f1f77bcf86cd799439011";
+const pastaId = "507f1f77bcf86cd799439013";
 const dishId = "507f191e810c19729de860ea";
 
 const dish: Dish = {
@@ -24,6 +25,7 @@ const dish: Dish = {
 			name: "Pasta",
 			quantity: 250,
 			unit: "gram",
+			inventoryItemId: pastaId,
 		},
 	],
 	createdAt: now,
@@ -37,6 +39,15 @@ const inventory: InventoryItem[] = [
 		quantity: 4,
 		unit: "unit",
 		location: "fridge",
+		createdAt: now,
+		updatedAt: now,
+	},
+	{
+		id: pastaId,
+		name: "Pasta",
+		quantity: 0,
+		unit: "gram",
+		location: "pantry",
 		createdAt: now,
 		updatedAt: now,
 	},
@@ -71,7 +82,7 @@ describe("weekly meal plan shopping suggestions", () => {
 				name: "Pasta",
 				quantity: 500,
 				unit: "gram",
-				mealPlanIngredientKey: "ingredient:pasta:gram",
+				inventoryItemId: pastaId,
 			},
 		]);
 	});
@@ -84,12 +95,12 @@ describe("weekly meal plan shopping suggestions", () => {
 				name: "Pasta",
 				quantity: 250,
 				unit: "gram",
-				mealPlanIngredientKey: "ingredient:pasta:gram",
+				inventoryItemId: pastaId,
 			},
 		]);
 	});
 
-	test("merges equivalent unlinked ingredients and ignores missing dishes", () => {
+	test("merges ingredients by product and ignores missing dishes", () => {
 		const secondDish: Dish = {
 			...dish,
 			id: "507f191e810c19729de860eb",
@@ -99,6 +110,7 @@ describe("weekly meal plan shopping suggestions", () => {
 					name: " pasta ",
 					quantity: 100,
 					unit: "gram",
+					inventoryItemId: pastaId,
 				},
 			],
 		};
@@ -122,7 +134,7 @@ describe("weekly meal plan shopping suggestions", () => {
 			name: "Pasta",
 			quantity: 350,
 			unit: "gram",
-			mealPlanIngredientKey: "ingredient:pasta:gram",
+			inventoryItemId: pastaId,
 		});
 	});
 });

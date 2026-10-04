@@ -9,21 +9,15 @@ interface ShoppingListSuggestionBase {
 	unit: QuantityUnit;
 }
 
-export type ShoppingListSuggestion = ShoppingListSuggestionBase &
-	(
-		| { inventoryItemId: string; mealPlanIngredientKey?: never }
-		| { inventoryItemId?: never; mealPlanIngredientKey: string }
-	);
+export type ShoppingListSuggestion = ShoppingListSuggestionBase & {
+	inventoryItemId: string;
+};
 
 interface IngredientTotal {
 	name: string;
 	quantity: number;
 	unit: QuantityUnit;
-	inventoryItemId?: string;
-}
-
-function normalizeIngredientName(name: string): string {
-	return name.trim().toLocaleLowerCase("es");
+	inventoryItemId: string;
 }
 
 function roundQuantity(quantity: number): number {
@@ -46,29 +40,26 @@ export function buildMealPlanShoppingSuggestions(
 		}
 
 		for (const ingredient of dish.ingredients) {
-			const linkedInventory = ingredient.inventoryItemId
-				? inventoryById.get(ingredient.inventoryItemId)
-				: undefined;
-			const normalizedName = normalizeIngredientName(ingredient.name);
-			const key = linkedInventory
-				? `inventory:${linkedInventory.id}`
-				: `ingredient:${normalizedName}:${ingredient.unit}`;
+			const linkedInventory = inventoryById.get(ingredient.inventoryItemId);
+			if (!linkedInventory) {
+				continue;
+			}
+			const key = `inventory:${linkedInventory.id}`;
 			const current = totals.get(key);
 
 			totals.set(key, {
 				name: linkedInventory?.name ?? current?.name ?? ingredient.name.trim(),
 				quantity: (current?.quantity ?? 0) + ingredient.quantity,
 				unit: linkedInventory?.unit ?? ingredient.unit,
-				...(linkedInventory ? { inventoryItemId: linkedInventory.id } : {}),
+				inventoryItemId: linkedInventory.id,
 			});
 		}
 	}
 
 	const suggestions: ShoppingListSuggestion[] = [];
-	for (const [key, total] of totals) {
-		const availableQuantity = total.inventoryItemId
-			? (inventoryById.get(total.inventoryItemId)?.quantity ?? 0)
-			: 0;
+	for (const total of totals.values()) {
+		const availableQuantity =
+			inventoryById.get(total.inventoryItemId)?.quantity ?? 0;
 		const missingQuantity = roundQuantity(total.quantity - availableQuantity);
 
 		if (missingQuantity <= 0) {
@@ -79,9 +70,7 @@ export function buildMealPlanShoppingSuggestions(
 			name: total.name,
 			quantity: missingQuantity,
 			unit: total.unit,
-			...(total.inventoryItemId
-				? { inventoryItemId: total.inventoryItemId }
-				: { mealPlanIngredientKey: key }),
+			inventoryItemId: total.inventoryItemId,
 		});
 	}
 

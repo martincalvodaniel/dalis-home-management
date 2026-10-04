@@ -43,7 +43,7 @@ export function ShoppingListPreview({ suggestions }: ShoppingListPreviewProps) {
 			<ul className="mt-4 grid gap-2 border-t border-[#d4d3b9] pt-4 text-sm dark:border-white/10 sm:grid-cols-2">
 				{suggestions.map((suggestion) => (
 					<li
-						key={suggestion.inventoryItemId ?? suggestion.mealPlanIngredientKey}
+						key={suggestion.inventoryItemId}
 						className="flex items-baseline justify-between gap-3 rounded-xl bg-white/45 px-3 py-2.5 dark:bg-white/5"
 					>
 						<span className="min-w-0 truncate font-medium">

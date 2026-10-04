@@ -9,7 +9,7 @@ import type { InventoryItem } from "@/schemas/inventory-item";
 
 interface DishIngredientDocument
 	extends Omit<DishIngredient, "inventoryItemId"> {
-	inventoryItemId?: ObjectId;
+	inventoryItemId: ObjectId;
 }
 
 interface DishDocument extends Omit<Dish, "id" | "ingredients"> {
@@ -31,22 +31,15 @@ function toIngredient(
 	document: DishIngredientDocument,
 	inventoryItemsById: ReadonlyMap<string, InventoryItem>,
 ): DishIngredient {
-	const inventoryItemId = document.inventoryItemId?.toHexString();
-	const inventoryItem = inventoryItemId
-		? inventoryItemsById.get(inventoryItemId)
-		: undefined;
-	const ingredient: DishIngredient = {
+	const inventoryItemId = document.inventoryItemId.toHexString();
+	const inventoryItem = inventoryItemsById.get(inventoryItemId);
+	return {
 		id: document.id,
 		name: inventoryItem?.name ?? document.name,
 		quantity: document.quantity,
 		unit: inventoryItem?.unit ?? document.unit,
+		inventoryItemId,
 	};
-
-	if (inventoryItemId) {
-		ingredient.inventoryItemId = inventoryItemId;
-	}
-
-	return ingredient;
 }
 
 function toIngredientDocument(
@@ -80,10 +73,8 @@ async function loadInventoryItemsById(
 	documents: readonly DishDocument[],
 ): Promise<Map<string, InventoryItem>> {
 	const ids = documents.flatMap((document) =>
-		document.ingredients.flatMap((ingredient) =>
-			ingredient.inventoryItemId
-				? [ingredient.inventoryItemId.toHexString()]
-				: [],
+		document.ingredients.map((ingredient) =>
+			ingredient.inventoryItemId.toHexString(),
 		),
 	);
 	const inventoryItems = await findInventoryItemsByIds(ids);

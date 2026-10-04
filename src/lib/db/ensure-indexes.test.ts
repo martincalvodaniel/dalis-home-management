@@ -6,6 +6,7 @@ import {
 	ensureIndexes,
 	INDEX_SPECS,
 	type IndexDatabase,
+	OBSOLETE_INDEX_SPECS,
 	validateIndexSpecs,
 } from "./ensure-indexes";
 
@@ -76,16 +77,17 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
-	test("registers the unique generated meal-plan ingredient", () => {
-		expect(INDEX_SPECS).toContainEqual({
-			collection: "shopping_list_items",
-			keys: { mealPlanIngredientKey: 1 },
-			options: {
-				name: "meal_plan_ingredient_key_unique",
-				unique: true,
-				partialFilterExpression: { mealPlanIngredientKey: { $type: "string" } },
+	test("registers obsolete catalog indexes for removal", () => {
+		expect(OBSOLETE_INDEX_SPECS).toEqual([
+			{
+				collection: "inventory_items",
+				name: "normalized_name_asc_unit_asc",
 			},
-		});
+			{
+				collection: "shopping_list_items",
+				name: "meal_plan_ingredient_key_unique",
+			},
+		]);
 	});
 
 	test("registers one meal plan per week", () => {
@@ -140,13 +142,18 @@ describe("MongoDB index specifications", () => {
 		expect(() => validateIndexSpecs(specs)).not.toThrow();
 	});
 
-	test("creates every registered index with its options", async () => {
+	test("creates registered indexes and removes obsolete indexes", async () => {
 		const calls: Array<{ collection: string; name: string }> = [];
+		const drops: Array<{ collection: string; name: string }> = [];
 		const database: IndexDatabase = {
 			collection: (collection) => ({
 				createIndex: async (_keys, options) => {
 					calls.push({ collection, name: options?.name ?? "" });
 					return options?.name ?? "";
+				},
+				dropIndex: async (name) => {
+					drops.push({ collection, name });
+					return { ok: 1 };
 				},
 			}),
 		};
@@ -163,11 +170,14 @@ describe("MongoDB index specifications", () => {
 			},
 		];
 
-		await ensureIndexes(database, specs);
+		await ensureIndexes(database, specs, [
+			{ collection: "items", name: "legacy_lookup" },
+		]);
 
 		expect(calls).toEqual([
 			{ collection: "items", name: "created_at_desc" },
 			{ collection: "tasks", name: "owner_id_asc_due_at_asc" },
 		]);
+		expect(drops).toEqual([{ collection: "items", name: "legacy_lookup" }]);
 	});
 });

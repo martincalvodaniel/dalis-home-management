@@ -5,9 +5,10 @@ import type {
 	CreateIndexesOptions,
 	IndexSpecification,
 } from "mongodb";
+import { MongoServerError } from "mongodb";
 
 export interface IndexDatabase {
-	collection(name: string): Pick<Collection, "createIndex">;
+	collection(name: string): Pick<Collection, "createIndex" | "dropIndex">;
 }
 
 export interface IndexSpec {
@@ -15,6 +16,22 @@ export interface IndexSpec {
 	keys: IndexSpecification;
 	options: CreateIndexesOptions & { name: string };
 }
+
+export interface ObsoleteIndexSpec {
+	collection: string;
+	name: string;
+}
+
+export const OBSOLETE_INDEX_SPECS: readonly ObsoleteIndexSpec[] = [
+	{
+		collection: "inventory_items",
+		name: "normalized_name_asc_unit_asc",
+	},
+	{
+		collection: "shopping_list_items",
+		name: "meal_plan_ingredient_key_unique",
+	},
+];
 
 // Add index specifications here alongside the feature that introduces the
 // collection or query pattern. Do not add speculative indexes.
@@ -64,15 +81,6 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 		},
 	},
 	{
-		collection: "shopping_list_items",
-		keys: { mealPlanIngredientKey: 1 },
-		options: {
-			name: "meal_plan_ingredient_key_unique",
-			unique: true,
-			partialFilterExpression: { mealPlanIngredientKey: { $type: "string" } },
-		},
-	},
-	{
 		collection: "weekly_meal_plans",
 		keys: { weekStart: 1 },
 		options: { name: "week_start_unique", unique: true },
@@ -108,6 +116,7 @@ export function validateIndexSpecs(specs: readonly IndexSpec[]): void {
 export async function ensureIndexes(
 	database: IndexDatabase,
 	specs: readonly IndexSpec[] = INDEX_SPECS,
+	obsoleteSpecs: readonly ObsoleteIndexSpec[] = OBSOLETE_INDEX_SPECS,
 ): Promise<void> {
 	validateIndexSpecs(specs);
 
@@ -115,5 +124,18 @@ export async function ensureIndexes(
 		await database
 			.collection(spec.collection)
 			.createIndex(spec.keys, spec.options);
+	}
+
+	for (const spec of obsoleteSpecs) {
+		try {
+			await database.collection(spec.collection).dropIndex(spec.name);
+		} catch (error) {
+			if (
+				!(error instanceof MongoServerError) ||
+				(error.code !== 27 && error.codeName !== "IndexNotFound")
+			) {
+				throw error;
+			}
+		}
 	}
 }

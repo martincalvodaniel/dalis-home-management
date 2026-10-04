@@ -8,7 +8,7 @@ export const dishIngredientSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	quantity: z.number().finite().positive().max(999_999),
 	unit: quantityUnitSchema,
-	inventoryItemId: objectIdSchema.optional(),
+	inventoryItemId: objectIdSchema,
 });
 
 export const dishIngredientInputSchema = dishIngredientSchema
