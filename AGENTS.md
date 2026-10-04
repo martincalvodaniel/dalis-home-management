@@ -65,6 +65,7 @@ src/
 - **PDF generation**: keep all `pdf-lib` logic in `lib/pdf/**` (server-only) and expose it via a route handler or Server Action — never bundle it client-side.
 - **Naming**: `kebab-case` for files/folders, `PascalCase` for components, `camelCase` for functions/variables.
 - **Env vars**: access only through `config/**`; never read `process.env` directly inside components or features.
+- **MongoDB indexes**: when a feature adds a collection or a new query, sort, lookup, or uniqueness pattern, evaluate its index needs in the same change and register required indexes in `src/lib/db/ensure-indexes.ts`. Never create indexes ad hoc.
 
 ## Component Extraction Policy
 - **No inline components.** Define components in their own files instead of declaring them inline within other components.

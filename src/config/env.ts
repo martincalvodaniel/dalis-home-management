@@ -1,11 +1,12 @@
 import "server-only";
 
-type RequiredAuthEnvName =
+type RequiredEnvName =
 	| "BETTER_AUTH_SECRET"
 	| "GOOGLE_CLIENT_ID"
-	| "GOOGLE_CLIENT_SECRET";
+	| "GOOGLE_CLIENT_SECRET"
+	| "MONGODB_URI";
 
-function getRequiredEnv(name: RequiredAuthEnvName): string {
+function getRequiredEnv(name: RequiredEnvName): string {
 	const value = process.env[name]?.trim();
 
 	if (!value) {
@@ -54,5 +55,13 @@ export function getAuthEnv() {
 		googleClientId: getRequiredEnv("GOOGLE_CLIENT_ID"),
 		googleClientSecret: getRequiredEnv("GOOGLE_CLIENT_SECRET"),
 		secret: getRequiredEnv("BETTER_AUTH_SECRET"),
+	};
+}
+
+export function getDatabaseEnv() {
+	return {
+		databaseName: process.env.MONGODB_DB?.trim() || "dalis-home-management",
+		isDevelopment: process.env.NODE_ENV === "development",
+		uri: getRequiredEnv("MONGODB_URI"),
 	};
 }
