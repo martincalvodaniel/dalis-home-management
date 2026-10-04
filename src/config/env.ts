@@ -24,7 +24,7 @@ function withHttps(host: string): string {
 	return `https://${host}`;
 }
 
-export function getAuthBaseUrl(): string {
+function getAuthBaseUrl(): string {
 	const explicit = process.env.BETTER_AUTH_URL?.trim();
 	if (explicit) {
 		return stripTrailingSlash(explicit);

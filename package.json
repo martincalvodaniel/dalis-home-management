@@ -35,5 +35,15 @@
 		"knip": "6.39.0",
 		"tailwindcss": "4.3.3",
 		"typescript": "7.0.2"
+	},
+	"knip": {
+		"ignoreDependencies": [
+			"swr"
+		],
+		"ignoreIssues": {
+			"src/schemas/**/*.ts": [
+				"exports"
+			]
+		}
 	}
 }
