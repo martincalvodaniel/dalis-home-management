@@ -43,7 +43,7 @@ export function HomePreview() {
 									</svg>
 								</div>
 								<span className="rounded-full bg-white/10 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-[#dce9df]">
-									Próximamente
+									Disponible
 								</span>
 							</div>
 							<p className="mt-6 text-sm text-[#bcd0c4]">Inventario</p>

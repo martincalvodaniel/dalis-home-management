@@ -1,6 +1,9 @@
 "use client";
 
+import { useDeferredValue, useState } from "react";
+import { inventoryLocationLabels } from "@/features/inventory/inventory-options";
 import type { InventoryItem } from "@/schemas/inventory-item";
+import { inventoryItemLocations } from "@/schemas/inventory-item";
 import { InventoryItemCard } from "./inventory-item-card";
 
 interface InventoryListProps {
@@ -8,7 +11,31 @@ interface InventoryListProps {
 	onEdit: (item: InventoryItem) => void;
 }
 
+type LocationFilter = InventoryItem["location"] | "all";
+
+const diacriticPattern = /\p{Diacritic}/gu;
+
+function normalizeSearchText(value: string): string {
+	return value
+		.normalize("NFD")
+		.replace(diacriticPattern, "")
+		.toLocaleLowerCase("es");
+}
+
 export function InventoryList({ items, onEdit }: InventoryListProps) {
+	const [search, setSearch] = useState("");
+	const [location, setLocation] = useState<LocationFilter>("all");
+	const deferredSearch = useDeferredValue(search);
+	const normalizedSearch = normalizeSearchText(deferredSearch.trim());
+	const filteredItems = items.filter((item) => {
+		const matchesLocation = location === "all" || item.location === location;
+		const matchesSearch =
+			normalizedSearch.length === 0 ||
+			normalizeSearchText(item.name).includes(normalizedSearch);
+
+		return matchesLocation && matchesSearch;
+	});
+
 	if (items.length === 0) {
 		return (
 			<section className="grid min-h-72 place-items-center rounded-[1.75rem] border border-dashed border-[#cbd4ca] bg-white/35 p-8 text-center dark:border-white/15 dark:bg-white/[0.025]">
@@ -30,7 +57,7 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
 
 	return (
 		<section aria-labelledby="inventory-list-title">
-			<div className="flex items-center justify-between gap-4">
+			<div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
 				<div>
 					<p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
 						En casa
@@ -42,13 +69,53 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
 						Nuestros productos
 					</h2>
 				</div>
+				<div className="grid gap-2 sm:grid-cols-[minmax(0,15rem)_minmax(0,11rem)]">
+					<label className="sr-only" htmlFor="inventory-search">
+						Buscar productos
+					</label>
+					<input
+						id="inventory-search"
+						type="search"
+						value={search}
+						onChange={(event) => setSearch(event.target.value)}
+						placeholder="Buscar productos"
+						className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
+					/>
+					<label className="sr-only" htmlFor="inventory-location-filter">
+						Filtrar por ubicación
+					</label>
+					<select
+						id="inventory-location-filter"
+						value={location}
+						onChange={(event) =>
+							setLocation(event.target.value as LocationFilter)
+						}
+						className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
+					>
+						<option value="all">Todas las ubicaciones</option>
+						{inventoryItemLocations.map((itemLocation) => (
+							<option key={itemLocation} value={itemLocation}>
+								{inventoryLocationLabels[itemLocation]}
+							</option>
+						))}
+					</select>
+				</div>
 			</div>
 
-			<div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-				{items.map((item) => (
-					<InventoryItemCard key={item.id} item={item} onEdit={onEdit} />
-				))}
-			</div>
+			{filteredItems.length === 0 ? (
+				<div className="mt-5 rounded-2xl border border-dashed border-[#cbd4ca] bg-white/35 px-5 py-10 text-center dark:border-white/15 dark:bg-white/[0.025]">
+					<p className="font-semibold">No hay productos que coincidan.</p>
+					<p className="mt-1 text-sm text-[#697970] dark:text-[#aebbb3]">
+						Prueba con otro nombre o ubicación.
+					</p>
+				</div>
+			) : (
+				<div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+					{filteredItems.map((item) => (
+						<InventoryItemCard key={item.id} item={item} onEdit={onEdit} />
+					))}
+				</div>
+			)}
 		</section>
 	);
 }
