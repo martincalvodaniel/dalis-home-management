@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { quantityUnitShortLabels } from "@/config/quantity-units"
+import { QuantityStepper } from "@/components/ui/quantity-stepper"
 import {
   deleteShoppingListItemAction,
   setShoppingListItemPurchasedAction,
+  setShoppingListItemQuantityAction,
 } from "@/features/shopping-list/actions"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
@@ -13,10 +14,6 @@ interface ShoppingListItemRowProps {
   item: ShoppingListItem
   onEdit: (item: ShoppingListItem) => void
 }
-
-const quantityFormatter = new Intl.NumberFormat("es-ES", {
-  maximumFractionDigits: 2,
-})
 
 export function ShoppingListItemRow({
   item,
@@ -59,6 +56,23 @@ export function ShoppingListItemRow({
     })
   }
 
+  function updateQuantity(quantity: number) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await setShoppingListItemQuantityAction(
+          item.id,
+          quantity
+        )
+        if (!result.success) {
+          setError(result.message)
+        }
+      } catch {
+        setError("No se ha podido actualizar la cantidad.")
+      }
+    })
+  }
+
   return (
     <>
       <article className="rounded-2xl border border-[#dde1d8] bg-white/75 p-4 shadow-[0_8px_25px_rgba(50,72,60,0.04)] dark:border-white/10 dark:bg-[#182e26]/80">
@@ -88,10 +102,15 @@ export function ShoppingListItemRow({
               >
                 {item.name}
               </p>
-              <p className="shrink-0 text-sm font-semibold text-[#6b7a72] dark:text-[#abb8b0]">
-                {quantityFormatter.format(item.quantity)}{" "}
-                {quantityUnitShortLabels[item.unit]}
-              </p>
+              <QuantityStepper
+                value={item.quantity}
+                unit={item.unit}
+                minimum={0.01}
+                label={item.name}
+                disabled={isPending}
+                onChange={updateQuantity}
+                className="bg-[#edf0e9] text-[#5c6e64] dark:bg-white/10 dark:text-[#c6d1ca]"
+              />
               {item.isMealPlanGenerated ? (
                 <span
                   className="grid size-6 shrink-0 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"

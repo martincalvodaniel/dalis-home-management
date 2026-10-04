@@ -23,6 +23,8 @@ export const shoppingListItemInputSchema = shoppingListItemSchema
 
 export const shoppingListItemIdSchema = z.string().regex(/^[0-9a-f]{24}$/i)
 export const shoppingListItemPurchasedSchema = z.boolean()
+export const shoppingListItemQuantitySchema =
+  shoppingListItemSchema.shape.quantity
 export const purchasedShoppingListItemIdsSchema = z
   .array(shoppingListItemIdSchema)
   .min(1)

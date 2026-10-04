@@ -172,6 +172,27 @@ export async function setShoppingListItemPurchased(
   return result.matchedCount > 0
 }
 
+export async function setShoppingListItemQuantity(
+  id: string,
+  quantity: number
+): Promise<boolean> {
+  const collection = await getCollection<ShoppingListItemDocument>(
+    COLLECTION_NAMES.shoppingListItems
+  )
+  const result = await collection.updateOne(
+    { _id: toObjectId(id), settlementState: { $exists: false } },
+    {
+      $set: {
+        quantity,
+        isMealPlanGenerated: false,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return result.matchedCount > 0
+}
+
 export async function deleteShoppingListItem(id: string): Promise<boolean> {
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems

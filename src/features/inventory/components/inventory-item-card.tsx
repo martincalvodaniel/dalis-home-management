@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { QuantityStepper } from "@/components/ui/quantity-stepper"
 import {
   deleteInventoryItemAction,
   markInventoryItemOutOfStockAction,
+  setInventoryItemQuantityAction,
 } from "@/features/inventory/actions"
-import { inventoryUnitShortLabels } from "@/features/inventory/inventory-options"
 import { addInventoryItemToShoppingListAction } from "@/features/shopping-list/actions"
 import type { InventoryItem } from "@/schemas/inventory-item"
 
@@ -14,10 +15,6 @@ interface InventoryItemCardProps {
   item: InventoryItem
   onEdit: (item: InventoryItem) => void
 }
-
-const quantityFormatter = new Intl.NumberFormat("es-ES", {
-  maximumFractionDigits: 2,
-})
 
 export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +34,21 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
         }
       } catch {
         setError("No se ha podido actualizar el producto.")
+      }
+    })
+  }
+
+  function updateQuantity(quantity: number) {
+    setError(null)
+    setNotice(null)
+    startTransition(async () => {
+      try {
+        const result = await setInventoryItemQuantityAction(item.id, quantity)
+        if (!result.success) {
+          setError(result.message)
+        }
+      } catch {
+        setError("No se ha podido actualizar la cantidad.")
       }
     })
   }
@@ -102,17 +114,19 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
               </div>
             ) : null}
           </div>
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
+          <QuantityStepper
+            value={item.quantity}
+            unit={item.unit}
+            minimum={0}
+            label={item.name}
+            disabled={isPending}
+            onChange={updateQuantity}
+            className={
               isOutOfStock
                 ? "bg-[#f3cdb9] text-[#7d3e25] dark:bg-[#754530] dark:text-[#ffe2d2]"
                 : "bg-[#dce9dc] text-[#365b43] dark:bg-[#294b3e] dark:text-[#cfe2d5]"
-            }`}
-          >
-            {isOutOfStock
-              ? "Agotado"
-              : `${quantityFormatter.format(item.quantity)} ${inventoryUnitShortLabels[item.unit]}`}
-          </span>
+            }
+          />
         </div>
 
         {error ? (

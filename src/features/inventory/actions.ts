@@ -9,12 +9,14 @@ import {
   deleteInventoryItem,
   findInventoryItemByNameAndUnit,
   markInventoryItemOutOfStock,
+  setInventoryItemQuantity,
   updateInventoryItem,
 } from "@/lib/db/inventory-items"
 import { isInventoryItemUsedInShoppingList } from "@/lib/db/shopping-list-items"
 import {
   inventoryItemIdSchema,
   inventoryItemInputSchema,
+  inventoryItemQuantitySchema,
 } from "@/schemas/inventory-item"
 
 const INVENTORY_PATH = "/inventory"
@@ -127,6 +129,31 @@ export async function markInventoryItemOutOfStockAction(
   }
 
   revalidatePath(INVENTORY_PATH)
+  return { success: true }
+}
+
+export async function setInventoryItemQuantityAction(
+  id: unknown,
+  quantity: unknown
+): Promise<InventoryActionResult> {
+  await requireAuthorizedSession()
+  const idResult = inventoryItemIdSchema.safeParse(id)
+  const quantityResult = inventoryItemQuantitySchema.safeParse(quantity)
+
+  if (!idResult.success || !quantityResult.success) {
+    return invalidInputResult
+  }
+
+  const updated = await setInventoryItemQuantity(
+    idResult.data,
+    quantityResult.data
+  )
+  if (!updated) {
+    return { success: false, message: "No se ha encontrado el producto." }
+  }
+
+  revalidatePath(INVENTORY_PATH)
+  revalidatePath(MEAL_PLAN_PATH)
   return { success: true }
 }
 

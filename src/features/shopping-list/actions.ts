@@ -9,6 +9,7 @@ import {
   PurchasedShoppingListSettlementError,
   restockAndDeletePurchasedShoppingListItems,
   setShoppingListItemPurchased,
+  setShoppingListItemQuantity,
   updateShoppingListItem,
 } from "@/lib/db/shopping-list-items"
 import { inventoryItemIdSchema } from "@/schemas/inventory-item"
@@ -17,6 +18,7 @@ import {
   shoppingListItemIdSchema,
   shoppingListItemInputSchema,
   shoppingListItemPurchasedSchema,
+  shoppingListItemQuantitySchema,
 } from "@/schemas/shopping-list-item"
 
 const SHOPPING_LIST_PATH = "/shopping-list"
@@ -137,6 +139,30 @@ export async function setShoppingListItemPurchasedAction(
   const updated = await setShoppingListItemPurchased(
     idResult.data,
     purchasedResult.data
+  )
+  if (!updated) {
+    return { success: false, message: "No se ha encontrado el producto." }
+  }
+
+  revalidateShoppingList()
+  return { success: true }
+}
+
+export async function setShoppingListItemQuantityAction(
+  id: unknown,
+  quantity: unknown
+): Promise<ShoppingListActionResult> {
+  await requireAuthorizedSession()
+  const idResult = shoppingListItemIdSchema.safeParse(id)
+  const quantityResult = shoppingListItemQuantitySchema.safeParse(quantity)
+
+  if (!idResult.success || !quantityResult.success) {
+    return invalidInputResult
+  }
+
+  const updated = await setShoppingListItemQuantity(
+    idResult.data,
+    quantityResult.data
   )
   if (!updated) {
     return { success: false, message: "No se ha encontrado el producto." }
