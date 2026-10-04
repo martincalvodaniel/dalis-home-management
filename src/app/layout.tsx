@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Dalis Home Management",
-	description: "Home management for the Dalis family",
+	title: "Dali — Nuestro hogar, más fácil",
+	description:
+		"Utilidades creadas por Dani y Pali para organizar y gestionar su hogar.",
 };
 
 export default function RootLayout({
