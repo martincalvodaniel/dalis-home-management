@@ -35,9 +35,17 @@ export function DishCatalogPage({
 							nuestro menú.
 						</p>
 					</div>
-					<div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-4 py-2 text-sm font-semibold text-[#53675c] dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
-						<span className="size-2 rounded-full bg-[#d3a448]" />
-						{dishes.length} {dishes.length === 1 ? "plato" : "platos"}
+					<div className="flex flex-wrap items-center gap-2">
+						<Link
+							href="/meal-plan"
+							className="inline-flex min-h-10 items-center rounded-full bg-[#1d4f40] px-4 text-sm font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 dark:ring-offset-[#10221c]"
+						>
+							Abrir menú semanal
+						</Link>
+						<div className="inline-flex items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-4 py-2 text-sm font-semibold text-[#53675c] dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
+							<span className="size-2 rounded-full bg-[#d3a448]" />
+							{dishes.length} {dishes.length === 1 ? "plato" : "platos"}
+						</div>
 					</div>
 				</header>
 
