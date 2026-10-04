@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useState } from "react"
 import type { InventoryItem } from "@/schemas/inventory-item"
 import { InventoryManager } from "./inventory-manager"
@@ -28,14 +27,7 @@ export function InventoryPage({ items }: InventoryPageProps) {
       <div className="mx-auto w-full max-w-7xl">
         <header className="flex flex-col gap-3 border-b border-[#d9ded3] pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:pb-6 dark:border-white/10">
           <div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-lg text-xs font-semibold text-[#5f7167] transition hover:text-[#17352b] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] sm:text-sm dark:text-[#aebcb3] dark:hover:text-white"
-            >
-              <span aria-hidden="true">←</span>
-              Dali
-            </Link>
-            <p className="mt-5 hidden text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49] sm:block">
+            <p className="hidden text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49] sm:block">
               Nuestro hogar
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-[-0.05em] sm:text-5xl">
