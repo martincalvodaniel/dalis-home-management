@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { DishOption } from "@/features/meal-planning/dish-option";
+import type { ShoppingListSuggestion } from "@/features/meal-planning/shopping-list-suggestions";
 import {
 	addDaysToIsoDate,
 	type WeeklyMealSlot,
@@ -7,6 +8,7 @@ import {
 import { ClearWeekButton } from "./clear-week-button";
 import { CopyPreviousWeekButton } from "./copy-previous-week-button";
 import { GenerateShoppingListButton } from "./generate-shopping-list-button";
+import { ShoppingListPreview } from "./shopping-list-preview";
 import { WeeklyMealCalendar } from "./weekly-meal-calendar";
 
 interface MealPlanPageProps {
@@ -14,6 +16,7 @@ interface MealPlanPageProps {
 	today: string;
 	slots: WeeklyMealSlot[];
 	dishes: DishOption[];
+	shoppingSuggestions: ShoppingListSuggestion[];
 }
 
 const weekDateFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -34,6 +37,7 @@ export function MealPlanPage({
 	today,
 	slots,
 	dishes,
+	shoppingSuggestions,
 }: MealPlanPageProps) {
 	const previousWeek = addDaysToIsoDate(weekStart, -7);
 	const nextWeek = addDaysToIsoDate(weekStart, 7);
@@ -109,7 +113,16 @@ export function MealPlanPage({
 					{slots.length === 0 && dishes.length > 0 ? (
 						<CopyPreviousWeekButton weekStart={weekStart} />
 					) : null}
-					<GenerateShoppingListButton weekStart={weekStart} />
+					{slots.length > 0 ? (
+						shoppingSuggestions.length > 0 ? (
+							<div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+								<ShoppingListPreview suggestions={shoppingSuggestions} />
+								<GenerateShoppingListButton weekStart={weekStart} />
+							</div>
+						) : (
+							<ShoppingListPreview suggestions={shoppingSuggestions} />
+						)
+					) : null}
 					{dishes.length > 0 ? (
 						<WeeklyMealCalendar
 							weekStart={weekStart}

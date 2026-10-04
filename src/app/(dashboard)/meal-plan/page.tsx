@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { MealPlanPage } from "@/features/meal-planning/components/meal-plan-page";
+import { buildMealPlanShoppingSuggestions } from "@/features/meal-planning/shopping-list-suggestions";
 import {
 	getCurrentWeekStart,
 	getMadridIsoDate,
 } from "@/features/meal-planning/week-utils";
 import { listDishes } from "@/lib/db/dishes";
+import { listInventoryItems } from "@/lib/db/inventory-items";
 import { findWeeklyMealPlan } from "@/lib/db/weekly-meal-plans";
 import { weekStartSchema } from "@/schemas/weekly-meal-plan";
 
@@ -28,10 +30,14 @@ export default async function MealPlanRoute({
 	const weekStart = parsedWeek.success
 		? parsedWeek.data
 		: getCurrentWeekStart();
-	const [dishes, mealPlan] = await Promise.all([
+	const [dishes, mealPlan, inventoryItems] = await Promise.all([
 		listDishes(),
 		findWeeklyMealPlan(weekStart),
+		listInventoryItems(),
 	]);
+	const shoppingSuggestions = mealPlan
+		? buildMealPlanShoppingSuggestions(mealPlan, dishes, inventoryItems)
+		: [];
 
 	return (
 		<MealPlanPage
@@ -39,6 +45,7 @@ export default async function MealPlanRoute({
 			today={getMadridIsoDate()}
 			slots={mealPlan?.slots ?? []}
 			dishes={dishes.map(({ id, name }) => ({ id, name }))}
+			shoppingSuggestions={shoppingSuggestions}
 		/>
 	);
 }
