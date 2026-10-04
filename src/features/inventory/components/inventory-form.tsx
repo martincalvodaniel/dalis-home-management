@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useState, useTransition } from "react"
+import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { SelectField } from "@/components/ui/select-field"
 import {
@@ -34,6 +34,10 @@ const locationOptions = inventoryItemLocations.map((location) => ({
 }))
 
 export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
+  const nameId = useId()
+  const quantityId = useId()
+  const unitId = useId()
+  const locationId = useId()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const isEditing = item !== null
@@ -79,10 +83,10 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
       </h2>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <label className="block text-sm font-semibold" htmlFor="name">
+        <label className="block text-sm font-semibold" htmlFor={nameId}>
           Nombre
           <input
-            id="name"
+            id={nameId}
             name="name"
             type="text"
             required
@@ -94,10 +98,10 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
         </label>
 
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-3">
-          <label className="block text-sm font-semibold" htmlFor="quantity">
+          <label className="block text-sm font-semibold" htmlFor={quantityId}>
             Cantidad
             <input
-              id="quantity"
+              id={quantityId}
               name="quantity"
               type="number"
               min="0"
@@ -109,9 +113,9 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
             />
           </label>
           <div className="block text-sm font-semibold">
-            <label htmlFor="unit">Unidad</label>
+            <label htmlFor={unitId}>Unidad</label>
             <SelectField
-              id="unit"
+              id={unitId}
               name="unit"
               defaultValue={item?.unit ?? "unit"}
               options={unitOptions}
@@ -121,9 +125,9 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
         </div>
 
         <div className="block text-sm font-semibold">
-          <label htmlFor="location">Ubicación</label>
+          <label htmlFor={locationId}>Ubicación</label>
           <SelectField
-            id="location"
+            id={locationId}
             name="location"
             defaultValue={item?.location ?? "pantry"}
             options={locationOptions}
