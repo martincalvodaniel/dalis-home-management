@@ -77,12 +77,14 @@ export function InventoryForm({
 
   return (
     <section className="rounded-[1.75rem] border border-[#dde1d8] bg-[#fbfaf6] p-5 shadow-[0_18px_50px_rgba(50,72,60,0.08)] sm:p-6 dark:border-white/10 dark:bg-[#182e26]">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c36d49]">
-        {isEditing ? "Editar producto" : "Nuevo producto"}
-      </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        {isEditing ? item.name : "Añadir al inventario"}
-      </h2>
+      <header className="sticky -top-5 z-10 -mx-5 -mt-5 border-b border-[#dde1d8] bg-[#fbfaf6] px-5 pt-5 pb-4 sm:-top-6 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6 dark:border-white/10 dark:bg-[#182e26]">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c36d49]">
+          {isEditing ? "Editar producto" : "Nuevo producto"}
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+          {isEditing ? item.name : "Añadir al inventario"}
+        </h2>
+      </header>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <label className="block text-sm font-semibold" htmlFor={nameId}>
@@ -134,7 +136,7 @@ export function InventoryForm({
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
-        <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+        <div className="sticky -bottom-5 z-10 -mx-5 -mb-5 flex gap-2 border-t border-[#dde1d8] bg-[#fbfaf6] px-5 py-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 dark:border-white/10 dark:bg-[#182e26]">
           <button
             type="submit"
             disabled={isPending}
@@ -146,7 +148,7 @@ export function InventoryForm({
             type="button"
             onClick={onCancel}
             disabled={isPending}
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#ccd5ca] px-5 text-sm font-semibold transition hover:bg-[#edf0e9] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#ccd5ca] px-5 text-sm font-semibold transition hover:bg-[#edf0e9] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
           >
             Cancelar
           </button>

@@ -35,10 +35,22 @@ export function ConfirmationDialog({
       return
     }
 
-    if (open && !dialog.open) {
+    if (!open) {
+      if (dialog.open) {
+        dialog.close()
+      }
+      return
+    }
+
+    if (!dialog.open) {
       dialog.showModal()
-    } else if (!open && dialog.open) {
-      dialog.close()
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = previousOverflow
     }
   }, [open])
 
@@ -49,7 +61,7 @@ export function ConfirmationDialog({
         event.preventDefault()
         onDismiss()
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[1.75rem] border border-[#d8dfd7] bg-[#fbfaf6] p-0 text-[#17352b] shadow-[0_28px_90px_rgba(10,35,27,0.35)] backdrop:bg-[#0b2119]/65 backdrop:backdrop-blur-sm dark:border-white/15 dark:bg-[#182e26] dark:text-[#f4f1e7]"
+      className="m-auto w-[calc(100%-2rem)] max-w-md overscroll-contain rounded-[1.75rem] border border-[#d8dfd7] bg-[#fbfaf6] p-0 text-[#17352b] shadow-[0_28px_90px_rgba(10,35,27,0.35)] backdrop:bg-[#0b2119]/65 backdrop:backdrop-blur-sm dark:border-white/15 dark:bg-[#182e26] dark:text-[#f4f1e7]"
     >
       <div className="p-6 sm:p-7">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#c36d49]">

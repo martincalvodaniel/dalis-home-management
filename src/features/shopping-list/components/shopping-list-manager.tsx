@@ -1,6 +1,4 @@
-"use client"
-
-import { useState } from "react"
+import { ModalDialog } from "@/components/ui/modal-dialog"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ShoppingList } from "./shopping-list"
@@ -9,26 +7,40 @@ import { ShoppingListForm } from "./shopping-list-form"
 interface ShoppingListManagerProps {
   items: ShoppingListItem[]
   products: CatalogProductOption[]
+  editingItem: ShoppingListItem | null
+  isFormOpen: boolean
+  onEdit: (item: ShoppingListItem) => void
+  onClose: () => void
 }
 
 export function ShoppingListManager({
   items,
   products,
+  editingItem,
+  isFormOpen,
+  onEdit,
+  onClose,
 }: ShoppingListManagerProps) {
-  const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
-
   return (
-    <div className="grid gap-6 py-7 lg:grid-cols-[21rem_minmax(0,1fr)] lg:items-start lg:gap-8 lg:py-10">
-      <div className="lg:sticky lg:top-6">
-        <ShoppingListForm
-          key={editingItem?.id ?? "new-item"}
-          item={editingItem}
-          products={products}
-          onCancel={() => setEditingItem(null)}
-          onSaved={() => setEditingItem(null)}
-        />
-      </div>
-      <ShoppingList items={items} products={products} onEdit={setEditingItem} />
+    <div className="py-7 lg:py-10">
+      <ShoppingList items={items} products={products} onEdit={onEdit} />
+      <ModalDialog
+        open={isFormOpen}
+        ariaLabel={
+          editingItem ? `Editar ${editingItem.name}` : "Añadir producto"
+        }
+        onDismiss={onClose}
+      >
+        {isFormOpen ? (
+          <ShoppingListForm
+            key={editingItem?.id ?? "new-item"}
+            item={editingItem}
+            products={products}
+            onCancel={onClose}
+            onSaved={onClose}
+          />
+        ) : null}
+      </ModalDialog>
     </div>
   )
 }

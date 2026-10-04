@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ShoppingListManager } from "./shopping-list-manager"
@@ -8,7 +11,19 @@ interface ShoppingListPageProps {
 }
 
 export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
+  const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const pendingCount = items.filter((item) => !item.isPurchased).length
+
+  function closeForm() {
+    setIsFormOpen(false)
+    setEditingItem(null)
+  }
+
+  function editItem(item: ShoppingListItem) {
+    setEditingItem(item)
+    setIsFormOpen(true)
+  }
 
   return (
     <main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
@@ -26,13 +41,32 @@ export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
               que hace falta.
             </p>
           </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
-            <span className="size-2 rounded-full bg-[#e8966f]" />
-            {pendingCount} {pendingCount === 1 ? "pendiente" : "pendientes"}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
+              <span className="size-2 rounded-full bg-[#e8966f]" />
+              {pendingCount} {pendingCount === 1 ? "pendiente" : "pendientes"}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingItem(null)
+                setIsFormOpen(true)
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-[#a75938] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#8e472c] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 sm:px-4 sm:py-2 sm:text-sm dark:ring-offset-[#10221c]"
+            >
+              + Añadir
+            </button>
           </div>
         </header>
 
-        <ShoppingListManager items={items} products={products} />
+        <ShoppingListManager
+          items={items}
+          products={products}
+          editingItem={editingItem}
+          isFormOpen={isFormOpen}
+          onEdit={editItem}
+          onClose={closeForm}
+        />
       </div>
     </main>
   )

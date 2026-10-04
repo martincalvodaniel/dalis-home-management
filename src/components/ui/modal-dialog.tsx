@@ -31,10 +31,22 @@ export function ModalDialog({
       return
     }
 
-    if (open && !dialog.open) {
+    if (!open) {
+      if (dialog.open) {
+        dialog.close()
+      }
+      return
+    }
+
+    if (!dialog.open) {
       dialog.showModal()
-    } else if (!open && dialog.open) {
-      dialog.close()
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = previousOverflow
     }
   }, [open])
 
@@ -46,7 +58,7 @@ export function ModalDialog({
         event.preventDefault()
         onDismiss()
       }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto border-0 bg-transparent p-0 text-[#17352b] shadow-[0_28px_90px_rgba(10,35,27,0.35)] backdrop:bg-[#0b2119]/65 backdrop:backdrop-blur-sm dark:text-[#f4f1e7] ${sizeClasses[size]}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto overscroll-contain border-0 bg-transparent p-0 text-[#17352b] shadow-[0_28px_90px_rgba(10,35,27,0.35)] backdrop:bg-[#0b2119]/65 backdrop:backdrop-blur-sm dark:text-[#f4f1e7] ${sizeClasses[size]}`}
     >
       {children}
     </dialog>

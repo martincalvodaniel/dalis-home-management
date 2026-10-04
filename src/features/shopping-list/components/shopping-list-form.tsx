@@ -89,23 +89,18 @@ export function ShoppingListForm({
 
   return (
     <section className="rounded-[1.75rem] border border-[#e6d8cb] bg-[#f8e7dd]/75 p-5 shadow-[0_18px_50px_rgba(91,57,40,0.08)] sm:p-6 dark:border-[#704735] dark:bg-[#412d24]/80">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#efb89e]">
-        {isEditing ? "Editar producto" : "Apuntar producto"}
-      </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        {isEditing ? item.name : "¿Qué hace falta?"}
-      </h2>
+      <header className="sticky -top-5 z-10 -mx-5 -mt-5 border-b border-[#e6d8cb] bg-[#f8e7dd] px-5 pt-5 pb-4 sm:-top-6 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6 dark:border-[#704735] dark:bg-[#412d24]">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#efb89e]">
+          {isEditing ? "Editar producto" : "Apuntar producto"}
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+          {isEditing ? item.name : "¿Qué hace falta?"}
+        </h2>
+      </header>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="text-sm font-semibold">
-          {isEditing ? (
-            <div>
-              <p>Producto</p>
-              <p className="mt-2 min-h-11 rounded-xl border border-[#d8c5b8] bg-white/55 px-3 py-3 text-sm font-semibold dark:border-white/15 dark:bg-[#2e211c]/70">
-                {item.name}
-              </p>
-            </div>
-          ) : (
+          {isEditing ? null : (
             <>
               <div className="flex items-center justify-between gap-3">
                 <label htmlFor={productId}>Producto</label>
@@ -158,7 +153,7 @@ export function ShoppingListForm({
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
-        <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+        <div className="sticky -bottom-5 z-10 -mx-5 -mb-5 flex gap-2 border-t border-[#e6d8cb] bg-[#f8e7dd] px-5 py-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 dark:border-[#704735] dark:bg-[#412d24]">
           <button
             type="submit"
             disabled={isPending}
@@ -166,16 +161,14 @@ export function ShoppingListForm({
           >
             {isPending ? "Guardando…" : isEditing ? "Guardar" : "Añadir"}
           </button>
-          {isEditing ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isPending}
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#d8c5b8] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
-            >
-              Cancelar
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#d8c5b8] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+          >
+            Cancelar
+          </button>
         </div>
       </form>
       {isEditing ? null : (
