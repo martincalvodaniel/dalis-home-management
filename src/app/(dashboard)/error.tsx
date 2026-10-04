@@ -40,7 +40,7 @@ export default function DashboardError({ retry }: DashboardErrorProps) {
             href="/"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#ccd5ce] px-6 text-sm font-semibold transition hover:bg-[#edf0e9] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] dark:border-white/15 dark:hover:bg-white/10"
           >
-            Volver al panel
+            Volver a la compra
           </Link>
         </div>
       </section>
