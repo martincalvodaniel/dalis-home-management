@@ -6,17 +6,26 @@ import {
 	createDish,
 	deleteDish,
 	findDishById,
+	listDishes,
 	updateDish,
 } from "@/lib/db/dishes";
+import { listInventoryItems } from "@/lib/db/inventory-items";
+import { addMealPlanSuggestionsToShoppingList } from "@/lib/db/shopping-list-items";
 import {
+	findWeeklyMealPlan,
 	isDishUsedInMealPlans,
 	setWeeklyMealSlot,
 } from "@/lib/db/weekly-meal-plans";
 import { dishIdSchema, dishInputSchema } from "@/schemas/dish";
-import { weeklyMealSlotInputSchema } from "@/schemas/weekly-meal-plan";
+import {
+	weeklyMealSlotInputSchema,
+	weekStartSchema,
+} from "@/schemas/weekly-meal-plan";
+import { buildMealPlanShoppingSuggestions } from "./shopping-list-suggestions";
 
 const MEALS_PATH = "/meals";
 const MEAL_PLAN_PATH = "/meal-plan";
+const SHOPPING_LIST_PATH = "/shopping-list";
 
 type DishActionResult = { success: true } | { success: false; message: string };
 
@@ -108,4 +117,42 @@ export async function setWeeklyMealSlotAction(
 	await setWeeklyMealSlot(result.data);
 	revalidatePath(MEAL_PLAN_PATH);
 	return { success: true };
+}
+
+type GenerateShoppingListResult =
+	| { success: true; itemCount: number }
+	| { success: false; message: string };
+
+export async function generateWeeklyShoppingListAction(
+	weekStart: unknown,
+): Promise<GenerateShoppingListResult> {
+	await requireAuthorizedSession();
+	const result = weekStartSchema.safeParse(weekStart);
+
+	if (!result.success) {
+		return { success: false, message: "La semana seleccionada no es válida." };
+	}
+
+	const [mealPlan, dishes, inventoryItems] = await Promise.all([
+		findWeeklyMealPlan(result.data),
+		listDishes(),
+		listInventoryItems(),
+	]);
+
+	if (!mealPlan || mealPlan.slots.length === 0) {
+		return {
+			success: false,
+			message: "Planifica al menos una comida antes de preparar la lista.",
+		};
+	}
+
+	const suggestions = buildMealPlanShoppingSuggestions(
+		mealPlan,
+		dishes,
+		inventoryItems,
+	);
+	await addMealPlanSuggestionsToShoppingList(suggestions);
+	revalidatePath(SHOPPING_LIST_PATH);
+
+	return { success: true, itemCount: suggestions.length };
 }

@@ -4,6 +4,7 @@ import {
 	addDaysToIsoDate,
 	type WeeklyMealSlot,
 } from "@/schemas/weekly-meal-plan";
+import { GenerateShoppingListButton } from "./generate-shopping-list-button";
 import { WeeklyMealCalendar } from "./weekly-meal-calendar";
 
 interface MealPlanPageProps {
@@ -96,7 +97,11 @@ export function MealPlanPage({
 					</div>
 				</header>
 
-				<section className="py-6" aria-label="Comidas y cenas de la semana">
+				<section
+					className="space-y-4 py-6"
+					aria-label="Comidas y cenas de la semana"
+				>
+					<GenerateShoppingListButton weekStart={weekStart} />
 					{dishes.length > 0 ? (
 						<WeeklyMealCalendar
 							weekStart={weekStart}

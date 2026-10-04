@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
 import { buildInventoryShoppingListUpdate } from "@/lib/db/shopping-list-item-update";
 import type { InventoryItem } from "@/schemas/inventory-item";
+import type { QuantityUnit } from "@/schemas/quantity-unit";
 import type {
 	ShoppingListItem,
 	ShoppingListItemInput,
@@ -13,6 +14,15 @@ interface ShoppingListItemDocument
 	extends Omit<ShoppingListItem, "id" | "inventoryItemId"> {
 	_id: ObjectId;
 	inventoryItemId?: ObjectId;
+	mealPlanIngredientKey?: string;
+}
+
+interface MealPlanShoppingListSuggestion {
+	name: string;
+	quantity: number;
+	unit: QuantityUnit;
+	inventoryItemId?: string;
+	mealPlanIngredientKey?: string;
 }
 
 function toShoppingListItem(
@@ -96,6 +106,66 @@ export async function addInventoryItemToShoppingList(
 	);
 }
 
+export async function addMealPlanSuggestionsToShoppingList(
+	suggestions: MealPlanShoppingListSuggestion[],
+): Promise<void> {
+	if (suggestions.length === 0) {
+		return;
+	}
+
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const now = new Date();
+
+	await collection.bulkWrite(
+		suggestions.map((suggestion) => {
+			const inventoryItemId = suggestion.inventoryItemId
+				? new ObjectId(suggestion.inventoryItemId)
+				: undefined;
+			const filter = inventoryItemId
+				? { inventoryItemId }
+				: { mealPlanIngredientKey: suggestion.mealPlanIngredientKey };
+
+			return {
+				updateOne: {
+					filter,
+					update: [
+						{
+							$set: {
+								name: suggestion.name,
+								unit: suggestion.unit,
+								quantity: {
+									$cond: [
+										{ $eq: ["$isPurchased", false] },
+										{
+											$max: [
+												{ $ifNull: ["$quantity", 0] },
+												suggestion.quantity,
+											],
+										},
+										suggestion.quantity,
+									],
+								},
+								...(inventoryItemId ? { inventoryItemId } : {}),
+								...(suggestion.mealPlanIngredientKey
+									? {
+											mealPlanIngredientKey: suggestion.mealPlanIngredientKey,
+										}
+									: {}),
+								isPurchased: false,
+								createdAt: { $ifNull: ["$createdAt", now] },
+								updatedAt: now,
+							},
+						},
+					],
+					upsert: true,
+				},
+			};
+		}),
+	);
+}
+
 export async function updateShoppingListItem(
 	id: string,
 	input: ShoppingListItemInput,
@@ -105,7 +175,10 @@ export async function updateShoppingListItem(
 	);
 	const result = await collection.updateOne(
 		{ _id: toObjectId(id) },
-		{ $set: { ...input, updatedAt: new Date() } },
+		{
+			$set: { ...input, updatedAt: new Date() },
+			$unset: { mealPlanIngredientKey: "" },
+		},
 	);
 
 	return result.matchedCount > 0;

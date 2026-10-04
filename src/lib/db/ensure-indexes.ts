@@ -50,6 +50,15 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 		},
 	},
 	{
+		collection: "shopping_list_items",
+		keys: { mealPlanIngredientKey: 1 },
+		options: {
+			name: "meal_plan_ingredient_key_unique",
+			unique: true,
+			partialFilterExpression: { mealPlanIngredientKey: { $type: "string" } },
+		},
+	},
+	{
 		collection: "weekly_meal_plans",
 		keys: { weekStart: 1 },
 		options: { name: "week_start_unique", unique: true },

@@ -56,6 +56,18 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers the unique generated meal-plan ingredient", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "shopping_list_items",
+			keys: { mealPlanIngredientKey: 1 },
+			options: {
+				name: "meal_plan_ingredient_key_unique",
+				unique: true,
+				partialFilterExpression: { mealPlanIngredientKey: { $type: "string" } },
+			},
+		});
+	});
+
 	test("registers one meal plan per week", () => {
 		expect(INDEX_SPECS).toContainEqual({
 			collection: "weekly_meal_plans",
