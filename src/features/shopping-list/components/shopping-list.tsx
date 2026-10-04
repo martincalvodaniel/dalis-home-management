@@ -14,6 +14,8 @@ import { ShoppingListItemRow } from "./shopping-list-item-row"
 interface ShoppingListProps {
   items: ShoppingListItem[]
   products: CatalogProductOption[]
+  search: string
+  onSearchChange: (search: string) => void
   onEdit: (item: ShoppingListItem) => void
 }
 
@@ -26,10 +28,15 @@ function normalizeSearchText(value: string): string {
     .toLocaleLowerCase("es")
 }
 
-export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
+export function ShoppingList({
+  items,
+  products,
+  search,
+  onSearchChange,
+  onEdit,
+}: ShoppingListProps) {
   const titleId = useId()
   const searchInputId = useId()
-  const [search, setSearch] = useState("")
   const [activePurchasePlace, setActivePurchasePlace] = useState("*")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
@@ -112,7 +119,7 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
             id={searchInputId}
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar producto"
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#182e26]"
           />

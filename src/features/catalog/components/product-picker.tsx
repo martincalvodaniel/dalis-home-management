@@ -14,6 +14,8 @@ interface ProductPickerProps {
   className?: string
   searchable?: boolean
   showPurchasePlaces?: boolean
+  initialSearch?: string
+  onSearchChange?: (value: string) => void
 }
 
 const diacriticPattern = /\p{Diacritic}/gu
@@ -34,10 +36,12 @@ export function ProductPicker({
   className,
   searchable = false,
   showPurchasePlaces = true,
+  initialSearch = "",
+  onSearchChange,
 }: ProductPickerProps) {
   const resultListId = useId()
   const selectedProduct = products.find((product) => product.id === value)
-  const [search, setSearch] = useState(selectedProduct?.name ?? "")
+  const [search, setSearch] = useState(selectedProduct?.name ?? initialSearch)
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
@@ -82,7 +86,9 @@ export function ProductPicker({
             }
           }}
           onChange={(event) => {
-            setSearch(event.target.value)
+            const nextSearch = event.target.value
+            setSearch(nextSearch)
+            onSearchChange?.(nextSearch)
             setIsOpen(true)
             if (value) {
               onValueChange("")

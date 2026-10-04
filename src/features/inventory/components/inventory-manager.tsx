@@ -8,6 +8,8 @@ import { InventoryList } from "./inventory-list"
 
 interface InventoryManagerProps {
   items: InventoryItem[]
+  search: string
+  onSearchChange: (search: string) => void
   editingItem: InventoryItem | null
   isFormOpen: boolean
   onEdit: (item: InventoryItem) => void
@@ -16,6 +18,8 @@ interface InventoryManagerProps {
 
 export function InventoryManager({
   items,
+  search,
+  onSearchChange,
   editingItem,
   isFormOpen,
   onEdit,
@@ -25,7 +29,12 @@ export function InventoryManager({
 
   return (
     <div className="py-7 lg:py-10">
-      <InventoryList items={items} onEdit={onEdit} />
+      <InventoryList
+        items={items}
+        search={search}
+        onSearchChange={onSearchChange}
+        onEdit={onEdit}
+      />
       <ModalDialog
         open={isFormOpen}
         ariaLabel={
@@ -37,6 +46,7 @@ export function InventoryManager({
           <InventoryForm
             key={editingItem?.id ?? `new-item-${items.length}`}
             item={editingItem}
+            initialName={search.trim()}
             purchasePlaces={purchasePlaces}
             onCancel={onClose}
             onSaved={onClose}

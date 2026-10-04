@@ -8,6 +8,7 @@ export interface IngredientDraft {
   quantity: string
   inventoryItemId: string
   legacyName?: string
+  productSearch?: string
 }
 
 interface IngredientRowProps {
@@ -78,11 +79,16 @@ export function IngredientRow({
               id={`inventory-${ingredient.key}`}
               products={products}
               value={ingredient.inventoryItemId}
+              initialSearch={ingredient.productSearch ?? ingredient.legacyName}
+              onSearchChange={(productSearch) =>
+                onChange({ ...ingredient, productSearch })
+              }
               onValueChange={(inventoryItemId) =>
                 onChange({
                   ...ingredient,
                   inventoryItemId,
                   legacyName: undefined,
+                  productSearch: undefined,
                 })
               }
               disabled={disabled}

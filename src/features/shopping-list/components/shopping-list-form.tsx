@@ -15,6 +15,7 @@ import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 interface ShoppingListFormProps {
   item: ShoppingListItem | null
   products: CatalogProductOption[]
+  initialProductSearch?: string
   onCancel: () => void
   onSaved: () => void
 }
@@ -22,6 +23,7 @@ interface ShoppingListFormProps {
 export function ShoppingListForm({
   item,
   products,
+  initialProductSearch,
   onCancel,
   onSaved,
 }: ShoppingListFormProps) {
@@ -31,6 +33,7 @@ export function ShoppingListForm({
   const [selectedProductId, setSelectedProductId] = useState(
     item?.inventoryItemId ?? ""
   )
+  const [productSearch, setProductSearch] = useState(initialProductSearch ?? "")
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -117,8 +120,16 @@ export function ShoppingListForm({
                 id={productId}
                 products={availableProducts}
                 value={selectedProductId}
+                initialSearch={productSearch}
+                onSearchChange={setProductSearch}
                 onValueChange={(productId) => {
                   setSelectedProductId(productId)
+                  const selectedProduct = availableProducts.find(
+                    (product) => product.id === productId
+                  )
+                  if (selectedProduct) {
+                    setProductSearch(selectedProduct.name)
+                  }
                   setNotice(null)
                 }}
                 disabled={isPending}
@@ -179,6 +190,7 @@ export function ShoppingListForm({
               : "catalog-product-closed"
           }
           open={isProductDialogOpen}
+          initialName={productSearch.trim() || undefined}
           purchasePlaces={getPurchasePlaces(availableProducts)}
           onDismiss={() => setIsProductDialogOpen(false)}
           onCreated={handleProductCreated}
