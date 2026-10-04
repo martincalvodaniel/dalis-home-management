@@ -1,3 +1,17 @@
+import type { QuantityUnit } from "@/schemas/quantity-unit"
+
+const quantitySteps: Record<QuantityUnit, number> = {
+  unit: 1,
+  gram: 1,
+  kilogram: 0.1,
+  milliliter: 1,
+  liter: 0.1,
+}
+
+export function getQuantityStep(unit: QuantityUnit): number {
+  return quantitySteps[unit]
+}
+
 export function adjustQuantity(
   value: number,
   step: number,

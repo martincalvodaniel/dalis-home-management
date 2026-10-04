@@ -1,6 +1,9 @@
 "use client"
 
-import { adjustQuantity } from "@/components/ui/quantity-stepper-value"
+import {
+  adjustQuantity,
+  getQuantityStep,
+} from "@/components/ui/quantity-stepper-value"
 import { quantityUnitShortLabels } from "@/config/quantity-units"
 import type { QuantityUnit } from "@/schemas/quantity-unit"
 
@@ -18,14 +21,6 @@ const quantityFormatter = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 2,
 })
 
-const quantitySteps: Record<QuantityUnit, number> = {
-  unit: 1,
-  gram: 1,
-  kilogram: 0.1,
-  milliliter: 1,
-  liter: 0.1,
-}
-
 export function QuantityStepper({
   value,
   unit,
@@ -35,7 +30,7 @@ export function QuantityStepper({
   className,
   onChange,
 }: QuantityStepperProps) {
-  const step = quantitySteps[unit]
+  const step = getQuantityStep(unit)
   const canDecrease = value > minimum
   const canIncrease = value < 999_999
 

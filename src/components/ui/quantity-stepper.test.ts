@@ -1,7 +1,18 @@
 import { describe, expect, test } from "bun:test"
-import { adjustQuantity } from "@/components/ui/quantity-stepper-value"
+import {
+  adjustQuantity,
+  getQuantityStep,
+} from "@/components/ui/quantity-stepper-value"
 
 describe("quantity stepper adjustment", () => {
+  test("uses whole or decimal steps according to the product unit", () => {
+    expect(getQuantityStep("unit")).toBe(1)
+    expect(getQuantityStep("gram")).toBe(1)
+    expect(getQuantityStep("milliliter")).toBe(1)
+    expect(getQuantityStep("kilogram")).toBe(0.1)
+    expect(getQuantityStep("liter")).toBe(0.1)
+  })
+
   test("moves residual whole-unit quantities to the next valid integer", () => {
     expect(adjustQuantity(0.01, 1, "increase", 0.01)).toBe(1)
     expect(adjustQuantity(1.01, 1, "decrease", 0.01)).toBe(1)
