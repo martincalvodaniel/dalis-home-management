@@ -49,12 +49,6 @@ export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/meal-plan"
-              className="inline-flex min-h-11 items-center rounded-full bg-[#1d4f40] px-3 text-xs font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 sm:px-4 sm:text-sm dark:ring-offset-[#10221c]"
-            >
-              Abrir menú semanal
-            </Link>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
               <span className="size-2 rounded-full bg-[#d3a448]" />
               {dishes.length} {dishes.length === 1 ? "plato" : "platos"}
