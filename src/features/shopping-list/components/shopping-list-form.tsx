@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useState, useTransition } from "react"
+import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog"
 import { ProductPicker } from "@/features/catalog/components/product-picker"
@@ -24,6 +24,8 @@ export function ShoppingListForm({
   onCancel,
   onSaved,
 }: ShoppingListFormProps) {
+  const productId = useId()
+  const quantityId = useId()
   const [availableProducts, setAvailableProducts] = useState(products)
   const [selectedProductId, setSelectedProductId] = useState(
     item?.inventoryItemId ?? ""
@@ -95,9 +97,9 @@ export function ShoppingListForm({
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="text-sm font-semibold">
-          <label htmlFor="shopping-product">Producto</label>
+          <label htmlFor={productId}>Producto</label>
           <ProductPicker
-            id="shopping-product"
+            id={productId}
             products={availableProducts}
             value={selectedProductId}
             onValueChange={(productId) => {
@@ -117,10 +119,10 @@ export function ShoppingListForm({
           </button>
         </div>
 
-        <label className="block text-sm font-semibold" htmlFor="quantity">
+        <label className="block text-sm font-semibold" htmlFor={quantityId}>
           Cantidad a comprar
           <input
-            id="quantity"
+            id={quantityId}
             name="quantity"
             type="number"
             min="0.01"

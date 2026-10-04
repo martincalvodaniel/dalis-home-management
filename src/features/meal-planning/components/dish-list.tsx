@@ -1,6 +1,6 @@
 "use client"
 
-import { useDeferredValue, useState } from "react"
+import { useDeferredValue, useId, useState } from "react"
 import type { Dish } from "@/schemas/dish"
 import { DishCard } from "./dish-card"
 
@@ -19,6 +19,7 @@ function normalizeSearchText(value: string): string {
 }
 
 export function DishList({ dishes, onEdit }: DishListProps) {
+  const titleId = useId()
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
@@ -50,14 +51,14 @@ export function DishList({ dishes, onEdit }: DishListProps) {
   }
 
   return (
-    <section aria-labelledby="dish-list-title">
+    <section aria-labelledby={titleId}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
             Para repetir
           </p>
           <h2
-            id="dish-list-title"
+            id={titleId}
             className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
           >
             Platos guardados

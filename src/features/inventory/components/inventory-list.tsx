@@ -1,6 +1,6 @@
 "use client"
 
-import { useDeferredValue, useState } from "react"
+import { useDeferredValue, useId, useState } from "react"
 import { SelectField } from "@/components/ui/select-field"
 import { inventoryLocationLabels } from "@/features/inventory/inventory-options"
 import type { InventoryItem } from "@/schemas/inventory-item"
@@ -32,6 +32,9 @@ function normalizeSearchText(value: string): string {
 }
 
 export function InventoryList({ items, onEdit }: InventoryListProps) {
+  const listTitleId = useId()
+  const searchInputId = useId()
+  const locationFilterId = useId()
   const [search, setSearch] = useState("")
   const [location, setLocation] = useState<LocationFilter>("all")
   const deferredSearch = useDeferredValue(search)
@@ -65,25 +68,25 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
   }
 
   return (
-    <section aria-labelledby="inventory-list-title">
+    <section aria-labelledby={listTitleId}>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
             En casa
           </p>
           <h2
-            id="inventory-list-title"
+            id={listTitleId}
             className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
           >
             Nuestros productos
           </h2>
         </div>
         <div className="grid gap-2 sm:grid-cols-[minmax(0,15rem)_minmax(0,11rem)]">
-          <label className="sr-only" htmlFor="inventory-search">
+          <label className="sr-only" htmlFor={searchInputId}>
             Buscar productos
           </label>
           <input
-            id="inventory-search"
+            id={searchInputId}
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -91,11 +94,11 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
           />
           <div>
-            <label className="sr-only" htmlFor="inventory-location-filter">
+            <label className="sr-only" htmlFor={locationFilterId}>
               Filtrar por ubicación
             </label>
             <SelectField
-              id="inventory-location-filter"
+              id={locationFilterId}
               value={location}
               onValueChange={(nextLocation) =>
                 setLocation(nextLocation as LocationFilter)

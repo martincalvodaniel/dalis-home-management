@@ -1,5 +1,6 @@
 "use client"
 
+import { useId } from "react"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ClearPurchasedButton } from "./clear-purchased-button"
 import { ShoppingListItemRow } from "./shopping-list-item-row"
@@ -10,6 +11,7 @@ interface ShoppingListProps {
 }
 
 export function ShoppingList({ items, onEdit }: ShoppingListProps) {
+  const titleId = useId()
   const pendingItems = items.filter((item) => !item.isPurchased)
   const purchasedItems = items.filter((item) => item.isPurchased)
 
@@ -32,12 +34,12 @@ export function ShoppingList({ items, onEdit }: ShoppingListProps) {
   }
 
   return (
-    <section aria-labelledby="shopping-list-title">
+    <section aria-labelledby={titleId}>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
         Por comprar
       </p>
       <h2
-        id="shopping-list-title"
+        id={titleId}
         className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
       >
         Nuestra lista

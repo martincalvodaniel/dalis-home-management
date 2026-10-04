@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useState, useTransition } from "react"
+import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
@@ -38,6 +38,7 @@ function getInitialIngredients(dish: Dish | null): IngredientDraft[] {
 }
 
 export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
+  const nameId = useId()
   const [ingredients, setIngredients] = useState<IngredientDraft[]>(() =>
     getInitialIngredients(dish)
   )
@@ -139,10 +140,10 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
       </h2>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <label className="block text-sm font-semibold" htmlFor="dish-name">
+        <label className="block text-sm font-semibold" htmlFor={nameId}>
           Nombre del plato
           <input
-            id="dish-name"
+            id={nameId}
             name="name"
             type="text"
             required

@@ -8,7 +8,12 @@
       "project": "none",
       "solid": "none"
     },
-    "enabled": true
+    "enabled": true,
+    "rules": {
+      "performance": {
+        "noJsxPropsBind": "off"
+      }
+    }
   },
   "css": {
     "linter": {
@@ -53,5 +58,17 @@
       "semicolons": "asNeeded",
       "trailingCommas": "es5"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/app/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    }
+  ]
 }
