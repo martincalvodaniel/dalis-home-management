@@ -169,7 +169,7 @@ export function DishForm({
           />
         </label>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {ingredients.map((ingredient, index) => (
             <IngredientRow
               key={ingredient.key}
