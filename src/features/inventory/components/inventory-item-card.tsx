@@ -130,6 +130,14 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2 border-t border-[#e3e6df] pt-4 dark:border-white/10">
+          <button
+            type="button"
+            onClick={() => onEdit(item)}
+            disabled={isPending}
+            className="rounded-full bg-[#edf0e9] px-3.5 py-2 text-xs font-semibold transition hover:bg-[#e1e7de] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-50 dark:bg-white/10 dark:hover:bg-white/15"
+          >
+            Editar
+          </button>
           {isOutOfStock ? (
             <button
               type="button"
@@ -140,14 +148,6 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
               {isPending ? "Añadiendo…" : "Añadir a compra"}
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={() => onEdit(item)}
-            disabled={isPending}
-            className="rounded-full bg-[#edf0e9] px-3.5 py-2 text-xs font-semibold transition hover:bg-[#e1e7de] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-50 dark:bg-white/10 dark:hover:bg-white/15"
-          >
-            Editar
-          </button>
           {isOutOfStock ? null : (
             <button
               type="button"
