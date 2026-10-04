@@ -4,7 +4,8 @@ import { useDeferredValue, useId, useState } from "react"
 import { PurchasePlaceFilter } from "@/features/catalog/components/purchase-place-filter"
 import {
   getPurchasePlaces,
-  normalizePurchasePlaceKey,
+  matchesSelectedPurchasePlaces,
+  resolveSelectedPurchasePlaces,
 } from "@/features/catalog/purchase-places"
 import type { InventoryItem } from "@/schemas/inventory-item"
 import { InventoryItemCard } from "./inventory-item-card"
@@ -33,27 +34,21 @@ export function InventoryList({
 }: InventoryListProps) {
   const listTitleId = useId()
   const searchInputId = useId()
-  const [activePurchasePlace, setActivePurchasePlace] = useState("*")
+  const [selectedPurchasePlaces, setSelectedPurchasePlaces] = useState<
+    string[]
+  >([])
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
   const purchasePlaces = getPurchasePlaces(items)
-  const effectivePurchasePlace =
-    activePurchasePlace === "*" ||
-    purchasePlaces.some(
-      (place) =>
-        normalizePurchasePlaceKey(place) ===
-        normalizePurchasePlaceKey(activePurchasePlace)
-    )
-      ? activePurchasePlace
-      : "*"
+  const effectivePurchasePlaces = resolveSelectedPurchasePlaces(
+    purchasePlaces,
+    selectedPurchasePlaces
+  )
   const filteredItems = items.filter((item) => {
-    const matchesPurchasePlace =
-      effectivePurchasePlace === "*" ||
-      item.purchasePlaces.some(
-        (itemPurchasePlace) =>
-          normalizePurchasePlaceKey(itemPurchasePlace) ===
-          normalizePurchasePlaceKey(effectivePurchasePlace)
-      )
+    const matchesPurchasePlace = matchesSelectedPurchasePlaces(
+      item.purchasePlaces,
+      effectivePurchasePlaces
+    )
     const matchesSearch =
       normalizedSearch.length === 0 ||
       normalizeSearchText(item.name).includes(normalizedSearch)
@@ -111,8 +106,8 @@ export function InventoryList({
 
       <PurchasePlaceFilter
         places={purchasePlaces}
-        activePlace={effectivePurchasePlace}
-        onPlaceChange={setActivePurchasePlace}
+        selectedPlaces={effectivePurchasePlaces}
+        onSelectedPlacesChange={setSelectedPurchasePlaces}
       />
 
       {filteredItems.length === 0 ? (
@@ -123,7 +118,7 @@ export function InventoryList({
           </p>
         </div>
       ) : (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => (
             <InventoryItemCard key={item.id} item={item} onEdit={onEdit} />
           ))}

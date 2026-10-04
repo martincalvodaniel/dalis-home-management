@@ -1,10 +1,6 @@
 "use client"
 
-import {
-  adjustQuantity,
-  getQuantityStep,
-} from "@/components/ui/quantity-stepper-value"
-import { quantityUnitShortLabels } from "@/config/quantity-units"
+import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import { ProductPicker } from "@/features/catalog/components/product-picker"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 
@@ -40,24 +36,6 @@ export function IngredientRow({
   const selectedProduct = products.find(
     (product) => product.id === ingredient.inventoryItemId
   )
-  const quantityStep = selectedProduct
-    ? getQuantityStep(selectedProduct.unit)
-    : 1
-
-  function adjustIngredientQuantity(direction: "decrease" | "increase") {
-    const parsedQuantity = Number(ingredient.quantity)
-    const currentQuantity =
-      Number.isFinite(parsedQuantity) && parsedQuantity > 0
-        ? parsedQuantity
-        : 0.01
-
-    onChange({
-      ...ingredient,
-      quantity: String(
-        adjustQuantity(currentQuantity, quantityStep, direction, 0.01)
-      ),
-    })
-  }
 
   return (
     <div className="rounded-2xl border border-[#ded9c7] bg-white/65 p-3 sm:p-4 dark:border-white/10 dark:bg-[#182e26]/80">
@@ -120,54 +98,17 @@ export function IngredientRow({
         </p>
       ) : null}
 
-      <div className="mt-2 sm:mt-3">
-        <label
-          className="sr-only"
-          htmlFor={`ingredient-quantity-${ingredient.key}`}
-        >
-          Cantidad de {selectedProduct?.name ?? `ingrediente ${index + 1}`}
-        </label>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => adjustIngredientQuantity("decrease")}
-            disabled={disabled || Number(ingredient.quantity) <= 0.01}
-            aria-label={`Reducir cantidad de ${selectedProduct?.name ?? `ingrediente ${index + 1}`}`}
-            className="grid size-9 shrink-0 place-items-center rounded-xl border border-[#d0c69d] bg-white text-base font-bold text-[#75611f] transition hover:bg-[#faf6e8] focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:cursor-not-allowed disabled:opacity-35 sm:size-10 dark:border-white/15 dark:bg-[#10231c] dark:text-[#dccb8d] dark:hover:bg-white/5"
-          >
-            −
-          </button>
-          <div className="flex h-9 min-w-0 flex-1 items-center rounded-xl border border-[#d0d4c8] bg-white transition focus-within:border-[#8a7633] focus-within:ring-2 focus-within:ring-[#8a7633]/15 sm:h-10 dark:border-white/15 dark:bg-[#10231c]">
-            <input
-              id={`ingredient-quantity-${ingredient.key}`}
-              type="number"
-              min="0.01"
-              max="999999"
-              step="any"
-              required
-              value={ingredient.quantity}
-              onChange={(event) =>
-                onChange({ ...ingredient, quantity: event.target.value })
-              }
-              className="h-full min-w-0 flex-1 bg-transparent px-2 text-right font-normal outline-none"
-            />
-            {selectedProduct ? (
-              <span className="shrink-0 pr-3 text-xs font-semibold text-[#7e806d] dark:text-[#adb3a4]">
-                {quantityUnitShortLabels[selectedProduct.unit]}
-              </span>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={() => adjustIngredientQuantity("increase")}
-            disabled={disabled || Number(ingredient.quantity) >= 999_999}
-            aria-label={`Aumentar cantidad de ${selectedProduct?.name ?? `ingrediente ${index + 1}`}`}
-            className="grid size-9 shrink-0 place-items-center rounded-xl border border-[#d0c69d] bg-white text-base font-bold text-[#75611f] transition hover:bg-[#faf6e8] focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:cursor-not-allowed disabled:opacity-35 sm:size-10 dark:border-white/15 dark:bg-[#10231c] dark:text-[#dccb8d] dark:hover:bg-white/5"
-          >
-            +
-          </button>
-        </div>
-      </div>
+      <QuantityInputStepper
+        id={`ingredient-quantity-${ingredient.key}`}
+        value={ingredient.quantity}
+        unit={selectedProduct?.unit}
+        minimum={0.01}
+        label={selectedProduct?.name ?? `ingrediente ${index + 1}`}
+        disabled={disabled}
+        required
+        onValueChange={(quantity) => onChange({ ...ingredient, quantity })}
+        className="mt-2 sm:mt-3"
+      />
     </div>
   )
 }

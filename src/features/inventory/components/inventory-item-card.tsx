@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { QuantityStepper } from "@/components/ui/quantity-stepper"
+import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import {
   deleteInventoryItemAction,
   markInventoryItemOutOfStockAction,
@@ -20,8 +20,13 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [quantityDraft, setQuantityDraft] = useState(String(item.quantity))
   const [isPending, startTransition] = useTransition()
   const isOutOfStock = item.quantity === 0
+
+  useEffect(() => {
+    setQuantityDraft(String(item.quantity))
+  }, [item.quantity])
 
   function markOutOfStock() {
     setError(null)
@@ -31,7 +36,9 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
         const result = await markInventoryItemOutOfStockAction(item.id)
         if (!result.success) {
           setError(result.message)
+          return
         }
+        setQuantityDraft("0")
       } catch {
         setError("No se ha podido actualizar el producto.")
       }
@@ -39,6 +46,10 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   }
 
   function updateQuantity(quantity: number) {
+    if (quantity === item.quantity) {
+      return
+    }
+
     setError(null)
     setNotice(null)
     startTransition(async () => {
@@ -46,9 +57,11 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
         const result = await setInventoryItemQuantityAction(item.id, quantity)
         if (!result.success) {
           setError(result.message)
+          setQuantityDraft(String(item.quantity))
         }
       } catch {
         setError("No se ha podido actualizar la cantidad.")
+        setQuantityDraft(String(item.quantity))
       }
     })
   }
@@ -90,27 +103,34 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   return (
     <>
       <article
-        className={`rounded-2xl border p-5 transition ${
+        className={`min-w-0 max-w-full rounded-2xl border p-5 transition ${
           isOutOfStock
             ? "border-[#ead6ca] bg-[#fbede5]/70 dark:border-[#704735] dark:bg-[#412d24]/80"
             : "border-[#dde1d8] bg-white/75 shadow-[0_10px_30px_rgba(50,72,60,0.05)] dark:border-white/10 dark:bg-[#182e26]/80"
         }`}
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start justify-between gap-3">
           <p className="min-w-0 truncate text-lg font-semibold tracking-[-0.03em]">
             {item.name}
           </p>
-          <QuantityStepper
-            value={item.quantity}
+          <QuantityInputStepper
+            value={quantityDraft}
             unit={item.unit}
             minimum={0}
             label={item.name}
             disabled={isPending}
-            onChange={updateQuantity}
-            className={
+            onValueChange={setQuantityDraft}
+            onValueCommit={updateQuantity}
+            className="ml-auto w-40 max-w-[60%] shrink-0"
+            buttonClassName={
               isOutOfStock
-                ? "bg-[#f3cdb9] text-[#7d3e25] dark:bg-[#754530] dark:text-[#ffe2d2]"
-                : "bg-[#dce9dc] text-[#365b43] dark:bg-[#294b3e] dark:text-[#cfe2d5]"
+                ? "border-[#e7bda8] bg-[#f3cdb9] text-[#7d3e25] hover:bg-[#efbea5] dark:border-[#8a563e] dark:bg-[#754530] dark:text-[#ffe2d2] dark:hover:bg-[#815039]"
+                : "border-[#cadcca] bg-[#dce9dc] text-[#365b43] hover:bg-[#d0e3d1] dark:border-[#365d4d] dark:bg-[#294b3e] dark:text-[#cfe2d5] dark:hover:bg-[#315746]"
+            }
+            fieldClassName={
+              isOutOfStock
+                ? "border-[#e7bda8] bg-[#fff4ee] text-[#7d3e25] focus-within:border-[#b76543] focus-within:ring-[#b76543]/20 dark:border-[#8a563e] dark:bg-[#4b3025] dark:text-[#ffe2d2]"
+                : "border-[#cadcca] bg-[#f4f8f2] text-[#365b43] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-[#365d4d] dark:bg-[#203a30] dark:text-[#cfe2d5]"
             }
           />
         </div>

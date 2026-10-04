@@ -2,6 +2,7 @@
 
 import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
+import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog"
 import { ProductPicker } from "@/features/catalog/components/product-picker"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
@@ -33,21 +34,24 @@ export function ShoppingListForm({
   const [selectedProductId, setSelectedProductId] = useState(
     item?.inventoryItemId ?? ""
   )
+  const [quantity, setQuantity] = useState(String(item?.quantity ?? 1))
   const [productSearch, setProductSearch] = useState(initialProductSearch ?? "")
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const isEditing = item !== null
+  const selectedProduct = availableProducts.find(
+    (product) => product.id === selectedProductId
+  )
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
     const form = event.currentTarget
-    const formData = new FormData(form)
     const input = {
       inventoryItemId: selectedProductId,
-      quantity: Number(formData.get("quantity")),
+      quantity: Number(quantity),
     }
 
     startTransition(async () => {
@@ -63,6 +67,7 @@ export function ShoppingListForm({
 
         form.reset()
         setSelectedProductId("")
+        setQuantity("1")
         onSaved()
       } catch {
         setError("No se ha podido guardar el producto. Inténtalo de nuevo.")
@@ -141,20 +146,22 @@ export function ShoppingListForm({
           )}
         </div>
 
-        <label className="block text-sm font-semibold" htmlFor={quantityId}>
-          Cantidad a comprar
-          <input
+        <div className="text-sm font-semibold">
+          <label htmlFor={quantityId}>Cantidad a comprar</label>
+          <QuantityInputStepper
             id={quantityId}
-            name="quantity"
-            type="number"
-            min="0.01"
-            max="999999"
-            step="any"
+            value={quantity}
+            unit={selectedProduct?.unit ?? item?.unit}
+            minimum={0.01}
+            label={selectedProduct?.name ?? item?.name ?? "producto"}
+            disabled={isPending}
             required
-            defaultValue={item?.quantity ?? 1}
-            className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-4 font-normal outline-none transition focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
+            onValueChange={setQuantity}
+            className="mt-2"
+            buttonClassName="border-[#d8c5b8] bg-white/85 text-[#8e4d31] hover:bg-white dark:border-white/15 dark:bg-[#2e211c] dark:text-[#efb89e] dark:hover:bg-white/10"
+            fieldClassName="border-[#d8c5b8] bg-white/85 text-[#8e4d31] focus-within:border-[#a75938] focus-within:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c] dark:text-[#efb89e]"
           />
-        </label>
+        </div>
 
         {notice ? (
           <p className="text-xs font-semibold text-[#477052]" role="status">

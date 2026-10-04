@@ -10,9 +10,9 @@ export function MobileBottomNavigation() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d3dbd3] bg-[#fbfaf6]/95 shadow-[0_-10px_30px_rgba(30,57,47,0.08)] backdrop-blur-lg sm:hidden dark:border-white/10 dark:bg-[#142820]/95"
+      className="fixed inset-x-0 bottom-0 z-40 w-full max-w-[100vw] overflow-x-clip border-t border-[#d3dbd3] bg-[#fbfaf6]/95 shadow-[0_-10px_30px_rgba(30,57,47,0.08)] backdrop-blur-lg sm:hidden dark:border-white/10 dark:bg-[#142820]/95"
     >
-      <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto grid w-full min-w-0 max-w-lg grid-cols-4 gap-1 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         {primaryNavigationItems.map((item) => {
           const isActive = item.paths.some((path) => pathname === path)
 
