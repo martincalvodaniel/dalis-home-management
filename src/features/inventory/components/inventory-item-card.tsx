@@ -97,23 +97,9 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
         }`}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-lg font-semibold tracking-[-0.03em]">
-              {item.name}
-            </p>
-            {item.purchasePlaces.length > 0 ? (
-              <div className="mt-1 flex flex-wrap gap-1">
-                {item.purchasePlaces.map((place) => (
-                  <span
-                    key={place}
-                    className="rounded-full bg-[#edf2eb] px-2 py-0.5 text-[0.65rem] font-semibold text-[#60736a] dark:bg-white/5 dark:text-[#aebbb3]"
-                  >
-                    {place}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
+          <p className="min-w-0 truncate text-lg font-semibold tracking-[-0.03em]">
+            {item.name}
+          </p>
           <QuantityStepper
             value={item.quantity}
             unit={item.unit}

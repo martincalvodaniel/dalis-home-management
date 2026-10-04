@@ -102,15 +102,6 @@ export function ShoppingListItemRow({
               >
                 {item.name}
               </p>
-              <QuantityStepper
-                value={item.quantity}
-                unit={item.unit}
-                minimum={0.01}
-                label={item.name}
-                disabled={isPending}
-                onChange={updateQuantity}
-                className="bg-[#edf0e9] text-[#5c6e64] dark:bg-white/10 dark:text-[#c6d1ca]"
-              />
               {item.isMealPlanGenerated ? (
                 <span
                   className="grid size-6 shrink-0 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"
@@ -133,6 +124,15 @@ export function ShoppingListItemRow({
                   </svg>
                 </span>
               ) : null}
+              <QuantityStepper
+                value={item.quantity}
+                unit={item.unit}
+                minimum={0.01}
+                label={item.name}
+                disabled={isPending}
+                onChange={updateQuantity}
+                className="ml-auto bg-[#edf0e9] text-[#5c6e64] dark:bg-white/10 dark:text-[#c6d1ca]"
+              />
             </div>
             {error ? (
               <p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
