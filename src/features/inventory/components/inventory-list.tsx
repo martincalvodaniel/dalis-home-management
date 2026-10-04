@@ -1,7 +1,7 @@
 "use client"
 
 import { useDeferredValue, useId, useState } from "react"
-import { SelectField } from "@/components/ui/select-field"
+import { PurchasePlaceFilter } from "@/features/catalog/components/purchase-place-filter"
 import {
   getPurchasePlaces,
   normalizePurchasePlaceKey,
@@ -26,25 +26,27 @@ function normalizeSearchText(value: string): string {
 export function InventoryList({ items, onEdit }: InventoryListProps) {
   const listTitleId = useId()
   const searchInputId = useId()
-  const purchasePlaceFilterId = useId()
   const [search, setSearch] = useState("")
-  const [purchasePlace, setPurchasePlace] = useState("all")
+  const [activePurchasePlace, setActivePurchasePlace] = useState("*")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
-  const purchasePlaceFilterOptions = [
-    { value: "all", label: "Todos los lugares" },
-    ...getPurchasePlaces(items).map((place) => ({
-      value: place,
-      label: place,
-    })),
-  ]
+  const purchasePlaces = getPurchasePlaces(items)
+  const effectivePurchasePlace =
+    activePurchasePlace === "*" ||
+    purchasePlaces.some(
+      (place) =>
+        normalizePurchasePlaceKey(place) ===
+        normalizePurchasePlaceKey(activePurchasePlace)
+    )
+      ? activePurchasePlace
+      : "*"
   const filteredItems = items.filter((item) => {
     const matchesPurchasePlace =
-      purchasePlace === "all" ||
+      effectivePurchasePlace === "*" ||
       item.purchasePlaces.some(
         (itemPurchasePlace) =>
           normalizePurchasePlaceKey(itemPurchasePlace) ===
-          normalizePurchasePlaceKey(purchasePlace)
+          normalizePurchasePlaceKey(effectivePurchasePlace)
       )
     const matchesSearch =
       normalizedSearch.length === 0 ||
@@ -86,7 +88,7 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
             Nuestros productos
           </h2>
         </div>
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,15rem)_minmax(0,11rem)]">
+        <div className="w-full sm:w-60">
           <label className="sr-only" htmlFor={searchInputId}>
             Buscar productos
           </label>
@@ -98,20 +100,14 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
             placeholder="Buscar productos"
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
           />
-          <div>
-            <label className="sr-only" htmlFor={purchasePlaceFilterId}>
-              Filtrar por lugar de compra
-            </label>
-            <SelectField
-              id={purchasePlaceFilterId}
-              value={purchasePlace}
-              onValueChange={setPurchasePlace}
-              options={purchasePlaceFilterOptions}
-              className="min-h-11 rounded-full bg-white/75 text-sm dark:bg-[#182e26]"
-            />
-          </div>
         </div>
       </div>
+
+      <PurchasePlaceFilter
+        places={purchasePlaces}
+        activePlace={effectivePurchasePlace}
+        onPlaceChange={setActivePurchasePlace}
+      />
 
       {filteredItems.length === 0 ? (
         <div className="mt-5 rounded-2xl border border-dashed border-[#cbd4ca] bg-white/35 px-5 py-10 text-center dark:border-white/15 dark:bg-white/[0.025]">
