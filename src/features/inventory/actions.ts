@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAuthorizedSession } from "@/lib/auth/session";
+import { isInventoryItemUsedInDishes } from "@/lib/db/dishes";
 import {
 	createInventoryItem,
 	deleteInventoryItem,
 	markInventoryItemOutOfStock,
 	updateInventoryItem,
 } from "@/lib/db/inventory-items";
+import { isInventoryItemUsedInShoppingList } from "@/lib/db/shopping-list-items";
 import {
 	inventoryItemIdSchema,
 	inventoryItemInputSchema,
@@ -88,6 +90,24 @@ export async function deleteInventoryItemAction(
 
 	if (!result.success) {
 		return invalidInputResult;
+	}
+
+	const [usedInDishes, usedInShoppingList] = await Promise.all([
+		isInventoryItemUsedInDishes(result.data),
+		isInventoryItemUsedInShoppingList(result.data),
+	]);
+	if (usedInDishes) {
+		return {
+			success: false,
+			message:
+				"Desvincula este producto de los platos del recetario antes de eliminarlo.",
+		};
+	}
+	if (usedInShoppingList) {
+		return {
+			success: false,
+			message: "Elimina primero este producto de la lista de la compra.",
+		};
 	}
 
 	const deleted = await deleteInventoryItem(result.data);

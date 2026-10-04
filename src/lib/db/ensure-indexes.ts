@@ -28,6 +28,11 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 		},
 	},
 	{
+		collection: "dishes",
+		keys: { "ingredients.inventoryItemId": 1 },
+		options: { name: "ingredients_inventory_item_id_asc" },
+	},
+	{
 		collection: "inventory_items",
 		keys: { location: 1, name: 1 },
 		options: {

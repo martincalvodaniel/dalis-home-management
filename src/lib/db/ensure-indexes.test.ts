@@ -25,6 +25,14 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers the dish inventory link lookup index", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "dishes",
+			keys: { "ingredients.inventoryItemId": 1 },
+			options: { name: "ingredients_inventory_item_id_asc" },
+		});
+	});
+
 	test("registers the inventory list sort index", () => {
 		expect(INDEX_SPECS).toContainEqual({
 			collection: "inventory_items",

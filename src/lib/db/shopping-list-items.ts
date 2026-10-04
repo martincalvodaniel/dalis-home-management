@@ -72,6 +72,20 @@ export async function findShoppingListItemById(
 	return document ? toShoppingListItem(document) : null;
 }
 
+export async function isInventoryItemUsedInShoppingList(
+	inventoryItemId: string,
+): Promise<boolean> {
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const document = await collection.findOne(
+		{ inventoryItemId: toObjectId(inventoryItemId) },
+		{ projection: { _id: 1 } },
+	);
+
+	return document !== null;
+}
+
 export async function createShoppingListItem(
 	input: ShoppingListItemInput,
 ): Promise<string> {

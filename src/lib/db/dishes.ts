@@ -79,6 +79,18 @@ export async function findDishById(id: string): Promise<Dish | null> {
 	return document ? toDish(document) : null;
 }
 
+export async function isInventoryItemUsedInDishes(
+	inventoryItemId: string,
+): Promise<boolean> {
+	const collection = await getCollection<DishDocument>(COLLECTION_NAMES.dishes);
+	const document = await collection.findOne(
+		{ "ingredients.inventoryItemId": toObjectId(inventoryItemId) },
+		{ projection: { _id: 1 } },
+	);
+
+	return document !== null;
+}
+
 export async function createDish(input: DishInput): Promise<string> {
 	const collection = await getCollection<DishDocument>(COLLECTION_NAMES.dishes);
 	const now = new Date();
