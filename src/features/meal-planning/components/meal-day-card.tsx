@@ -1,4 +1,6 @@
 import type { DishOption } from "@/features/meal-planning/dish-option"
+import type { MealSlotLocation } from "@/features/meal-planning/meal-slot-move"
+import { getMealSlotKey } from "@/features/meal-planning/meal-slot-move"
 import type { Dish } from "@/schemas/dish"
 import { PlannedMealSlot } from "./planned-meal-slot"
 
@@ -9,6 +11,21 @@ interface MealDayCardProps {
   lunchDish: Dish | null
   dinnerDish: Dish | null
   dishOptions: DishOption[]
+  draggedSlotKey: string | null
+  dropTargetKey: string | null
+  dragDisabled: boolean
+  onDragStart: (source: MealSlotLocation) => void
+  onDragMove: (
+    source: MealSlotLocation,
+    clientX: number,
+    clientY: number
+  ) => void
+  onDragEnd: (
+    source: MealSlotLocation,
+    clientX: number,
+    clientY: number
+  ) => void
+  onDragCancel: () => void
 }
 
 const dayFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -29,9 +46,18 @@ export function MealDayCard({
   lunchDish,
   dinnerDish,
   dishOptions,
+  draggedSlotKey,
+  dropTargetKey,
+  dragDisabled,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
+  onDragCancel,
 }: MealDayCardProps) {
   const parsedDate = new Date(`${date}T00:00:00.000Z`)
   const isToday = date === today
+  const lunchKey = getMealSlotKey({ date, mealType: "lunch" })
+  const dinnerKey = getMealSlotKey({ date, mealType: "dinner" })
 
   return (
     <article
@@ -64,6 +90,13 @@ export function MealDayCard({
           mealType="lunch"
           dish={lunchDish}
           dishOptions={dishOptions}
+          dragDisabled={dragDisabled}
+          isDragged={draggedSlotKey === lunchKey}
+          isDropTarget={dropTargetKey === lunchKey}
+          onDragStart={onDragStart}
+          onDragMove={onDragMove}
+          onDragEnd={onDragEnd}
+          onDragCancel={onDragCancel}
         />
         <PlannedMealSlot
           weekStart={weekStart}
@@ -71,6 +104,13 @@ export function MealDayCard({
           mealType="dinner"
           dish={dinnerDish}
           dishOptions={dishOptions}
+          dragDisabled={dragDisabled}
+          isDragged={draggedSlotKey === dinnerKey}
+          isDropTarget={dropTargetKey === dinnerKey}
+          onDragStart={onDragStart}
+          onDragMove={onDragMove}
+          onDragEnd={onDragEnd}
+          onDragCancel={onDragCancel}
         />
       </div>
     </article>

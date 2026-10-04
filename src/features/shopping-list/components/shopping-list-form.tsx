@@ -5,6 +5,7 @@ import { ErrorBanner } from "@/components/ui/error-banner"
 import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog"
 import { ProductPicker } from "@/features/catalog/components/product-picker"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
+import { getPurchasePlaces } from "@/features/catalog/purchase-places"
 import {
   createShoppingListItemAction,
   updateShoppingListItemAction,
@@ -163,7 +164,13 @@ export function ShoppingListForm({
         </div>
       </form>
       <CatalogProductDialog
+        key={
+          isProductDialogOpen
+            ? "catalog-product-open"
+            : "catalog-product-closed"
+        }
         open={isProductDialogOpen}
+        purchasePlaces={getPurchasePlaces(availableProducts)}
         onDismiss={() => setIsProductDialogOpen(false)}
         onCreated={handleProductCreated}
       />

@@ -13,19 +13,23 @@ import {
 import {
   findInventoryItemsByIds,
   listInventoryItems,
+  setInventoryItemQuantities,
 } from "@/lib/db/inventory-items"
-import { addMealPlanSuggestionsToShoppingList } from "@/lib/db/shopping-list-items"
+import { applyMealPlanShoppingListAdjustments } from "@/lib/db/shopping-list-items"
 import {
   copyPreviousWeekIntoEmptyPlan,
   deleteWeeklyMealPlan,
   findWeeklyMealPlan,
   isDishUsedInMealPlans,
+  moveWeeklyMealSlot,
   setWeeklyMealSlot,
 } from "@/lib/db/weekly-meal-plans"
 import type { DishInput } from "@/schemas/dish"
 import { dishIdSchema, dishInputSchema } from "@/schemas/dish"
+import { shoppingListPreparationInputSchema } from "@/schemas/shopping-list-preparation"
 import {
   weeklyMealSlotInputSchema,
+  weeklyMealSlotMoveInputSchema,
   weekStartSchema,
 } from "@/schemas/weekly-meal-plan"
 import { buildMealPlanShoppingSuggestions } from "./shopping-list-suggestions"
@@ -33,6 +37,7 @@ import { buildMealPlanShoppingSuggestions } from "./shopping-list-suggestions"
 const MEALS_PATH = "/meals"
 const MEAL_PLAN_PATH = "/meal-plan"
 const SHOPPING_LIST_PATH = "/shopping-list"
+const INVENTORY_PATH = "/inventory"
 
 type DishActionResult = { success: true } | { success: false; message: string }
 
@@ -175,22 +180,58 @@ export async function setWeeklyMealSlotAction(
   return { success: true }
 }
 
-type GenerateShoppingListResult =
+export async function moveWeeklyMealSlotAction(
+  input: unknown
+): Promise<DishActionResult> {
+  await requireAuthorizedSession()
+  const result = weeklyMealSlotMoveInputSchema.safeParse(input)
+
+  if (!result.success) {
+    return {
+      success: false,
+      message: "No se ha podido identificar el movimiento entre comidas.",
+    }
+  }
+
+  const moved = await moveWeeklyMealSlot(result.data)
+  if (!moved) {
+    return {
+      success: false,
+      message: "La comida de origen ya no está planificada.",
+    }
+  }
+
+  revalidatePath(MEAL_PLAN_PATH)
+  return { success: true }
+}
+
+type PrepareShoppingListResult =
   | { success: true; itemCount: number }
   | { success: false; message: string }
 
-export async function generateWeeklyShoppingListAction(
-  weekStart: unknown
-): Promise<GenerateShoppingListResult> {
+export async function prepareWeeklyShoppingListAction(
+  weekStart: unknown,
+  input: unknown
+): Promise<PrepareShoppingListResult> {
   await requireAuthorizedSession()
-  const result = weekStartSchema.safeParse(weekStart)
+  const items =
+    typeof input === "object" && input !== null && "items" in input
+      ? input.items
+      : undefined
+  const result = shoppingListPreparationInputSchema.safeParse({
+    weekStart,
+    items,
+  })
 
   if (!result.success) {
-    return { success: false, message: "La semana seleccionada no es válida." }
+    return {
+      success: false,
+      message: "Revisa las cantidades de inventario y compra.",
+    }
   }
 
   const [mealPlan, dishes, inventoryItems] = await Promise.all([
-    findWeeklyMealPlan(result.data),
+    findWeeklyMealPlan(result.data.weekStart),
     listDishes(),
     listInventoryItems(),
   ])
@@ -207,10 +248,52 @@ export async function generateWeeklyShoppingListAction(
     dishes,
     inventoryItems
   )
-  await addMealPlanSuggestionsToShoppingList(suggestions)
+  const suggestionsById = new Map(
+    suggestions.map((suggestion) => [suggestion.inventoryItemId, suggestion])
+  )
+  const containsCurrentProducts =
+    suggestions.length === result.data.items.length &&
+    result.data.items.every((item) => suggestionsById.has(item.inventoryItemId))
+
+  if (!containsCurrentProducts) {
+    return {
+      success: false,
+      message:
+        "El menú o el catálogo ha cambiado. Recarga la página y revisa las cantidades.",
+    }
+  }
+
+  await setInventoryItemQuantities(
+    result.data.items.map((item) => ({
+      inventoryItemId: item.inventoryItemId,
+      quantity: item.inventoryQuantity,
+    }))
+  )
+  await applyMealPlanShoppingListAdjustments(
+    result.data.items.map((item) => {
+      const suggestion = suggestionsById.get(item.inventoryItemId)
+      if (!suggestion) {
+        throw new Error("Validated shopping-list product is missing")
+      }
+
+      return {
+        inventoryItemId: item.inventoryItemId,
+        name: suggestion.name,
+        unit: suggestion.unit,
+        quantity: item.shoppingQuantity,
+      }
+    })
+  )
+
+  revalidatePath(INVENTORY_PATH)
+  revalidatePath(MEAL_PLAN_PATH)
   revalidatePath(SHOPPING_LIST_PATH)
 
-  return { success: true, itemCount: suggestions.length }
+  return {
+    success: true,
+    itemCount: result.data.items.filter((item) => item.shoppingQuantity > 0)
+      .length,
+  }
 }
 
 export async function copyPreviousWeekAction(

@@ -2,7 +2,7 @@ import type { InventoryItem } from "@/schemas/inventory-item"
 
 export type CatalogProductOption = Pick<
   InventoryItem,
-  "id" | "name" | "unit" | "location"
+  "id" | "name" | "unit" | "purchasePlaces"
 >
 
 export function toCatalogProductOption(
@@ -12,6 +12,6 @@ export function toCatalogProductOption(
     id: item.id,
     name: item.name,
     unit: item.unit,
-    location: item.location,
+    purchasePlaces: item.purchasePlaces,
   }
 }

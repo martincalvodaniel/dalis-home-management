@@ -1,4 +1,13 @@
+"use client"
+
+import { useOptimistic, useState, useTransition } from "react"
+import { moveWeeklyMealSlotAction } from "@/features/meal-planning/actions"
 import type { DishOption } from "@/features/meal-planning/dish-option"
+import {
+  getMealSlotKey,
+  type MealSlotLocation,
+  moveOrSwapMealSlots,
+} from "@/features/meal-planning/meal-slot-move"
 import type { Dish } from "@/schemas/dish"
 import type { WeeklyMealSlot } from "@/schemas/weekly-meal-plan"
 import { getWeekDates } from "@/schemas/weekly-meal-plan"
@@ -12,6 +21,28 @@ interface WeeklyMealCalendarProps {
   dishOptions: DishOption[]
 }
 
+interface MealSlotMove {
+  source: MealSlotLocation
+  destination: MealSlotLocation
+}
+
+function findMealSlotAtPoint(
+  clientX: number,
+  clientY: number
+): MealSlotLocation | null {
+  const element = document
+    .elementFromPoint(clientX, clientY)
+    ?.closest<HTMLElement>("[data-meal-slot-date][data-meal-slot-type]")
+  const date = element?.dataset.mealSlotDate
+  const mealType = element?.dataset.mealSlotType
+
+  if (!date || (mealType !== "lunch" && mealType !== "dinner")) {
+    return null
+  }
+
+  return { date, mealType }
+}
+
 export function WeeklyMealCalendar({
   weekStart,
   today,
@@ -19,33 +50,127 @@ export function WeeklyMealCalendar({
   dishes,
   dishOptions,
 }: WeeklyMealCalendarProps) {
+  const [optimisticSlots, moveOptimistically] = useOptimistic(
+    slots,
+    (currentSlots, move: MealSlotMove) =>
+      moveOrSwapMealSlots(currentSlots, move.source, move.destination)
+  )
+  const [draggedSlotKey, setDraggedSlotKey] = useState<string | null>(null)
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
   const dishesById = new Map(dishes.map((dish) => [dish.id, dish]))
   const dishIdsBySlot = new Map(
-    slots.map((slot) => [`${slot.date}:${slot.mealType}`, slot.dishId])
+    optimisticSlots.map((slot) => [getMealSlotKey(slot), slot.dishId])
   )
 
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-      {getWeekDates(weekStart).map((date) => {
-        const lunchDishId = dishIdsBySlot.get(`${date}:lunch`)
-        const dinnerDishId = dishIdsBySlot.get(`${date}:dinner`)
+  function resetDragState() {
+    setDraggedSlotKey(null)
+    setDropTargetKey(null)
+  }
 
-        return (
-          <MealDayCard
-            key={date}
-            weekStart={weekStart}
-            date={date}
-            today={today}
-            lunchDish={
-              lunchDishId ? (dishesById.get(lunchDishId) ?? null) : null
-            }
-            dinnerDish={
-              dinnerDishId ? (dishesById.get(dinnerDishId) ?? null) : null
-            }
-            dishOptions={dishOptions}
-          />
-        )
-      })}
+  function handleDragStart(source: MealSlotLocation) {
+    setError(null)
+    setDraggedSlotKey(getMealSlotKey(source))
+  }
+
+  function handleDragMove(
+    source: MealSlotLocation,
+    clientX: number,
+    clientY: number
+  ) {
+    const destination = findMealSlotAtPoint(clientX, clientY)
+    const destinationKey = destination ? getMealSlotKey(destination) : null
+
+    setDropTargetKey(
+      destinationKey === getMealSlotKey(source) ? null : destinationKey
+    )
+  }
+
+  function handleDragEnd(
+    source: MealSlotLocation,
+    clientX: number,
+    clientY: number
+  ) {
+    const destination = findMealSlotAtPoint(clientX, clientY)
+    resetDragState()
+
+    if (
+      !destination ||
+      getMealSlotKey(destination) === getMealSlotKey(source)
+    ) {
+      return
+    }
+
+    setError(null)
+    startTransition(async () => {
+      moveOptimistically({ source, destination })
+      try {
+        const result = await moveWeeklyMealSlotAction({
+          weekStart,
+          source,
+          destination,
+        })
+
+        if (!result.success) {
+          setError(result.message)
+        }
+      } catch {
+        setError("No se ha podido guardar el movimiento. Inténtalo de nuevo.")
+      }
+    })
+  }
+
+  return (
+    <div>
+      <div className="mb-3 flex min-h-5 items-center justify-between gap-4 px-1 text-xs text-[#68776e] dark:text-[#afbbb3]">
+        <p>
+          Arrastra desde el asa ⠿ para mover o intercambiar platos, o usa los
+          selectores.
+        </p>
+        {isPending ? (
+          <p className="shrink-0 font-semibold text-[#c36d49]" role="status">
+            Moviendo…
+          </p>
+        ) : null}
+      </div>
+      {error ? (
+        <p
+          className="mb-3 rounded-xl bg-[#f9e5df] px-3 py-2 text-sm font-medium text-[#a34435] dark:bg-[#4b2924] dark:text-[#ffb4a4]"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : null}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        {getWeekDates(weekStart).map((date) => {
+          const lunchDishId = dishIdsBySlot.get(`${date}:lunch`)
+          const dinnerDishId = dishIdsBySlot.get(`${date}:dinner`)
+
+          return (
+            <MealDayCard
+              key={date}
+              weekStart={weekStart}
+              date={date}
+              today={today}
+              lunchDish={
+                lunchDishId ? (dishesById.get(lunchDishId) ?? null) : null
+              }
+              dinnerDish={
+                dinnerDishId ? (dishesById.get(dinnerDishId) ?? null) : null
+              }
+              dishOptions={dishOptions}
+              draggedSlotKey={draggedSlotKey}
+              dropTargetKey={dropTargetKey}
+              dragDisabled={isPending}
+              onDragStart={handleDragStart}
+              onDragMove={handleDragMove}
+              onDragEnd={handleDragEnd}
+              onDragCancel={resetDragState}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }

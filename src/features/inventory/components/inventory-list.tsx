@@ -2,25 +2,17 @@
 
 import { useDeferredValue, useId, useState } from "react"
 import { SelectField } from "@/components/ui/select-field"
-import { inventoryLocationLabels } from "@/features/inventory/inventory-options"
+import {
+  getPurchasePlaces,
+  normalizePurchasePlaceKey,
+} from "@/features/catalog/purchase-places"
 import type { InventoryItem } from "@/schemas/inventory-item"
-import { inventoryItemLocations } from "@/schemas/inventory-item"
 import { InventoryItemCard } from "./inventory-item-card"
 
 interface InventoryListProps {
   items: InventoryItem[]
   onEdit: (item: InventoryItem) => void
 }
-
-type LocationFilter = InventoryItem["location"] | "all"
-
-const locationFilterOptions = [
-  { value: "all", label: "Todas las ubicaciones" },
-  ...inventoryItemLocations.map((location) => ({
-    value: location,
-    label: inventoryLocationLabels[location],
-  })),
-]
 
 const diacriticPattern = /\p{Diacritic}/gu
 
@@ -34,18 +26,31 @@ function normalizeSearchText(value: string): string {
 export function InventoryList({ items, onEdit }: InventoryListProps) {
   const listTitleId = useId()
   const searchInputId = useId()
-  const locationFilterId = useId()
+  const purchasePlaceFilterId = useId()
   const [search, setSearch] = useState("")
-  const [location, setLocation] = useState<LocationFilter>("all")
+  const [purchasePlace, setPurchasePlace] = useState("all")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
+  const purchasePlaceFilterOptions = [
+    { value: "all", label: "Todos los lugares" },
+    ...getPurchasePlaces(items).map((place) => ({
+      value: place,
+      label: place,
+    })),
+  ]
   const filteredItems = items.filter((item) => {
-    const matchesLocation = location === "all" || item.location === location
+    const matchesPurchasePlace =
+      purchasePlace === "all" ||
+      item.purchasePlaces.some(
+        (itemPurchasePlace) =>
+          normalizePurchasePlaceKey(itemPurchasePlace) ===
+          normalizePurchasePlaceKey(purchasePlace)
+      )
     const matchesSearch =
       normalizedSearch.length === 0 ||
       normalizeSearchText(item.name).includes(normalizedSearch)
 
-    return matchesLocation && matchesSearch
+    return matchesPurchasePlace && matchesSearch
   })
 
   if (items.length === 0) {
@@ -94,16 +99,14 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
           />
           <div>
-            <label className="sr-only" htmlFor={locationFilterId}>
-              Filtrar por ubicación
+            <label className="sr-only" htmlFor={purchasePlaceFilterId}>
+              Filtrar por lugar de compra
             </label>
             <SelectField
-              id={locationFilterId}
-              value={location}
-              onValueChange={(nextLocation) =>
-                setLocation(nextLocation as LocationFilter)
-              }
-              options={locationFilterOptions}
+              id={purchasePlaceFilterId}
+              value={purchasePlace}
+              onValueChange={setPurchasePlace}
+              options={purchasePlaceFilterOptions}
               className="min-h-11 rounded-full bg-white/75 text-sm dark:bg-[#182e26]"
             />
           </div>
@@ -114,7 +117,7 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
         <div className="mt-5 rounded-2xl border border-dashed border-[#cbd4ca] bg-white/35 px-5 py-10 text-center dark:border-white/15 dark:bg-white/[0.025]">
           <p className="font-semibold">No hay productos que coincidan.</p>
           <p className="mt-1 text-sm text-[#697970] dark:text-[#aebbb3]">
-            Prueba con otro nombre o ubicación.
+            Prueba con otro nombre o lugar de compra.
           </p>
         </div>
       ) : (

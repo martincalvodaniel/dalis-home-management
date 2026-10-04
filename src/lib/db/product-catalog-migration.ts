@@ -15,7 +15,7 @@ interface InventoryMigrationDocument {
   name: string
   quantity: number
   unit: QuantityUnit
-  location: InventoryItem["location"]
+  purchasePlaces: InventoryItem["purchasePlaces"]
   normalizedName?: string
   createdAt: Date
   updatedAt: Date
@@ -88,7 +88,7 @@ export function createMongoProductCatalogMigrationStore(): ProductCatalogMigrati
         normalizedName: normalizeProductName(name),
         quantity: 0,
         unit,
-        location: "other",
+        purchasePlaces: [],
         createdAt: now,
         updatedAt: now,
       }

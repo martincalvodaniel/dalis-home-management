@@ -37,9 +37,9 @@ describe("MongoDB index specifications", () => {
   test("registers the inventory list sort index", () => {
     expect(INDEX_SPECS).toContainEqual({
       collection: "inventory_items",
-      keys: { location: 1, name: 1 },
+      keys: { name: 1 },
       options: {
-        name: "location_asc_name_asc",
+        name: "name_asc",
         collation: { locale: "es", strength: 1 },
       },
     })
@@ -86,6 +86,14 @@ describe("MongoDB index specifications", () => {
       {
         collection: "shopping_list_items",
         name: "meal_plan_ingredient_key_unique",
+      },
+      {
+        collection: "inventory_items",
+        name: "location_asc_name_asc",
+      },
+      {
+        collection: "inventory_items",
+        name: "purchase_place_asc_name_asc",
       },
     ])
   })

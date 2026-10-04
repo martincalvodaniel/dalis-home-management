@@ -4,6 +4,7 @@ import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
+import { getPurchasePlaces } from "@/features/catalog/purchase-places"
 import {
   createDishAction,
   updateDishAction,
@@ -211,6 +212,7 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
             ? undefined
             : ingredients[creatingProductForIndex]?.legacyName
         }
+        purchasePlaces={getPurchasePlaces(availableProducts)}
         onDismiss={() => setCreatingProductForIndex(null)}
         onCreated={handleProductCreated}
       />

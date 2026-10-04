@@ -12,7 +12,7 @@ describe("inventory shopping-list update", () => {
       name: "Olive oil",
       quantity: 0,
       unit: "liter",
-      location: "pantry",
+      purchasePlaces: ["Supermarket"],
       createdAt: now,
       updatedAt: now,
     }

@@ -11,19 +11,16 @@ import {
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { SelectField } from "@/components/ui/select-field"
 import { createCatalogProductAction } from "@/features/catalog/actions"
+import { PurchasePlaceField } from "@/features/catalog/components/purchase-place-field"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
-import {
-  inventoryLocationLabels,
-  inventoryUnitLabels,
-} from "@/features/inventory/inventory-options"
-import {
-  inventoryItemLocations,
-  inventoryItemUnits,
-} from "@/schemas/inventory-item"
+import { normalizePurchasePlaces } from "@/features/catalog/purchase-places"
+import { inventoryUnitLabels } from "@/features/inventory/inventory-options"
+import { inventoryItemUnits } from "@/schemas/inventory-item"
 
 interface CatalogProductDialogProps {
   open: boolean
   initialName?: string
+  purchasePlaces: readonly string[]
   onDismiss: () => void
   onCreated: (product: CatalogProductOption, created: boolean) => void
 }
@@ -33,21 +30,17 @@ const unitOptions = inventoryItemUnits.map((unit) => ({
   label: inventoryUnitLabels[unit],
 }))
 
-const locationOptions = inventoryItemLocations.map((location) => ({
-  value: location,
-  label: inventoryLocationLabels[location],
-}))
-
 export function CatalogProductDialog({
   open,
   initialName,
+  purchasePlaces,
   onDismiss,
   onCreated,
 }: CatalogProductDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const nameId = useId()
   const unitId = useId()
-  const locationId = useId()
+  const purchasePlaceId = useId()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -75,7 +68,12 @@ export function CatalogProductDialog({
         const result = await createCatalogProductAction({
           name: formData.get("name"),
           unit: formData.get("unit"),
-          location: formData.get("location"),
+          purchasePlaces: normalizePurchasePlaces(
+            [
+              ...formData.getAll("purchasePlaces"),
+              formData.get("purchasePlaceDraft"),
+            ].filter((value): value is string => typeof value === "string")
+          ),
         })
         if (!result.success) {
           setError(result.message)
@@ -139,16 +137,10 @@ export function CatalogProductDialog({
                 className="mt-2"
               />
             </div>
-            <div className="text-sm font-semibold">
-              <label htmlFor={locationId}>Ubicación</label>
-              <SelectField
-                id={locationId}
-                name="location"
-                defaultValue="pantry"
-                options={locationOptions}
-                className="mt-2"
-              />
-            </div>
+            <PurchasePlaceField
+              id={purchasePlaceId}
+              purchasePlaces={purchasePlaces}
+            />
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { ObjectId } from "mongodb"
 import {
   buildCopiedWeeklyMealPlanUpdate,
+  buildWeeklyMealSlotMoveUpdate,
   buildWeeklyMealSlotUpdate,
 } from "./weekly-meal-plan-update"
 
@@ -45,6 +46,24 @@ describe("weekly meal slot update", () => {
 
     expect(JSON.stringify(update)).not.toContain("$concatArrays")
     expect(JSON.stringify(update)).toContain("$filter")
+  })
+
+  test("moves or swaps two slots atomically", () => {
+    const update = buildWeeklyMealSlotMoveUpdate(
+      {
+        weekStart: "2026-10-05",
+        source: { date: "2026-10-07", mealType: "dinner" },
+        destination: { date: "2026-10-09", mealType: "lunch" },
+      },
+      now
+    )
+    const serialized = JSON.stringify(update)
+
+    expect(serialized).toContain("$concatArrays")
+    expect(serialized).toContain("$$sourceSlots.dishId")
+    expect(serialized).toContain("$$destinationSlots.dishId")
+    expect(serialized).toContain("$cond")
+    expect(update).toMatchObject([{ $set: { updatedAt: now } }])
   })
 
   test("builds a complete copied week update", () => {

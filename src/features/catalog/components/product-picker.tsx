@@ -3,7 +3,6 @@
 import { SelectField } from "@/components/ui/select-field"
 import { quantityUnitShortLabels } from "@/config/quantity-units"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
-import { inventoryLocationLabels } from "@/features/inventory/inventory-options"
 
 interface ProductPickerProps {
   id: string
@@ -26,7 +25,7 @@ export function ProductPicker({
     { value: "", label: "Selecciona un producto" },
     ...products.map((product) => ({
       value: product.id,
-      label: `${product.name} · ${quantityUnitShortLabels[product.unit]} · ${inventoryLocationLabels[product.location]}`,
+      label: `${product.name} · ${quantityUnitShortLabels[product.unit]}${product.purchasePlaces.length > 0 ? ` · ${product.purchasePlaces.join(", ")}` : ""}`,
     })),
   ]
 

@@ -3,9 +3,12 @@ import "server-only"
 import { MongoServerError, ObjectId } from "mongodb"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items"
+import {
+  buildMealPlanShoppingListAdjustmentOperations,
+  type MealPlanShoppingListAdjustment,
+} from "@/lib/db/meal-plan-shopping-list-adjustment"
 import { buildInventoryShoppingListUpdate } from "@/lib/db/shopping-list-item-update"
 import type { InventoryItem } from "@/schemas/inventory-item"
-import type { QuantityUnit } from "@/schemas/quantity-unit"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
 interface ShoppingListItemDocument
@@ -16,13 +19,6 @@ interface ShoppingListItemDocument
   _id: ObjectId
   inventoryItemId: ObjectId
   isMealPlanGenerated?: boolean
-}
-
-interface MealPlanShoppingListSuggestion {
-  name: string
-  quantity: number
-  unit: QuantityUnit
-  inventoryItemId: string
 }
 
 function toShoppingListItem(
@@ -121,55 +117,22 @@ export async function addInventoryItemToShoppingList(
   )
 }
 
-export async function addMealPlanSuggestionsToShoppingList(
-  suggestions: MealPlanShoppingListSuggestion[]
+export async function applyMealPlanShoppingListAdjustments(
+  adjustments: readonly MealPlanShoppingListAdjustment[]
 ): Promise<void> {
-  if (suggestions.length === 0) {
+  if (adjustments.length === 0) {
     return
   }
 
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
   )
-  const now = new Date()
-
-  await collection.bulkWrite(
-    suggestions.map((suggestion) => {
-      const inventoryItemId = new ObjectId(suggestion.inventoryItemId)
-
-      return {
-        updateOne: {
-          filter: { inventoryItemId },
-          update: [
-            {
-              $set: {
-                name: suggestion.name,
-                unit: suggestion.unit,
-                quantity: {
-                  $cond: [
-                    { $eq: ["$isPurchased", false] },
-                    {
-                      $max: [
-                        { $ifNull: ["$quantity", 0] },
-                        suggestion.quantity,
-                      ],
-                    },
-                    suggestion.quantity,
-                  ],
-                },
-                inventoryItemId,
-                isMealPlanGenerated: true,
-                isPurchased: false,
-                createdAt: { $ifNull: ["$createdAt", now] },
-                updatedAt: now,
-              },
-            },
-          ],
-          upsert: true,
-        },
-      }
-    })
+  const operations = buildMealPlanShoppingListAdjustmentOperations(
+    adjustments,
+    new Date()
   )
+
+  await collection.bulkWrite(operations)
 }
 
 export type UpdateShoppingListItemResult = "updated" | "missing" | "duplicate"

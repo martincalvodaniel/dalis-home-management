@@ -3,6 +3,10 @@ import "server-only"
 import { MongoServerError, ObjectId } from "mongodb"
 import { normalizeProductName } from "@/lib/catalog/product-name"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
+import {
+  buildInventoryQuantityAdjustmentOperations,
+  type InventoryQuantityAdjustment,
+} from "@/lib/db/inventory-quantity-adjustment"
 import type {
   InventoryItem,
   InventoryItemInput,
@@ -34,7 +38,7 @@ function toInventoryItem(document: InventoryItemDocument): InventoryItem {
     name: document.name,
     quantity: document.quantity,
     unit: document.unit,
-    location: document.location,
+    purchasePlaces: document.purchasePlaces,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   }
@@ -50,7 +54,7 @@ export async function listInventoryItems(): Promise<InventoryItem[]> {
   )
   const documents = await collection
     .find({})
-    .sort({ location: 1, name: 1 })
+    .sort({ name: 1 })
     .collation({ locale: "es", strength: 1 })
     .toArray()
 
@@ -182,6 +186,23 @@ export async function increaseInventoryItemQuantity(
   )
 
   return result.matchedCount > 0
+}
+
+export async function setInventoryItemQuantities(
+  adjustments: readonly InventoryQuantityAdjustment[]
+): Promise<void> {
+  if (adjustments.length === 0) {
+    return
+  }
+
+  const collection = await getCollection<InventoryItemDocument>(
+    COLLECTION_NAMES.inventoryItems
+  )
+  const now = new Date()
+
+  await collection.bulkWrite(
+    buildInventoryQuantityAdjustmentOperations(adjustments, now)
+  )
 }
 
 export async function deleteInventoryItem(id: string): Promise<boolean> {

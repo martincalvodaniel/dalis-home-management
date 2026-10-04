@@ -8,7 +8,6 @@ import {
 } from "@/schemas/weekly-meal-plan"
 import { ClearWeekButton } from "./clear-week-button"
 import { CopyPreviousWeekButton } from "./copy-previous-week-button"
-import { GenerateShoppingListButton } from "./generate-shopping-list-button"
 import { ShoppingListPreview } from "./shopping-list-preview"
 import { WeeklyMealCalendar } from "./weekly-meal-calendar"
 
@@ -119,14 +118,11 @@ export function MealPlanPage({
             <CopyPreviousWeekButton weekStart={weekStart} />
           ) : null}
           {slots.length > 0 ? (
-            shoppingSuggestions.length > 0 ? (
-              <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-                <ShoppingListPreview suggestions={shoppingSuggestions} />
-                <GenerateShoppingListButton weekStart={weekStart} />
-              </div>
-            ) : (
-              <ShoppingListPreview suggestions={shoppingSuggestions} />
-            )
+            <ShoppingListPreview
+              key={weekStart}
+              weekStart={weekStart}
+              suggestions={shoppingSuggestions}
+            />
           ) : null}
           {dishes.length > 0 ? (
             <WeeklyMealCalendar

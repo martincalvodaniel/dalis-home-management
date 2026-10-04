@@ -5,6 +5,8 @@ import type { WeeklyMealPlan } from "@/schemas/weekly-meal-plan"
 
 interface ShoppingListSuggestionBase {
   name: string
+  requiredQuantity: number
+  inventoryQuantity: number
   quantity: number
   unit: QuantityUnit
 }
@@ -58,17 +60,16 @@ export function buildMealPlanShoppingSuggestions(
 
   const suggestions: ShoppingListSuggestion[] = []
   for (const total of totals.values()) {
-    const availableQuantity =
+    const inventoryQuantity =
       inventoryById.get(total.inventoryItemId)?.quantity ?? 0
-    const missingQuantity = roundQuantity(total.quantity - availableQuantity)
-
-    if (missingQuantity <= 0) {
-      continue
-    }
+    const requiredQuantity = roundQuantity(total.quantity)
+    const missingQuantity = roundQuantity(requiredQuantity - inventoryQuantity)
 
     suggestions.push({
       name: total.name,
-      quantity: missingQuantity,
+      requiredQuantity,
+      inventoryQuantity,
+      quantity: Math.max(missingQuantity, 0),
       unit: total.unit,
       inventoryItemId: total.inventoryItemId,
     })

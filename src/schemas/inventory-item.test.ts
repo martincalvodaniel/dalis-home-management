@@ -10,14 +10,14 @@ describe("inventoryItemInputSchema", () => {
       name: "  Olive oil  ",
       quantity: 1.5,
       unit: "liter",
-      location: "pantry",
+      purchasePlaces: ["  Mercado   central ", "Supermercado"],
     })
 
     expect(result).toEqual({
       name: "Olive oil",
       quantity: 1.5,
       unit: "liter",
-      location: "pantry",
+      purchasePlaces: ["Mercado central", "Supermercado"],
     })
   })
 
@@ -26,7 +26,7 @@ describe("inventoryItemInputSchema", () => {
       name: "Coffee",
       quantity: 0,
       unit: "gram",
-      location: "pantry",
+      purchasePlaces: [],
     })
 
     expect(result.success).toBe(true)
@@ -37,18 +37,18 @@ describe("inventoryItemInputSchema", () => {
       name: "Coffee",
       quantity: -1,
       unit: "gram",
-      location: "pantry",
+      purchasePlaces: ["Supermercado"],
     })
 
     expect(result.success).toBe(false)
   })
 
-  test("rejects unsupported units and locations", () => {
+  test("rejects unsupported units and duplicated purchase places", () => {
     const result = inventoryItemInputSchema.safeParse({
       name: "Coffee",
       quantity: 1,
       unit: "box",
-      location: "garage",
+      purchasePlaces: ["Mercado", "mercado"],
     })
 
     expect(result.success).toBe(false)
@@ -61,12 +61,12 @@ describe("catalogProductInputSchema", () => {
       catalogProductInputSchema.parse({
         name: "  Tomatoes  ",
         unit: "kilogram",
-        location: "fridge",
+        purchasePlaces: ["Greengrocer"],
       })
     ).toEqual({
       name: "Tomatoes",
       unit: "kilogram",
-      location: "fridge",
+      purchasePlaces: ["Greengrocer"],
     })
   })
 
@@ -74,7 +74,7 @@ describe("catalogProductInputSchema", () => {
     const result = catalogProductInputSchema.safeParse({
       name: "Tomatoes",
       unit: "kilogram",
-      location: "fridge",
+      purchasePlaces: ["Greengrocer"],
       quantity: 2,
     })
 

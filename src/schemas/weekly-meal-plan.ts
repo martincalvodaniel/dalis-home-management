@@ -109,7 +109,55 @@ export const weeklyMealSlotInputSchema = z
     }
   })
 
+const weeklyMealSlotLocationSchema = z
+  .object({
+    date: isoDateSchema,
+    mealType: mealTypeSchema,
+  })
+  .strict()
+
+export const weeklyMealSlotMoveInputSchema = z
+  .object({
+    weekStart: weekStartSchema,
+    source: weeklyMealSlotLocationSchema,
+    destination: weeklyMealSlotLocationSchema,
+  })
+  .strict()
+  .superRefine((input, context) => {
+    const weekDates = new Set(getWeekDates(input.weekStart))
+
+    if (!weekDates.has(input.source.date)) {
+      context.addIssue({
+        code: "custom",
+        message: "Source date must belong to the selected week",
+        path: ["source", "date"],
+      })
+    }
+
+    if (!weekDates.has(input.destination.date)) {
+      context.addIssue({
+        code: "custom",
+        message: "Destination date must belong to the selected week",
+        path: ["destination", "date"],
+      })
+    }
+
+    if (
+      input.source.date === input.destination.date &&
+      input.source.mealType === input.destination.mealType
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Source and destination slots must be different",
+        path: ["destination"],
+      })
+    }
+  })
+
 export type MealType = z.infer<typeof mealTypeSchema>
 export type WeeklyMealSlot = z.infer<typeof weeklyMealSlotSchema>
 export type WeeklyMealPlan = z.infer<typeof weeklyMealPlanSchema>
 export type WeeklyMealSlotInput = z.infer<typeof weeklyMealSlotInputSchema>
+export type WeeklyMealSlotMoveInput = z.infer<
+  typeof weeklyMealSlotMoveInputSchema
+>

@@ -31,6 +31,14 @@ export const OBSOLETE_INDEX_SPECS: readonly ObsoleteIndexSpec[] = [
     collection: "shopping_list_items",
     name: "meal_plan_ingredient_key_unique",
   },
+  {
+    collection: "inventory_items",
+    name: "location_asc_name_asc",
+  },
+  {
+    collection: "inventory_items",
+    name: "purchase_place_asc_name_asc",
+  },
 ]
 
 // Add index specifications here alongside the feature that introduces the
@@ -51,9 +59,9 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
   },
   {
     collection: "inventory_items",
-    keys: { location: 1, name: 1 },
+    keys: { name: 1 },
     options: {
-      name: "location_asc_name_asc",
+      name: "name_asc",
       collation: { locale: "es", strength: 1 },
     },
   },

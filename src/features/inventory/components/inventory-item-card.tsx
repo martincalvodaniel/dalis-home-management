@@ -6,10 +6,7 @@ import {
   deleteInventoryItemAction,
   markInventoryItemOutOfStockAction,
 } from "@/features/inventory/actions"
-import {
-  inventoryLocationLabels,
-  inventoryUnitShortLabels,
-} from "@/features/inventory/inventory-options"
+import { inventoryUnitShortLabels } from "@/features/inventory/inventory-options"
 import { addInventoryItemToShoppingListAction } from "@/features/shopping-list/actions"
 import type { InventoryItem } from "@/schemas/inventory-item"
 
@@ -92,9 +89,18 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
             <p className="truncate text-lg font-semibold tracking-[-0.03em]">
               {item.name}
             </p>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#7a8a81] dark:text-[#a6b3ab]">
-              {inventoryLocationLabels[item.location]}
-            </p>
+            {item.purchasePlaces.length > 0 ? (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {item.purchasePlaces.map((place) => (
+                  <span
+                    key={place}
+                    className="rounded-full bg-[#edf2eb] px-2 py-0.5 text-[0.65rem] font-semibold text-[#60736a] dark:bg-white/5 dark:text-[#aebbb3]"
+                  >
+                    {place}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
           <span
             className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${

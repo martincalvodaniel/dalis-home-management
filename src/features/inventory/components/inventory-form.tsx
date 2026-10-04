@@ -3,22 +3,19 @@
 import { type FormEvent, useId, useState, useTransition } from "react"
 import { ErrorBanner } from "@/components/ui/error-banner"
 import { SelectField } from "@/components/ui/select-field"
+import { PurchasePlaceField } from "@/features/catalog/components/purchase-place-field"
+import { normalizePurchasePlaces } from "@/features/catalog/purchase-places"
 import {
   createInventoryItemAction,
   updateInventoryItemAction,
 } from "@/features/inventory/actions"
-import {
-  inventoryLocationLabels,
-  inventoryUnitLabels,
-} from "@/features/inventory/inventory-options"
-import {
-  type InventoryItem,
-  inventoryItemLocations,
-  inventoryItemUnits,
-} from "@/schemas/inventory-item"
+import { inventoryUnitLabels } from "@/features/inventory/inventory-options"
+import type { InventoryItem } from "@/schemas/inventory-item"
+import { inventoryItemUnits } from "@/schemas/inventory-item"
 
 interface InventoryFormProps {
   item: InventoryItem | null
+  purchasePlaces: readonly string[]
   onCancel: () => void
   onSaved: () => void
 }
@@ -28,16 +25,16 @@ const unitOptions = inventoryItemUnits.map((unit) => ({
   label: inventoryUnitLabels[unit],
 }))
 
-const locationOptions = inventoryItemLocations.map((location) => ({
-  value: location,
-  label: inventoryLocationLabels[location],
-}))
-
-export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
+export function InventoryForm({
+  item,
+  purchasePlaces,
+  onCancel,
+  onSaved,
+}: InventoryFormProps) {
   const nameId = useId()
   const quantityId = useId()
   const unitId = useId()
-  const locationId = useId()
+  const purchasePlaceId = useId()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const isEditing = item !== null
@@ -51,7 +48,12 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
       name: formData.get("name"),
       quantity: Number(formData.get("quantity")),
       unit: formData.get("unit"),
-      location: formData.get("location"),
+      purchasePlaces: normalizePurchasePlaces(
+        [
+          ...formData.getAll("purchasePlaces"),
+          formData.get("purchasePlaceDraft"),
+        ].filter((value): value is string => typeof value === "string")
+      ),
     }
 
     startTransition(async () => {
@@ -124,16 +126,11 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
           </div>
         </div>
 
-        <div className="block text-sm font-semibold">
-          <label htmlFor={locationId}>Ubicación</label>
-          <SelectField
-            id={locationId}
-            name="location"
-            defaultValue={item?.location ?? "pantry"}
-            options={locationOptions}
-            className="mt-2"
-          />
-        </div>
+        <PurchasePlaceField
+          id={purchasePlaceId}
+          defaultValues={item?.purchasePlaces}
+          purchasePlaces={purchasePlaces}
+        />
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 

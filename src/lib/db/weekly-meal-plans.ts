@@ -4,12 +4,14 @@ import { MongoServerError, ObjectId } from "mongodb"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
 import {
   buildCopiedWeeklyMealPlanUpdate,
+  buildWeeklyMealSlotMoveUpdate,
   buildWeeklyMealSlotUpdate,
 } from "@/lib/db/weekly-meal-plan-update"
 import type {
   WeeklyMealPlan,
   WeeklyMealSlot,
   WeeklyMealSlotInput,
+  WeeklyMealSlotMoveInput,
 } from "@/schemas/weekly-meal-plan"
 import { addDaysToIsoDate } from "@/schemas/weekly-meal-plan"
 
@@ -83,6 +85,28 @@ export async function setWeeklyMealSlot(
     buildWeeklyMealSlotUpdate(input, dishId, new Date()),
     { upsert: dishId !== null }
   )
+}
+
+export async function moveWeeklyMealSlot(
+  input: WeeklyMealSlotMoveInput
+): Promise<boolean> {
+  const collection = await getCollection<WeeklyMealPlanDocument>(
+    COLLECTION_NAMES.weeklyMealPlans
+  )
+  const result = await collection.updateOne(
+    {
+      weekStart: input.weekStart,
+      slots: {
+        $elemMatch: {
+          date: input.source.date,
+          mealType: input.source.mealType,
+        },
+      },
+    },
+    buildWeeklyMealSlotMoveUpdate(input, new Date())
+  )
+
+  return result.matchedCount > 0
 }
 
 export type CopyPreviousWeekResult =

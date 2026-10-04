@@ -38,7 +38,7 @@ const inventory: InventoryItem[] = [
     name: "Tomatoes",
     quantity: 4,
     unit: "unit",
-    location: "fridge",
+    purchasePlaces: ["Market"],
     createdAt: now,
     updatedAt: now,
   },
@@ -47,7 +47,7 @@ const inventory: InventoryItem[] = [
     name: "Pasta",
     quantity: 0,
     unit: "gram",
-    location: "pantry",
+    purchasePlaces: ["Supermarket"],
     createdAt: now,
     updatedAt: now,
   },
@@ -74,12 +74,16 @@ describe("weekly meal plan shopping suggestions", () => {
     ).toEqual([
       {
         name: "Tomatoes",
+        requiredQuantity: 6,
+        inventoryQuantity: 4,
         quantity: 2,
         unit: "unit",
         inventoryItemId: tomatoId,
       },
       {
         name: "Pasta",
+        requiredQuantity: 500,
+        inventoryQuantity: 0,
         quantity: 500,
         unit: "gram",
         inventoryItemId: pastaId,
@@ -87,12 +91,22 @@ describe("weekly meal plan shopping suggestions", () => {
     ])
   })
 
-  test("omits linked ingredients already covered by inventory", () => {
+  test("includes linked ingredients already covered by inventory", () => {
     expect(
       buildMealPlanShoppingSuggestions(createMealPlan(1), [dish], inventory)
     ).toEqual([
       {
+        name: "Tomatoes",
+        requiredQuantity: 3,
+        inventoryQuantity: 4,
+        quantity: 0,
+        unit: "unit",
+        inventoryItemId: tomatoId,
+      },
+      {
         name: "Pasta",
+        requiredQuantity: 250,
+        inventoryQuantity: 0,
         quantity: 250,
         unit: "gram",
         inventoryItemId: pastaId,
@@ -132,6 +146,8 @@ describe("weekly meal plan shopping suggestions", () => {
       buildMealPlanShoppingSuggestions(plan, [dish, secondDish], inventory)
     ).toContainEqual({
       name: "Pasta",
+      requiredQuantity: 350,
+      inventoryQuantity: 0,
       quantity: 350,
       unit: "gram",
       inventoryItemId: pastaId,

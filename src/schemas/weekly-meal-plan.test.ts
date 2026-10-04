@@ -4,6 +4,7 @@ import {
   getWeekDates,
   weeklyMealPlanSchema,
   weeklyMealSlotInputSchema,
+  weeklyMealSlotMoveInputSchema,
 } from "@/schemas/weekly-meal-plan"
 
 describe("weekly meal plan dates", () => {
@@ -58,5 +59,31 @@ describe("weekly meal plan dates", () => {
     })
 
     expect(result.success).toBe(false)
+  })
+
+  test("accepts moving a meal to another slot in the same week", () => {
+    expect(
+      weeklyMealSlotMoveInputSchema.safeParse({
+        weekStart: "2026-10-05",
+        source: { date: "2026-10-05", mealType: "lunch" },
+        destination: { date: "2026-10-08", mealType: "dinner" },
+      }).success
+    ).toBe(true)
+  })
+
+  test("rejects moves outside the week or to the same slot", () => {
+    const outsideWeek = weeklyMealSlotMoveInputSchema.safeParse({
+      weekStart: "2026-10-05",
+      source: { date: "2026-10-05", mealType: "lunch" },
+      destination: { date: "2026-10-12", mealType: "dinner" },
+    })
+    const sameSlot = weeklyMealSlotMoveInputSchema.safeParse({
+      weekStart: "2026-10-05",
+      source: { date: "2026-10-05", mealType: "lunch" },
+      destination: { date: "2026-10-05", mealType: "lunch" },
+    })
+
+    expect(outsideWeek.success).toBe(false)
+    expect(sameSlot.success).toBe(false)
   })
 })

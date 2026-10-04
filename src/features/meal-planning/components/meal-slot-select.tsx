@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useState, useTransition } from "react"
 import { SelectField } from "@/components/ui/select-field"
 import { setWeeklyMealSlotAction } from "@/features/meal-planning/actions"
@@ -12,6 +13,8 @@ interface MealSlotSelectProps {
   mealType: MealType
   dishId: string | null
   dishes: DishOption[]
+  disabled?: boolean
+  dragHandle?: ReactNode
 }
 
 const mealLabels: Record<MealType, string> = {
@@ -25,6 +28,8 @@ export function MealSlotSelect({
   mealType,
   dishId,
   dishes,
+  disabled = false,
+  dragHandle,
 }: MealSlotSelectProps) {
   const [selectedDishId, setSelectedDishId] = useState(dishId ?? "")
   const [error, setError] = useState<string | null>(null)
@@ -57,22 +62,25 @@ export function MealSlotSelect({
 
   return (
     <div>
-      <label
-        htmlFor={`${date}-${mealType}`}
-        className="mb-1.5 flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[#68776e] dark:text-[#afbbb3]"
-      >
-        <span>{label}</span>
-        {isPending ? (
-          <span className="normal-case tracking-normal text-[#c36d49]">
-            Guardando…
-          </span>
-        ) : null}
-      </label>
+      <div className="mb-1.5 flex min-h-7 items-center justify-between gap-2">
+        <label
+          htmlFor={`${date}-${mealType}`}
+          className="text-xs font-bold uppercase tracking-[0.12em] text-[#68776e] dark:text-[#afbbb3]"
+        >
+          {label}
+        </label>
+        <div className="flex items-center gap-2">
+          {isPending ? (
+            <span className="text-xs font-bold text-[#c36d49]">Guardando…</span>
+          ) : null}
+          {dragHandle}
+        </div>
+      </div>
       <SelectField
         id={`${date}-${mealType}`}
         value={selectedDishId}
         onValueChange={handleChange}
-        disabled={isPending}
+        disabled={disabled || isPending}
         options={dishOptions}
         className="min-h-11 border-[#d8ded5] text-sm font-medium text-[#28483d] dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
       />
