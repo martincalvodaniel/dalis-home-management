@@ -136,7 +136,7 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
   }
 
   return (
-    <section className="rounded-[1.75rem] border border-[#e4d9b8] bg-[#f3e8c8]/65 p-5 shadow-[0_18px_50px_rgba(86,73,39,0.08)] sm:p-6 dark:border-[#685c38] dark:bg-[#39331f]/80">
+    <section className="rounded-[1.75rem] border border-[#e4d9b8] bg-[#f3e8c8] p-5 shadow-[0_18px_50px_rgba(86,73,39,0.08)] sm:p-6 dark:border-[#685c38] dark:bg-[#39331f]">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8a6d1f] dark:text-[#dec778]">
         {isEditing ? "Editar plato" : "Nuevo plato"}
       </p>
@@ -198,16 +198,14 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
           >
             {isPending ? "Guardando…" : isEditing ? "Guardar" : "Crear plato"}
           </button>
-          {isEditing ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isPending}
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#c4b989] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#75611f] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
-            >
-              Cancelar
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#c4b989] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#75611f] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+          >
+            Cancelar
+          </button>
         </div>
       </form>
       <CatalogProductDialog

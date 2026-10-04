@@ -84,7 +84,7 @@ export function DishList({ dishes, onEdit }: DishListProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredDishes.map((dish) => (
             <DishCard key={dish.id} dish={dish} onEdit={onEdit} />
           ))}
