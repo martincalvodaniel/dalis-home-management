@@ -9,6 +9,7 @@ import {
 	inventoryLocationLabels,
 	inventoryUnitShortLabels,
 } from "@/features/inventory/inventory-options";
+import { addInventoryItemToShoppingListAction } from "@/features/shopping-list/actions";
 import type { InventoryItem } from "@/schemas/inventory-item";
 
 interface InventoryItemCardProps {
@@ -22,11 +23,13 @@ const quantityFormatter = new Intl.NumberFormat("es-ES", {
 
 export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
 	const [error, setError] = useState<string | null>(null);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const isOutOfStock = item.quantity === 0;
 
 	function markOutOfStock() {
 		setError(null);
+		setNotice(null);
 		startTransition(async () => {
 			try {
 				const result = await markInventoryItemOutOfStockAction(item.id);
@@ -45,6 +48,7 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
 		}
 
 		setError(null);
+		setNotice(null);
 		startTransition(async () => {
 			try {
 				const result = await deleteInventoryItemAction(item.id);
@@ -53,6 +57,24 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
 				}
 			} catch {
 				setError("No se ha podido eliminar el producto.");
+			}
+		});
+	}
+
+	function addToShoppingList() {
+		setError(null);
+		setNotice(null);
+		startTransition(async () => {
+			try {
+				const result = await addInventoryItemToShoppingListAction(item.id);
+				if (!result.success) {
+					setError(result.message);
+					return;
+				}
+
+				setNotice("Añadido a la lista. Pulsa de nuevo para sumar otra unidad.");
+			} catch {
+				setError("No se ha podido añadir el producto a la compra.");
 			}
 		});
 	}
@@ -92,8 +114,26 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
 					{error}
 				</p>
 			) : null}
+			{notice ? (
+				<p
+					className="mt-3 text-xs font-medium text-[#3e674b] dark:text-[#b9d4c0]"
+					aria-live="polite"
+				>
+					{notice}
+				</p>
+			) : null}
 
 			<div className="mt-5 flex flex-wrap gap-2 border-t border-[#e3e6df] pt-4 dark:border-white/10">
+				{isOutOfStock ? (
+					<button
+						type="button"
+						onClick={addToShoppingList}
+						disabled={isPending}
+						className="rounded-full bg-[#1d4f40] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:cursor-wait disabled:opacity-50"
+					>
+						{isPending ? "Añadiendo…" : "Añadir a compra"}
+					</button>
+				) : null}
 				<button
 					type="button"
 					onClick={() => onEdit(item)}

@@ -82,11 +82,18 @@ export function ShoppingListItemRow({
 
 				<div className="min-w-0 flex-1">
 					<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-						<p
-							className={`font-semibold ${item.isPurchased ? "text-[#7f8d85] line-through" : ""}`}
-						>
-							{item.name}
-						</p>
+						<div className="flex min-w-0 flex-wrap items-center gap-2">
+							<p
+								className={`font-semibold ${item.isPurchased ? "text-[#7f8d85] line-through" : ""}`}
+							>
+								{item.name}
+							</p>
+							{item.inventoryItemId ? (
+								<span className="rounded-full bg-[#e5ede3] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-[#4e6c57] dark:bg-[#29473b] dark:text-[#c3d8c9]">
+									Del inventario
+								</span>
+							) : null}
+						</div>
 						<p className="shrink-0 text-sm font-semibold text-[#6b7a72] dark:text-[#abb8b0]">
 							{quantityFormatter.format(item.quantity)}{" "}
 							{quantityUnitShortLabels[item.unit]}
