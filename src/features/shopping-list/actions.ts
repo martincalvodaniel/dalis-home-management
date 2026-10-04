@@ -2,12 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAuthorizedSession } from "@/lib/auth/session";
-import { findInventoryItemById } from "@/lib/db/inventory-items";
+import {
+	findInventoryItemById,
+	increaseInventoryItemQuantity,
+} from "@/lib/db/inventory-items";
 import {
 	addInventoryItemToShoppingList,
 	createShoppingListItem,
 	deletePurchasedShoppingListItems,
 	deleteShoppingListItem,
+	findShoppingListItemById,
+	markShoppingListItemPurchasedIfPending,
 	setShoppingListItemPurchased,
 	updateShoppingListItem,
 } from "@/lib/db/shopping-list-items";
@@ -19,6 +24,7 @@ import {
 } from "@/schemas/shopping-list-item";
 
 const SHOPPING_LIST_PATH = "/shopping-list";
+const INVENTORY_PATH = "/inventory";
 
 type ShoppingListActionResult =
 	| { success: true }
@@ -111,6 +117,44 @@ export async function setShoppingListItemPurchasedAction(
 	}
 
 	revalidatePath(SHOPPING_LIST_PATH);
+	return { success: true };
+}
+
+export async function purchaseShoppingListItemAndRestockAction(
+	id: unknown,
+): Promise<ShoppingListActionResult> {
+	await requireAuthorizedSession();
+	const result = shoppingListItemIdSchema.safeParse(id);
+
+	if (!result.success) {
+		return invalidInputResult;
+	}
+
+	const item = await findShoppingListItemById(result.data);
+	if (!item?.inventoryItemId) {
+		return {
+			success: false,
+			message: "Este producto ya no está vinculado al inventario.",
+		};
+	}
+
+	const claimed = await markShoppingListItemPurchasedIfPending(item.id);
+	if (claimed) {
+		const inventoryUpdated = await increaseInventoryItemQuantity(
+			item.inventoryItemId,
+			item.quantity,
+		);
+		if (!inventoryUpdated) {
+			await setShoppingListItemPurchased(item.id, false);
+			return {
+				success: false,
+				message: "No se ha encontrado el producto en el inventario.",
+			};
+		}
+	}
+
+	revalidatePath(SHOPPING_LIST_PATH);
+	revalidatePath(INVENTORY_PATH);
 	return { success: true };
 }
 

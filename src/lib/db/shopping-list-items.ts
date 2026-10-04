@@ -51,6 +51,17 @@ export async function listShoppingListItems(): Promise<ShoppingListItem[]> {
 	return documents.map(toShoppingListItem);
 }
 
+export async function findShoppingListItemById(
+	id: string,
+): Promise<ShoppingListItem | null> {
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const document = await collection.findOne({ _id: toObjectId(id) });
+
+	return document ? toShoppingListItem(document) : null;
+}
+
 export async function createShoppingListItem(
 	input: ShoppingListItemInput,
 ): Promise<string> {
@@ -113,6 +124,20 @@ export async function setShoppingListItemPurchased(
 	);
 
 	return result.matchedCount > 0;
+}
+
+export async function markShoppingListItemPurchasedIfPending(
+	id: string,
+): Promise<boolean> {
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const result = await collection.updateOne(
+		{ _id: toObjectId(id), isPurchased: false },
+		{ $set: { isPurchased: true, updatedAt: new Date() } },
+	);
+
+	return result.modifiedCount > 0;
 }
 
 export async function deleteShoppingListItem(id: string): Promise<boolean> {

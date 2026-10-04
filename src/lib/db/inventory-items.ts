@@ -97,6 +97,24 @@ export async function markInventoryItemOutOfStock(
 	return result.matchedCount > 0;
 }
 
+export async function increaseInventoryItemQuantity(
+	id: string,
+	quantity: number,
+): Promise<boolean> {
+	const collection = await getCollection<InventoryItemDocument>(
+		COLLECTION_NAMES.inventoryItems,
+	);
+	const result = await collection.updateOne(
+		{ _id: toObjectId(id) },
+		{
+			$inc: { quantity },
+			$set: { updatedAt: new Date() },
+		},
+	);
+
+	return result.matchedCount > 0;
+}
+
 export async function deleteInventoryItem(id: string): Promise<boolean> {
 	const collection = await getCollection<InventoryItemDocument>(
 		COLLECTION_NAMES.inventoryItems,

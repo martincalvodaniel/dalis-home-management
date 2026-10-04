@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { quantityUnitShortLabels } from "@/config/quantity-units";
 import {
 	deleteShoppingListItemAction,
+	purchaseShoppingListItemAndRestockAction,
 	setShoppingListItemPurchasedAction,
 } from "@/features/shopping-list/actions";
 import type { ShoppingListItem } from "@/schemas/shopping-list-item";
@@ -22,18 +23,34 @@ export function ShoppingListItemRow({
 	onEdit,
 }: ShoppingListItemRowProps) {
 	const [error, setError] = useState<string | null>(null);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 
 	function togglePurchased() {
 		setError(null);
+		setNotice(null);
+		const shouldRestockInventory =
+			!item.isPurchased &&
+			item.inventoryItemId !== undefined &&
+			window.confirm(
+				`¿Sumar también ${quantityFormatter.format(item.quantity)} ${quantityUnitShortLabels[item.unit]} de ${item.name} al inventario?\n\nCancelar marcará el producto como comprado sin modificar el inventario.`,
+			);
+
 		startTransition(async () => {
 			try {
-				const result = await setShoppingListItemPurchasedAction(
-					item.id,
-					!item.isPurchased,
-				);
+				const result = shouldRestockInventory
+					? await purchaseShoppingListItemAndRestockAction(item.id)
+					: await setShoppingListItemPurchasedAction(
+							item.id,
+							!item.isPurchased,
+						);
 				if (!result.success) {
 					setError(result.message);
+					return;
+				}
+
+				if (shouldRestockInventory) {
+					setNotice("Comprado e inventario actualizado.");
 				}
 			} catch {
 				setError("No se ha podido actualizar el producto.");
@@ -47,6 +64,7 @@ export function ShoppingListItemRow({
 		}
 
 		setError(null);
+		setNotice(null);
 		startTransition(async () => {
 			try {
 				const result = await deleteShoppingListItemAction(item.id);
@@ -102,6 +120,14 @@ export function ShoppingListItemRow({
 					{error ? (
 						<p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
 							{error}
+						</p>
+					) : null}
+					{notice ? (
+						<p
+							className="mt-2 text-xs font-medium text-[#3e674b] dark:text-[#b9d4c0]"
+							aria-live="polite"
+						>
+							{notice}
 						</p>
 					) : null}
 					<div className="mt-3 flex gap-2">
