@@ -1,6 +1,7 @@
 import "server-only"
 
 import { MongoServerError, ObjectId } from "mongodb"
+import { getDatabase } from "@/lib/db/client"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items"
 import {
@@ -68,22 +69,6 @@ export async function listShoppingListItems(): Promise<ShoppingListItem[]> {
   return documents.map((document) =>
     toShoppingListItem(document, inventoryItemsById)
   )
-}
-
-export async function findShoppingListItemById(
-  id: string
-): Promise<ShoppingListItem | null> {
-  const collection = await getCollection<ShoppingListItemDocument>(
-    COLLECTION_NAMES.shoppingListItems
-  )
-  const document = await collection.findOne({ _id: toObjectId(id) })
-
-  if (!document) {
-    return null
-  }
-
-  const inventoryItemsById = await loadInventoryItemsById([document])
-  return toShoppingListItem(document, inventoryItemsById)
 }
 
 export async function isInventoryItemUsedInShoppingList(
@@ -186,20 +171,6 @@ export async function setShoppingListItemPurchased(
   return result.matchedCount > 0
 }
 
-export async function markShoppingListItemPurchasedIfPending(
-  id: string
-): Promise<boolean> {
-  const collection = await getCollection<ShoppingListItemDocument>(
-    COLLECTION_NAMES.shoppingListItems
-  )
-  const result = await collection.updateOne(
-    { _id: toObjectId(id), isPurchased: false },
-    { $set: { isPurchased: true, updatedAt: new Date() } }
-  )
-
-  return result.modifiedCount > 0
-}
-
 export async function deleteShoppingListItem(id: string): Promise<boolean> {
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
@@ -209,11 +180,78 @@ export async function deleteShoppingListItem(id: string): Promise<boolean> {
   return result.deletedCount > 0
 }
 
-export async function deletePurchasedShoppingListItems(): Promise<number> {
-  const collection = await getCollection<ShoppingListItemDocument>(
-    COLLECTION_NAMES.shoppingListItems
-  )
-  const result = await collection.deleteMany({ isPurchased: true })
+export class PurchasedShoppingListSettlementError extends Error {
+  constructor() {
+    super("Could not settle all purchased shopping-list items")
+    this.name = "PurchasedShoppingListSettlementError"
+  }
+}
 
-  return result.deletedCount
+export async function restockAndDeletePurchasedShoppingListItems(
+  ids: readonly string[]
+): Promise<number> {
+  const database = await getDatabase()
+  const session = database.client.startSession()
+
+  try {
+    const settledCount = await session.withTransaction(async () => {
+      const shoppingListCollection =
+        database.collection<ShoppingListItemDocument>(
+          COLLECTION_NAMES.shoppingListItems
+        )
+      const inventoryCollection = database.collection<{
+        _id: ObjectId
+        quantity: number
+        updatedAt: Date
+      }>(COLLECTION_NAMES.inventoryItems)
+      const requestedIds = ids.map(toObjectId)
+      const purchasedItems = await shoppingListCollection
+        .find(
+          { _id: { $in: requestedIds }, isPurchased: true },
+          {
+            projection: { _id: 1, inventoryItemId: 1, quantity: 1 },
+            session,
+          }
+        )
+        .toArray()
+
+      if (purchasedItems.length === 0) {
+        return 0
+      }
+
+      const now = new Date()
+      const inventoryResult = await inventoryCollection.bulkWrite(
+        purchasedItems.map((item) => ({
+          updateOne: {
+            filter: { _id: item.inventoryItemId },
+            update: {
+              $inc: { quantity: item.quantity },
+              $set: { updatedAt: now },
+            },
+          },
+        })),
+        { session }
+      )
+
+      if (inventoryResult.matchedCount !== purchasedItems.length) {
+        throw new PurchasedShoppingListSettlementError()
+      }
+
+      const purchasedIds = purchasedItems.map((item) => item._id)
+      const deleteResult = await shoppingListCollection.deleteMany(
+        { _id: { $in: purchasedIds }, isPurchased: true },
+        { session }
+      )
+
+      if (deleteResult.deletedCount !== purchasedItems.length) {
+        throw new PurchasedShoppingListSettlementError()
+      }
+
+      return deleteResult.deletedCount
+    })
+
+    return settledCount ?? 0
+  } finally {
+    await session.endSession()
+  }
 }

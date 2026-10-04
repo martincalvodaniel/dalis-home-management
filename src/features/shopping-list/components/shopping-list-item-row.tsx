@@ -5,7 +5,6 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { quantityUnitShortLabels } from "@/config/quantity-units"
 import {
   deleteShoppingListItemAction,
-  purchaseShoppingListItemAndRestockAction,
   setShoppingListItemPurchasedAction,
 } from "@/features/shopping-list/actions"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
@@ -24,38 +23,20 @@ export function ShoppingListItemRow({
   onEdit,
 }: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-  const [openDialog, setOpenDialog] = useState<"restock" | "delete" | null>(
-    null
-  )
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function togglePurchased() {
-    if (!item.isPurchased && item.inventoryItemId !== undefined) {
-      setOpenDialog("restock")
-      return
-    }
-
-    updatePurchased(false)
-  }
-
-  function updatePurchased(shouldRestockInventory: boolean) {
-    setOpenDialog(null)
     setError(null)
-    setNotice(null)
 
     startTransition(async () => {
       try {
-        const result = shouldRestockInventory
-          ? await purchaseShoppingListItemAndRestockAction(item.id)
-          : await setShoppingListItemPurchasedAction(item.id, !item.isPurchased)
+        const result = await setShoppingListItemPurchasedAction(
+          item.id,
+          !item.isPurchased
+        )
         if (!result.success) {
           setError(result.message)
-          return
-        }
-
-        if (shouldRestockInventory) {
-          setNotice("Comprado e inventario actualizado.")
         }
       } catch {
         setError("No se ha podido actualizar el producto.")
@@ -64,9 +45,8 @@ export function ShoppingListItemRow({
   }
 
   function removeItem() {
-    setOpenDialog(null)
+    setIsDeleteDialogOpen(false)
     setError(null)
-    setNotice(null)
     startTransition(async () => {
       try {
         const result = await deleteShoppingListItemAction(item.id)
@@ -140,14 +120,6 @@ export function ShoppingListItemRow({
                 {error}
               </p>
             ) : null}
-            {notice ? (
-              <p
-                className="mt-2 text-xs font-medium text-[#3e674b] dark:text-[#b9d4c0]"
-                aria-live="polite"
-              >
-                {notice}
-              </p>
-            ) : null}
             <div className="mt-3 flex gap-2">
               <button
                 type="button"
@@ -159,7 +131,7 @@ export function ShoppingListItemRow({
               </button>
               <button
                 type="button"
-                onClick={() => setOpenDialog("delete")}
+                onClick={() => setIsDeleteDialogOpen(true)}
                 disabled={isPending}
                 className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
               >
@@ -170,23 +142,13 @@ export function ShoppingListItemRow({
         </div>
       </article>
       <ConfirmationDialog
-        open={openDialog === "restock"}
-        title={`¿Reponer ${item.name}?`}
-        description={`Has comprado ${quantityFormatter.format(item.quantity)} ${quantityUnitShortLabels[item.unit]}. Puedes sumarlo al inventario o marcarlo como comprado sin modificar existencias.`}
-        confirmLabel="Comprar y reponer"
-        secondaryLabel="Solo marcar comprado"
-        onConfirm={() => updatePurchased(true)}
-        onSecondary={() => updatePurchased(false)}
-        onDismiss={() => setOpenDialog(null)}
-      />
-      <ConfirmationDialog
-        open={openDialog === "delete"}
+        open={isDeleteDialogOpen}
         title={`Eliminar ${item.name}`}
         description="El producto desaparecerá de la lista de la compra. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         tone="danger"
         onConfirm={removeItem}
-        onDismiss={() => setOpenDialog(null)}
+        onDismiss={() => setIsDeleteDialogOpen(false)}
       />
     </>
   )

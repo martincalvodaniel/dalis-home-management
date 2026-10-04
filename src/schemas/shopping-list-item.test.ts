@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { shoppingListItemInputSchema } from "@/schemas/shopping-list-item"
+import {
+  purchasedShoppingListItemIdsSchema,
+  shoppingListItemInputSchema,
+} from "@/schemas/shopping-list-item"
 
 describe("shoppingListItemInputSchema", () => {
   test("accepts a catalog product and quantity", () => {
@@ -53,5 +56,29 @@ describe("shoppingListItemInputSchema", () => {
     })
 
     expect(result.success).toBe(false)
+  })
+})
+
+describe("purchasedShoppingListItemIdsSchema", () => {
+  test("accepts a unique list of visible purchased items", () => {
+    expect(
+      purchasedShoppingListItemIdsSchema.safeParse([
+        "507f1f77bcf86cd799439011",
+        "507f1f77bcf86cd799439012",
+      ]).success
+    ).toBe(true)
+  })
+
+  test("rejects empty, duplicated, and malformed item lists", () => {
+    expect(purchasedShoppingListItemIdsSchema.safeParse([]).success).toBe(false)
+    expect(
+      purchasedShoppingListItemIdsSchema.safeParse([
+        "507f1f77bcf86cd799439011",
+        "507f1f77bcf86cd799439011",
+      ]).success
+    ).toBe(false)
+    expect(
+      purchasedShoppingListItemIdsSchema.safeParse(["invalid"]).success
+    ).toBe(false)
   })
 })

@@ -52,7 +52,6 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
   })
   const pendingItems = filteredItems.filter((item) => !item.isPurchased)
   const purchasedItems = filteredItems.filter((item) => item.isPurchased)
-  const totalPurchasedCount = items.filter((item) => item.isPurchased).length
 
   if (items.length === 0) {
     return (
@@ -113,7 +112,9 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
               Ya comprado
             </p>
-            <ClearPurchasedButton count={totalPurchasedCount} />
+            <ClearPurchasedButton
+              itemIds={purchasedItems.map((item) => item.id)}
+            />
           </div>
           <div className="mt-3 space-y-3 opacity-75">
             {purchasedItems.map((item) => (
