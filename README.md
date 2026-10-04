@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dali Home Management
 
-## Getting Started
+Dali is a private home-management application for Dani and Pali. It connects
+the household inventory, shopping list, reusable dishes, and weekly meal plan
+in one responsive interface.
 
-First, run the development server:
+## Current features
+
+- Google sign-in restricted by an email allowlist.
+- Household inventory with locations, quantities, search, and filters.
+- Shared shopping list with inventory restocking.
+- Reusable dish catalog with inventory-linked ingredients.
+- Weekly lunch and dinner calendar with week navigation and copying.
+- Shopping-list generation that aggregates recipe ingredients and subtracts
+  current inventory.
+
+## Stack
+
+- Next.js 16 App Router and React 19
+- TypeScript
+- Better Auth with Google OAuth
+- MongoDB native driver
+- Zod validation
+- Tailwind CSS and Biome
+- Bun for scripts and tests
+
+## Local setup
+
+Requirements:
+
+- Bun
+- A MongoDB database
+- Google OAuth credentials
+
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create an untracked `.env.local` file with the following values:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```dotenv
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DB=dalis-home-management
+BETTER_AUTH_SECRET=replace-with-a-long-random-secret
+BETTER_AUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+ALLOWED_EMAILS=dani@example.com,pali@example.com
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`MONGODB_DB` and `BETTER_AUTH_URL` are optional locally. The database defaults
+to `dalis-home-management`, and the auth URL defaults to
+`http://localhost:3000`. Vercel deployment URLs are detected automatically.
 
-## Learn More
+Configure this local Google OAuth redirect URI:
 
-To learn more about Next.js, take a look at the following resources:
+```text
+http://localhost:3000/api/auth/callback/google
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Bootstrap the database indexes and start the application:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+bun run db:ensure-indexes
+bun run dev
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000](http://localhost:3000).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Database indexes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MongoDB indexes are registered centrally in
+`src/lib/db/ensure-indexes.ts`. The application ensures them once when the
+database connection starts; `bun run db:ensure-indexes` is also available for
+explicit deployment or maintenance setup.
+
+Every feature that introduces a collection, query, sort, lookup, or uniqueness
+constraint must evaluate its index requirements in the same change and add the
+required specification to `ensure-indexes.ts`. Index behavior is covered by
+`src/lib/db/ensure-indexes.test.ts`.
+
+## Architecture
+
+```text
+src/
+├── app/                  # Routing, layouts, and route handlers only
+├── components/           # Shared UI components
+├── config/               # Typed environment and shared configuration
+├── features/             # Domain components, actions, and client behavior
+├── lib/auth/             # Server authentication
+├── lib/db/               # MongoDB singleton, repositories, and indexes
+└── schemas/              # Shared Zod schemas and runtime-agnostic types
+```
+
+Protected pages enforce the session in the dashboard layout. Server Actions
+authenticate independently, validate external input with shared Zod schemas,
+and keep MongoDB access behind server-only repository modules.
+
+## Quality checks
+
+Run the complete local validation set before committing:
+
+```bash
+bun run knip
+bun run lint
+bun run type-check
+bun run test
+bun run build
+```
+
+Useful development commands:
+
+```bash
+bun run test:watch
+bun run lint:fix
+bun run format
+```
