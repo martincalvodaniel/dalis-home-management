@@ -47,7 +47,7 @@ export function InventoryPage({ items }: InventoryPageProps) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-4 text-sm font-semibold text-[#53675c] dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
               <span className="size-2 rounded-full bg-[#7fa184]" />
               {items.length} {items.length === 1 ? "producto" : "productos"}
             </div>
@@ -57,7 +57,7 @@ export function InventoryPage({ items }: InventoryPageProps) {
                 setEditingItem(null)
                 setIsFormOpen(true)
               }}
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#1d4f40] px-4 text-sm font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 dark:ring-offset-[#10221c]"
+              className="inline-flex items-center justify-center rounded-full bg-[#1d4f40] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 sm:px-4 sm:py-2 sm:text-sm dark:ring-offset-[#10221c]"
             >
               + Añadir
             </button>
