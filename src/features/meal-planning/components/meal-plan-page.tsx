@@ -71,16 +71,7 @@ export function MealPlanPage({
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {slots.length > 0 ? (
-                <ClearWeekButton weekStart={weekStart} />
-              ) : null}
-              <Link
-                href="/meals"
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#ccd5ce] bg-white/70 px-3 text-xs font-semibold transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4f40] sm:rounded-xl sm:px-4 sm:text-sm dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-              >
-                Gestionar platos
-              </Link>
+            <div className="flex items-start gap-2">
               <nav
                 aria-label="Cambiar semana"
                 className="flex overflow-hidden rounded-lg border border-[#ccd5ce] bg-white/70 sm:rounded-xl dark:border-white/15 dark:bg-white/5"
@@ -106,6 +97,9 @@ export function MealPlanPage({
                   <span aria-hidden="true">→</span>
                 </Link>
               </nav>
+              {slots.length > 0 ? (
+                <ClearWeekButton weekStart={weekStart} />
+              ) : null}
             </div>
           </div>
         </header>
