@@ -92,9 +92,9 @@ bun run db:migrate-product-catalog
 
 The command is idempotent. It links exact normalized name-and-unit matches and
 creates missing products with zero stock in the `other` location. It does not
-change inventory quantities. Ambiguous catalog matches and shopping-list
-collisions are reported and produce exit code `2` so they can be resolved
-without an unsafe automatic merge.
+change inventory quantities. Duplicate shopping-list lines with the same state
+are merged safely; mixed purchased and pending lines, along with ambiguous
+catalog matches, are reported and produce exit code `2` for manual review.
 
 ## Architecture
 

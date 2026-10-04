@@ -38,9 +38,14 @@ interface DishMigrationDocument {
 interface ShoppingMigrationDocument {
 	_id: ObjectId;
 	name: string;
+	quantity: number;
 	unit: QuantityUnit;
 	inventoryItemId?: ObjectId;
 	mealPlanIngredientKey?: string;
+	isPurchased: boolean;
+	isMealPlanGenerated?: boolean;
+	mergedLegacyItemIds?: ObjectId[];
+	createdAt: Date;
 	updatedAt: Date;
 }
 
@@ -146,7 +151,10 @@ export function createMongoProductCatalogMigrationStore(): ProductCatalogMigrati
 			return documents.map((document) => ({
 				id: document._id.toHexString(),
 				name: document.name,
+				quantity: document.quantity,
 				unit: document.unit,
+				isPurchased: document.isPurchased,
+				isMealPlanGenerated: document.isMealPlanGenerated ?? false,
 			}));
 		},
 		async hasLinkedShoppingItem(itemId, productId) {
@@ -159,6 +167,61 @@ export function createMongoProductCatalogMigrationStore(): ProductCatalogMigrati
 					inventoryItemId: new ObjectId(productId),
 				})) !== null
 			);
+		},
+		async mergeShoppingItemCollision(reference, product) {
+			const collection = await getCollection<ShoppingMigrationDocument>(
+				COLLECTION_NAMES.shoppingListItems,
+			);
+			const legacyItemId = new ObjectId(reference.id);
+			const target = await collection.findOne({
+				_id: { $ne: legacyItemId },
+				inventoryItemId: new ObjectId(product.id),
+			});
+			if (!target) {
+				return "concurrent-change";
+			}
+			if (target.isPurchased !== reference.isPurchased) {
+				return "status-conflict";
+			}
+
+			const wasAlreadyMerged = target.mergedLegacyItemIds?.some((id) =>
+				id.equals(legacyItemId),
+			);
+			if (!wasAlreadyMerged) {
+				await collection.updateOne(
+					{
+						_id: target._id,
+						isPurchased: reference.isPurchased,
+						mergedLegacyItemIds: { $ne: legacyItemId },
+					},
+					{
+						$inc: { quantity: reference.quantity },
+						$set: {
+							name: product.name,
+							unit: product.unit,
+							isMealPlanGenerated:
+								(target.isMealPlanGenerated ?? false) &&
+								reference.isMealPlanGenerated,
+							updatedAt: new Date(),
+						},
+						$addToSet: { mergedLegacyItemIds: legacyItemId },
+					},
+				);
+			}
+
+			const mergedTarget = await collection.findOne({
+				_id: target._id,
+				mergedLegacyItemIds: legacyItemId,
+			});
+			if (!mergedTarget) {
+				return "concurrent-change";
+			}
+
+			await collection.deleteOne({
+				_id: legacyItemId,
+				inventoryItemId: { $exists: false },
+			});
+			return "merged";
 		},
 		async linkShoppingItem(reference, product) {
 			const collection = await getCollection<ShoppingMigrationDocument>(

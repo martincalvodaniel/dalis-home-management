@@ -8,10 +8,16 @@ export interface MigrationProduct {
 	normalizedName?: string;
 }
 
-export interface LegacyReference {
+interface LegacyReference {
 	id: string;
 	name: string;
 	unit: QuantityUnit;
+}
+
+export interface LegacyShoppingReference extends LegacyReference {
+	quantity: number;
+	isPurchased: boolean;
+	isMealPlanGenerated: boolean;
 }
 
 export interface LegacyIngredientReference extends LegacyReference {
@@ -27,10 +33,14 @@ export interface ProductCatalogMigrationStore {
 		reference: LegacyIngredientReference,
 		product: MigrationProduct,
 	): Promise<boolean>;
-	listLegacyShoppingItems(): Promise<LegacyReference[]>;
+	listLegacyShoppingItems(): Promise<LegacyShoppingReference[]>;
 	hasLinkedShoppingItem(itemId: string, productId: string): Promise<boolean>;
+	mergeShoppingItemCollision(
+		reference: LegacyShoppingReference,
+		product: MigrationProduct,
+	): Promise<"merged" | "status-conflict" | "concurrent-change">;
 	linkShoppingItem(
-		reference: LegacyReference,
+		reference: LegacyShoppingReference,
 		product: MigrationProduct,
 	): Promise<boolean>;
 }
@@ -40,7 +50,10 @@ interface ProductCatalogMigrationIssue {
 	referenceId: string;
 	name: string;
 	unit: QuantityUnit;
-	reason: "ambiguous-product" | "shopping-list-collision" | "concurrent-change";
+	reason:
+		| "ambiguous-product"
+		| "shopping-list-status-conflict"
+		| "concurrent-change";
 }
 
 export interface ProductCatalogMigrationReport {
@@ -48,6 +61,7 @@ export interface ProductCatalogMigrationReport {
 	createdProducts: number;
 	linkedIngredients: number;
 	linkedShoppingItems: number;
+	mergedShoppingItems: number;
 	issues: ProductCatalogMigrationIssue[];
 }
 
@@ -94,6 +108,7 @@ export async function migrateProductCatalogReferences(
 		createdProducts: 0,
 		linkedIngredients: 0,
 		linkedShoppingItems: 0,
+		mergedShoppingItems: 0,
 		issues: [],
 	};
 	const products = await store.listProducts();
@@ -158,13 +173,24 @@ export async function migrateProductCatalogReferences(
 		}
 
 		if (await store.hasLinkedShoppingItem(reference.id, product.id)) {
-			report.issues.push({
-				kind: "shopping-list",
-				referenceId: reference.id,
-				name: reference.name,
-				unit: reference.unit,
-				reason: "shopping-list-collision",
-			});
+			const mergeResult = await store.mergeShoppingItemCollision(
+				reference,
+				product,
+			);
+			if (mergeResult === "merged") {
+				report.mergedShoppingItems += 1;
+			} else {
+				report.issues.push({
+					kind: "shopping-list",
+					referenceId: reference.id,
+					name: reference.name,
+					unit: reference.unit,
+					reason:
+						mergeResult === "status-conflict"
+							? "shopping-list-status-conflict"
+							: "concurrent-change",
+				});
+			}
 			continue;
 		}
 

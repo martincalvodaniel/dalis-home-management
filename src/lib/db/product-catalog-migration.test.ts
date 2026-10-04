@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	type LegacyIngredientReference,
-	type LegacyReference,
+	type LegacyShoppingReference,
 	type MigrationProduct,
 	migrateProductCatalogReferences,
 	type ProductCatalogMigrationStore,
@@ -11,8 +11,10 @@ import type { QuantityUnit } from "@/schemas/quantity-unit";
 class FakeMigrationStore implements ProductCatalogMigrationStore {
 	products: MigrationProduct[];
 	ingredients: LegacyIngredientReference[];
-	shoppingItems: LegacyReference[];
+	shoppingItems: LegacyShoppingReference[];
 	linkedShoppingProductIds = new Set<string>();
+	collisionResult: "merged" | "status-conflict" | "concurrent-change" =
+		"merged";
 	linkedIngredients: Array<{ referenceId: string; productId: string }> = [];
 	linkedShoppingItems: Array<{ referenceId: string; productId: string }> = [];
 
@@ -23,7 +25,7 @@ class FakeMigrationStore implements ProductCatalogMigrationStore {
 	}: {
 		products?: MigrationProduct[];
 		ingredients?: LegacyIngredientReference[];
-		shoppingItems?: LegacyReference[];
+		shoppingItems?: LegacyShoppingReference[];
 	}) {
 		this.products = products;
 		this.ingredients = ingredients;
@@ -77,8 +79,17 @@ class FakeMigrationStore implements ProductCatalogMigrationStore {
 		return this.linkedShoppingProductIds.has(productId);
 	}
 
+	async mergeShoppingItemCollision(reference: LegacyShoppingReference) {
+		if (this.collisionResult === "merged") {
+			this.shoppingItems = this.shoppingItems.filter(
+				(item) => item.id !== reference.id,
+			);
+		}
+		return this.collisionResult;
+	}
+
 	async linkShoppingItem(
-		reference: LegacyReference,
+		reference: LegacyShoppingReference,
 		product: MigrationProduct,
 	) {
 		this.shoppingItems = this.shoppingItems.filter(
@@ -112,7 +123,14 @@ describe("product catalog migration", () => {
 				},
 			],
 			shoppingItems: [
-				{ id: "shopping-tomato", name: " tomato ", unit: "unit" },
+				{
+					id: "shopping-tomato",
+					name: " tomato ",
+					quantity: 2,
+					unit: "unit",
+					isPurchased: false,
+					isMealPlanGenerated: false,
+				},
 			],
 		});
 
@@ -123,6 +141,7 @@ describe("product catalog migration", () => {
 			createdProducts: 1,
 			linkedIngredients: 2,
 			linkedShoppingItems: 1,
+			mergedShoppingItems: 0,
 			issues: [],
 		});
 		expect(store.linkedIngredients).toEqual([
@@ -138,6 +157,7 @@ describe("product catalog migration", () => {
 			createdProducts: 0,
 			linkedIngredients: 0,
 			linkedShoppingItems: 0,
+			mergedShoppingItems: 0,
 			issues: [],
 		});
 	});
@@ -172,14 +192,25 @@ describe("product catalog migration", () => {
 					unit: "milliliter",
 				},
 			],
-			shoppingItems: [{ id: "shopping-bread", name: "Bread", unit: "unit" }],
+			shoppingItems: [
+				{
+					id: "shopping-bread",
+					name: "Bread",
+					quantity: 1,
+					unit: "unit",
+					isPurchased: true,
+					isMealPlanGenerated: false,
+				},
+			],
 		});
 		store.linkedShoppingProductIds.add("bread");
+		store.collisionResult = "status-conflict";
 
 		const report = await migrateProductCatalogReferences(store);
 
 		expect(report.linkedIngredients).toBe(0);
 		expect(report.linkedShoppingItems).toBe(0);
+		expect(report.mergedShoppingItems).toBe(0);
 		expect(report.issues).toEqual([
 			{
 				kind: "ingredient",
@@ -193,8 +224,40 @@ describe("product catalog migration", () => {
 				referenceId: "shopping-bread",
 				name: "Bread",
 				unit: "unit",
-				reason: "shopping-list-collision",
+				reason: "shopping-list-status-conflict",
 			},
 		]);
+	});
+
+	test("merges compatible shopping-list collisions only once", async () => {
+		const store = new FakeMigrationStore({
+			products: [
+				{
+					id: "eggs",
+					name: "Eggs",
+					unit: "unit",
+					normalizedName: "eggs",
+				},
+			],
+			shoppingItems: [
+				{
+					id: "legacy-eggs",
+					name: "eggs",
+					quantity: 6,
+					unit: "unit",
+					isPurchased: false,
+					isMealPlanGenerated: true,
+				},
+			],
+		});
+		store.linkedShoppingProductIds.add("eggs");
+
+		const report = await migrateProductCatalogReferences(store);
+		expect(report.mergedShoppingItems).toBe(1);
+		expect(report.issues).toEqual([]);
+
+		const repeatedReport = await migrateProductCatalogReferences(store);
+		expect(repeatedReport.mergedShoppingItems).toBe(0);
+		expect(repeatedReport.issues).toEqual([]);
 	});
 });
