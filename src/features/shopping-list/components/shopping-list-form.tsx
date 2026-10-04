@@ -98,30 +98,41 @@ export function ShoppingListForm({
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="text-sm font-semibold">
-          <div className="flex items-center justify-between gap-3">
-            <label htmlFor={productId}>Producto</label>
-            <button
-              type="button"
-              onClick={() => setIsProductDialogOpen(true)}
-              disabled={isPending}
-              className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
-            >
-              + Crear producto nuevo
-            </button>
-          </div>
-          <ProductPicker
-            id={productId}
-            products={availableProducts}
-            value={selectedProductId}
-            onValueChange={(productId) => {
-              setSelectedProductId(productId)
-              setNotice(null)
-            }}
-            disabled={isPending}
-            searchable
-            showPurchasePlaces={false}
-            className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
-          />
+          {isEditing ? (
+            <div>
+              <p>Producto</p>
+              <p className="mt-2 min-h-11 rounded-xl border border-[#d8c5b8] bg-white/55 px-3 py-3 text-sm font-semibold dark:border-white/15 dark:bg-[#2e211c]/70">
+                {item.name}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor={productId}>Producto</label>
+                <button
+                  type="button"
+                  onClick={() => setIsProductDialogOpen(true)}
+                  disabled={isPending}
+                  className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
+                >
+                  + Crear producto nuevo
+                </button>
+              </div>
+              <ProductPicker
+                id={productId}
+                products={availableProducts}
+                value={selectedProductId}
+                onValueChange={(productId) => {
+                  setSelectedProductId(productId)
+                  setNotice(null)
+                }}
+                disabled={isPending}
+                searchable
+                showPurchasePlaces={false}
+                className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
+              />
+            </>
+          )}
         </div>
 
         <label className="block text-sm font-semibold" htmlFor={quantityId}>
@@ -167,17 +178,19 @@ export function ShoppingListForm({
           ) : null}
         </div>
       </form>
-      <CatalogProductDialog
-        key={
-          isProductDialogOpen
-            ? "catalog-product-open"
-            : "catalog-product-closed"
-        }
-        open={isProductDialogOpen}
-        purchasePlaces={getPurchasePlaces(availableProducts)}
-        onDismiss={() => setIsProductDialogOpen(false)}
-        onCreated={handleProductCreated}
-      />
+      {isEditing ? null : (
+        <CatalogProductDialog
+          key={
+            isProductDialogOpen
+              ? "catalog-product-open"
+              : "catalog-product-closed"
+          }
+          open={isProductDialogOpen}
+          purchasePlaces={getPurchasePlaces(availableProducts)}
+          onDismiss={() => setIsProductDialogOpen(false)}
+          onCreated={handleProductCreated}
+        />
+      )}
     </section>
   )
 }
