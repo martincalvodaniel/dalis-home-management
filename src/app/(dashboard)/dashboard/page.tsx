@@ -64,6 +64,30 @@ export default function DashboardPage() {
 							</span>
 						</div>
 					</Link>
+					<Link
+						href="/meals"
+						className="group rounded-2xl border border-[#e4d9b8] bg-[#f3e8c8] p-6 text-[#504617] transition hover:-translate-y-0.5 hover:bg-[#eee0b5] focus:outline-none focus:ring-2 focus:ring-[#75611f] focus:ring-offset-2 dark:border-[#685c38] dark:bg-[#39331f] dark:text-[#fff8d9] dark:ring-offset-[#182e26]"
+					>
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6d1f] dark:text-[#dec778]">
+							Disponible
+						</p>
+						<div className="mt-3 flex items-end justify-between gap-4">
+							<div>
+								<h2 className="text-2xl font-semibold tracking-[-0.04em]">
+									Nuestros platos
+								</h2>
+								<p className="mt-2 text-sm text-[#756b3f] dark:text-[#ded3a4]">
+									Ingredientes listos para el menú.
+								</p>
+							</div>
+							<span
+								className="text-2xl transition group-hover:translate-x-1"
+								aria-hidden="true"
+							>
+								→
+							</span>
+						</div>
+					</Link>
 				</div>
 			</section>
 		</main>
