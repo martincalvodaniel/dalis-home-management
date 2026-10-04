@@ -2,26 +2,25 @@
 
 import { type FormEvent, useState, useTransition } from "react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import {
 	createDishAction,
 	updateDishAction,
 } from "@/features/meal-planning/actions";
 import type { Dish } from "@/schemas/dish";
-import type { InventoryIngredientOption } from "../ingredient-option";
 import { type IngredientDraft, IngredientRow } from "./ingredient-row";
 
 interface DishFormProps {
 	dish: Dish | null;
-	inventoryOptions: InventoryIngredientOption[];
+	products: CatalogProductOption[];
 	onCancel: () => void;
 	onSaved: () => void;
 }
 
 const blankIngredient: IngredientDraft = {
 	key: "new-ingredient",
-	name: "",
 	quantity: "1",
-	unit: "unit",
 	inventoryItemId: "",
 };
 
@@ -32,22 +31,20 @@ function getInitialIngredients(dish: Dish | null): IngredientDraft[] {
 
 	return dish.ingredients.map((ingredient) => ({
 		key: ingredient.id,
-		name: ingredient.name,
 		quantity: String(ingredient.quantity),
-		unit: ingredient.unit,
 		inventoryItemId: ingredient.inventoryItemId ?? "",
+		...(ingredient.inventoryItemId ? {} : { legacyName: ingredient.name }),
 	}));
 }
 
-export function DishForm({
-	dish,
-	inventoryOptions,
-	onCancel,
-	onSaved,
-}: DishFormProps) {
+export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
 	const [ingredients, setIngredients] = useState<IngredientDraft[]>(() =>
 		getInitialIngredients(dish),
 	);
+	const [availableProducts, setAvailableProducts] = useState(products);
+	const [creatingProductForIndex, setCreatingProductForIndex] = useState<
+		number | null
+	>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const isEditing = dish !== null;
@@ -76,6 +73,30 @@ export function DishForm({
 		]);
 	}
 
+	function handleProductCreated(product: CatalogProductOption) {
+		setAvailableProducts((current) =>
+			current.some((entry) => entry.id === product.id)
+				? current
+				: [...current, product].toSorted((left, right) =>
+						left.name.localeCompare(right.name, "es", { sensitivity: "base" }),
+					),
+		);
+		if (creatingProductForIndex !== null) {
+			setIngredients((current) =>
+				current.map((ingredient, index) =>
+					index === creatingProductForIndex
+						? {
+								...ingredient,
+								inventoryItemId: product.id,
+								legacyName: undefined,
+							}
+						: ingredient,
+				),
+			);
+		}
+		setCreatingProductForIndex(null);
+	}
+
 	function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setError(null);
@@ -84,10 +105,8 @@ export function DishForm({
 		const input = {
 			name: formData.get("name"),
 			ingredients: ingredients.map((ingredient) => ({
-				name: ingredient.name,
 				quantity: Number(ingredient.quantity),
-				unit: ingredient.unit,
-				inventoryItemId: ingredient.inventoryItemId || undefined,
+				inventoryItemId: ingredient.inventoryItemId,
 			})),
 		};
 
@@ -140,12 +159,14 @@ export function DishForm({
 							key={ingredient.key}
 							index={index}
 							ingredient={ingredient}
-							inventoryOptions={inventoryOptions}
+							products={availableProducts}
 							canRemove={ingredients.length > 1}
+							disabled={isPending}
 							onChange={(nextIngredient) =>
 								updateIngredient(index, nextIngredient)
 							}
 							onRemove={() => removeIngredient(index)}
+							onRequestProductCreation={() => setCreatingProductForIndex(index)}
 						/>
 					))}
 				</div>
@@ -181,6 +202,17 @@ export function DishForm({
 					) : null}
 				</div>
 			</form>
+			<CatalogProductDialog
+				key={`catalog-product-${creatingProductForIndex ?? "closed"}`}
+				open={creatingProductForIndex !== null}
+				initialName={
+					creatingProductForIndex === null
+						? undefined
+						: ingredients[creatingProductForIndex]?.legacyName
+				}
+				onDismiss={() => setCreatingProductForIndex(null)}
+				onCreated={handleProductCreated}
+			/>
 		</section>
 	);
 }

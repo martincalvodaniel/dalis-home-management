@@ -12,7 +12,8 @@ export const dishIngredientSchema = z.object({
 });
 
 export const dishIngredientInputSchema = dishIngredientSchema
-	.omit({ id: true })
+	.pick({ quantity: true, inventoryItemId: true })
+	.required({ inventoryItemId: true })
 	.strict();
 
 export const dishSchema = z.object({
@@ -30,19 +31,18 @@ export const dishInputSchema = z
 	})
 	.strict()
 	.superRefine((dish, context) => {
-		const ingredientNames = new Set<string>();
+		const inventoryItemIds = new Set<string>();
 
 		for (const [index, ingredient] of dish.ingredients.entries()) {
-			const normalizedName = ingredient.name.toLocaleLowerCase("es");
-			if (ingredientNames.has(normalizedName)) {
+			if (inventoryItemIds.has(ingredient.inventoryItemId)) {
 				context.addIssue({
 					code: "custom",
-					message: "Ingredient names must be unique within a dish",
-					path: ["ingredients", index, "name"],
+					message: "Products must be unique within a dish",
+					path: ["ingredients", index, "inventoryItemId"],
 				});
 			}
 
-			ingredientNames.add(normalizedName);
+			inventoryItemIds.add(ingredient.inventoryItemId);
 		}
 	});
 

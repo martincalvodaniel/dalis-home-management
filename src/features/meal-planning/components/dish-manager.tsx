@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import type { Dish } from "@/schemas/dish";
-import type { InventoryIngredientOption } from "../ingredient-option";
 import { DishForm } from "./dish-form";
 import { DishList } from "./dish-list";
 
 interface DishManagerProps {
 	dishes: Dish[];
-	inventoryOptions: InventoryIngredientOption[];
+	products: CatalogProductOption[];
 }
 
-export function DishManager({ dishes, inventoryOptions }: DishManagerProps) {
+export function DishManager({ dishes, products }: DishManagerProps) {
 	const [editingDish, setEditingDish] = useState<Dish | null>(null);
 
 	return (
@@ -20,7 +20,7 @@ export function DishManager({ dishes, inventoryOptions }: DishManagerProps) {
 				<DishForm
 					key={editingDish?.id ?? "new-dish"}
 					dish={editingDish}
-					inventoryOptions={inventoryOptions}
+					products={products}
 					onCancel={() => setEditingDish(null)}
 					onSaved={() => setEditingDish(null)}
 				/>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { toCatalogProductOption } from "@/features/catalog/product-option";
 import { DishCatalogPage } from "@/features/meal-planning/components/dish-catalog-page";
 import { listDishes } from "@/lib/db/dishes";
 import { listInventoryItems } from "@/lib/db/inventory-items";
@@ -14,13 +15,7 @@ export default async function MealsRoute() {
 		listDishes(),
 		listInventoryItems(),
 	]);
-	const inventoryOptions = inventoryItems.map(({ id, name, unit }) => ({
-		id,
-		name,
-		unit,
-	}));
+	const products = inventoryItems.map(toCatalogProductOption);
 
-	return (
-		<DishCatalogPage dishes={dishes} inventoryOptions={inventoryOptions} />
-	);
+	return <DishCatalogPage dishes={dishes} products={products} />;
 }

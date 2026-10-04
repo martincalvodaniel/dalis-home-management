@@ -5,15 +5,12 @@ const validDish = {
 	name: "  Lentil stew  ",
 	ingredients: [
 		{
-			name: "  Lentils  ",
 			quantity: 300,
-			unit: "gram",
 			inventoryItemId: "507f1f77bcf86cd799439011",
 		},
 		{
-			name: "Carrot",
 			quantity: 2,
-			unit: "unit",
+			inventoryItemId: "507f1f77bcf86cd799439012",
 		},
 	],
 };
@@ -23,7 +20,9 @@ describe("dishInputSchema", () => {
 		const result = dishInputSchema.parse(validDish);
 
 		expect(result.name).toBe("Lentil stew");
-		expect(result.ingredients[0]?.name).toBe("Lentils");
+		expect(result.ingredients[0]?.inventoryItemId).toBe(
+			"507f1f77bcf86cd799439011",
+		);
 		expect(result.ingredients).toHaveLength(2);
 	});
 
@@ -36,12 +35,18 @@ describe("dishInputSchema", () => {
 		expect(result.success).toBe(false);
 	});
 
-	test("rejects duplicate ingredient names", () => {
+	test("rejects duplicate catalog products", () => {
 		const result = dishInputSchema.safeParse({
 			name: "Salad",
 			ingredients: [
-				{ name: "Tomato", quantity: 1, unit: "unit" },
-				{ name: "tomato", quantity: 2, unit: "unit" },
+				{
+					quantity: 1,
+					inventoryItemId: "507f1f77bcf86cd799439011",
+				},
+				{
+					quantity: 2,
+					inventoryItemId: "507f1f77bcf86cd799439011",
+				},
 			],
 		});
 
@@ -53,12 +58,19 @@ describe("dishInputSchema", () => {
 			...validDish,
 			ingredients: [
 				{
-					name: "Lentils",
 					quantity: 300,
-					unit: "gram",
 					inventoryItemId: "not-an-object-id",
 				},
 			],
+		});
+
+		expect(result.success).toBe(false);
+	});
+
+	test("requires every ingredient to reference a catalog product", () => {
+		const result = dishInputSchema.safeParse({
+			name: "Soup",
+			ingredients: [{ quantity: 1 }],
 		});
 
 		expect(result.success).toBe(false);

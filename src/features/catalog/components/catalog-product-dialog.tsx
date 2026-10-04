@@ -22,6 +22,7 @@ import {
 
 interface CatalogProductDialogProps {
 	open: boolean;
+	initialName?: string;
 	onDismiss: () => void;
 	onCreated: (product: CatalogProductOption, created: boolean) => void;
 }
@@ -38,6 +39,7 @@ const locationOptions = inventoryItemLocations.map((location) => ({
 
 export function CatalogProductDialog({
 	open,
+	initialName,
 	onDismiss,
 	onCreated,
 }: CatalogProductDialogProps) {
@@ -117,6 +119,7 @@ export function CatalogProductDialog({
 							required
 							maxLength={120}
 							placeholder="Por ejemplo, tomates"
+							defaultValue={initialName}
 							className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-4 font-normal outline-none transition placeholder:text-[#9aa59e] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c]"
 						/>
 					</label>

@@ -1,17 +1,14 @@
 import Link from "next/link";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import type { Dish } from "@/schemas/dish";
-import type { InventoryIngredientOption } from "../ingredient-option";
 import { DishManager } from "./dish-manager";
 
 interface DishCatalogPageProps {
 	dishes: Dish[];
-	inventoryOptions: InventoryIngredientOption[];
+	products: CatalogProductOption[];
 }
 
-export function DishCatalogPage({
-	dishes,
-	inventoryOptions,
-}: DishCatalogPageProps) {
+export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
 	return (
 		<main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
 			<div className="mx-auto w-full max-w-7xl">
@@ -49,7 +46,7 @@ export function DishCatalogPage({
 					</div>
 				</header>
 
-				<DishManager dishes={dishes} inventoryOptions={inventoryOptions} />
+				<DishManager dishes={dishes} products={products} />
 			</div>
 		</main>
 	);

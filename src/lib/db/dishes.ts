@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items";
-import type { Dish, DishIngredient, DishInput } from "@/schemas/dish";
+import type { Dish, DishIngredient } from "@/schemas/dish";
 import type { InventoryItem } from "@/schemas/inventory-item";
 
 interface DishIngredientDocument
@@ -15,6 +15,16 @@ interface DishIngredientDocument
 interface DishDocument extends Omit<Dish, "id" | "ingredients"> {
 	_id: ObjectId;
 	ingredients: DishIngredientDocument[];
+}
+
+export interface DishWriteInput {
+	name: string;
+	ingredients: Array<{
+		name: string;
+		quantity: number;
+		unit: DishIngredient["unit"];
+		inventoryItemId: string;
+	}>;
 }
 
 function toIngredient(
@@ -40,20 +50,15 @@ function toIngredient(
 }
 
 function toIngredientDocument(
-	ingredient: DishInput["ingredients"][number],
+	ingredient: DishWriteInput["ingredients"][number],
 ): DishIngredientDocument {
-	const document: DishIngredientDocument = {
+	return {
 		id: randomUUID(),
 		name: ingredient.name,
 		quantity: ingredient.quantity,
 		unit: ingredient.unit,
+		inventoryItemId: new ObjectId(ingredient.inventoryItemId),
 	};
-
-	if (ingredient.inventoryItemId) {
-		document.inventoryItemId = new ObjectId(ingredient.inventoryItemId);
-	}
-
-	return document;
 }
 
 function toDish(
@@ -126,7 +131,7 @@ export async function isInventoryItemUsedInDishes(
 	return document !== null;
 }
 
-export async function createDish(input: DishInput): Promise<string> {
+export async function createDish(input: DishWriteInput): Promise<string> {
 	const collection = await getCollection<DishDocument>(COLLECTION_NAMES.dishes);
 	const now = new Date();
 	const result = await collection.insertOne({
@@ -142,7 +147,7 @@ export async function createDish(input: DishInput): Promise<string> {
 
 export async function updateDish(
 	id: string,
-	input: DishInput,
+	input: DishWriteInput,
 ): Promise<boolean> {
 	const collection = await getCollection<DishDocument>(COLLECTION_NAMES.dishes);
 	const result = await collection.updateOne(

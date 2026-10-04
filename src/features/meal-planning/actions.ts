@@ -4,12 +4,16 @@ import { revalidatePath } from "next/cache";
 import { requireAuthorizedSession } from "@/lib/auth/session";
 import {
 	createDish,
+	type DishWriteInput,
 	deleteDish,
 	findDishById,
 	listDishes,
 	updateDish,
 } from "@/lib/db/dishes";
-import { listInventoryItems } from "@/lib/db/inventory-items";
+import {
+	findInventoryItemsByIds,
+	listInventoryItems,
+} from "@/lib/db/inventory-items";
 import { addMealPlanSuggestionsToShoppingList } from "@/lib/db/shopping-list-items";
 import {
 	copyPreviousWeekIntoEmptyPlan,
@@ -18,6 +22,7 @@ import {
 	isDishUsedInMealPlans,
 	setWeeklyMealSlot,
 } from "@/lib/db/weekly-meal-plans";
+import type { DishInput } from "@/schemas/dish";
 import { dishIdSchema, dishInputSchema } from "@/schemas/dish";
 import {
 	weeklyMealSlotInputSchema,
@@ -36,6 +41,41 @@ const invalidInputResult: DishActionResult = {
 	message: "Revisa el plato y sus ingredientes e inténtalo de nuevo.",
 };
 
+async function resolveDishInput(
+	input: DishInput,
+): Promise<DishWriteInput | null> {
+	const productIds = input.ingredients.map(
+		(ingredient) => ingredient.inventoryItemId,
+	);
+	const products = await findInventoryItemsByIds(productIds);
+	const productsById = new Map(
+		products.map((product) => [product.id, product]),
+	);
+
+	if (productsById.size !== productIds.length) {
+		return null;
+	}
+
+	return {
+		name: input.name,
+		ingredients: input.ingredients.map((ingredient) => {
+			const product = productsById.get(ingredient.inventoryItemId);
+			if (!product) {
+				throw new Error(
+					"Catalog product disappeared while resolving dish input",
+				);
+			}
+
+			return {
+				name: product.name,
+				quantity: ingredient.quantity,
+				unit: product.unit,
+				inventoryItemId: product.id,
+			};
+		}),
+	};
+}
+
 export async function createDishAction(
 	input: unknown,
 ): Promise<DishActionResult> {
@@ -46,7 +86,15 @@ export async function createDishAction(
 		return invalidInputResult;
 	}
 
-	await createDish(result.data);
+	const dish = await resolveDishInput(result.data);
+	if (!dish) {
+		return {
+			success: false,
+			message: "Alguno de los productos ya no existe en el catálogo.",
+		};
+	}
+
+	await createDish(dish);
 	revalidatePath(MEALS_PATH);
 	return { success: true };
 }
@@ -63,7 +111,15 @@ export async function updateDishAction(
 		return invalidInputResult;
 	}
 
-	const updated = await updateDish(idResult.data, inputResult.data);
+	const dish = await resolveDishInput(inputResult.data);
+	if (!dish) {
+		return {
+			success: false,
+			message: "Alguno de los productos ya no existe en el catálogo.",
+		};
+	}
+
+	const updated = await updateDish(idResult.data, dish);
 	if (!updated) {
 		return { success: false, message: "No se ha encontrado el plato." };
 	}

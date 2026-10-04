@@ -1,61 +1,36 @@
 "use client";
 
-import { SelectField } from "@/components/ui/select-field";
-import { quantityUnitLabels } from "@/config/quantity-units";
-import { type QuantityUnit, quantityUnits } from "@/schemas/quantity-unit";
-import type { InventoryIngredientOption } from "../ingredient-option";
-
-const unitOptions = quantityUnits.map((unit) => ({
-	value: unit,
-	label: quantityUnitLabels[unit],
-}));
+import { ProductPicker } from "@/features/catalog/components/product-picker";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 
 export interface IngredientDraft {
 	key: string;
-	name: string;
 	quantity: string;
-	unit: QuantityUnit;
 	inventoryItemId: string;
+	legacyName?: string;
 }
 
 interface IngredientRowProps {
 	index: number;
 	ingredient: IngredientDraft;
-	inventoryOptions: InventoryIngredientOption[];
+	products: CatalogProductOption[];
 	canRemove: boolean;
+	disabled: boolean;
 	onChange: (ingredient: IngredientDraft) => void;
 	onRemove: () => void;
+	onRequestProductCreation: () => void;
 }
 
 export function IngredientRow({
 	index,
 	ingredient,
-	inventoryOptions,
+	products,
 	canRemove,
+	disabled,
 	onChange,
 	onRemove,
+	onRequestProductCreation,
 }: IngredientRowProps) {
-	const inventorySelectOptions = [
-		{ value: "", label: "Sin vincular" },
-		...inventoryOptions.map((option) => ({
-			value: option.id,
-			label: option.name,
-		})),
-	];
-
-	function selectInventoryItem(inventoryItemId: string) {
-		const inventoryItem = inventoryOptions.find(
-			(option) => option.id === inventoryItemId,
-		);
-
-		onChange({
-			...ingredient,
-			inventoryItemId,
-			name: inventoryItem?.name ?? ingredient.name,
-			unit: inventoryItem?.unit ?? ingredient.unit,
-		});
-	}
-
 	return (
 		<div className="rounded-2xl border border-[#ded9c7] bg-white/65 p-4 dark:border-white/10 dark:bg-[#182e26]/80">
 			<div className="flex items-center justify-between gap-3">
@@ -73,46 +48,35 @@ export function IngredientRow({
 				) : null}
 			</div>
 
-			<div className="mt-3 block text-xs font-semibold">
-				<label htmlFor={`inventory-${ingredient.key}`}>
-					Vincular al inventario
-				</label>
-				<SelectField
+			<div className="mt-3 text-xs font-semibold">
+				<label htmlFor={`inventory-${ingredient.key}`}>Producto</label>
+				<ProductPicker
 					id={`inventory-${ingredient.key}`}
+					products={products}
 					value={ingredient.inventoryItemId}
-					onValueChange={selectInventoryItem}
-					options={inventorySelectOptions}
+					onValueChange={(inventoryItemId) =>
+						onChange({ ...ingredient, inventoryItemId, legacyName: undefined })
+					}
+					disabled={disabled}
 					className="mt-1.5 min-h-11 focus:border-[#8a7633] focus:ring-[#8a7633]/20"
 				/>
+				<button
+					type="button"
+					onClick={onRequestProductCreation}
+					disabled={disabled}
+					className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#75611f] underline decoration-[#b4a66e] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:opacity-60 dark:text-[#dccb8d]"
+				>
+					+ Crear producto nuevo
+				</button>
 			</div>
-			{ingredient.inventoryItemId ? (
-				<p className="mt-2 text-xs leading-5 text-[#66766c] dark:text-[#acb8b0]">
-					El nombre y la unidad se mantienen sincronizados con el inventario.
-					Selecciona “Sin vincular” para personalizarlos.
+			{ingredient.legacyName && !ingredient.inventoryItemId ? (
+				<p className="mt-2 rounded-xl bg-[#fff3cd] px-3 py-2 text-xs leading-5 text-[#6f5a16] dark:bg-[#594917]/45 dark:text-[#f1dc93]">
+					“{ingredient.legacyName}” procede de un plato antiguo. Selecciona o
+					crea su producto para volver a guardar el plato.
 				</p>
 			) : null}
 
-			<label
-				className="mt-3 block text-xs font-semibold"
-				htmlFor={`ingredient-name-${ingredient.key}`}
-			>
-				Nombre
-				<input
-					id={`ingredient-name-${ingredient.key}`}
-					type="text"
-					required
-					maxLength={120}
-					readOnly={ingredient.inventoryItemId.length > 0}
-					value={ingredient.name}
-					onChange={(event) =>
-						onChange({ ...ingredient, name: event.target.value })
-					}
-					placeholder="Por ejemplo, tomate"
-					className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d0d4c8] bg-white px-3 font-normal outline-none transition placeholder:text-[#9aa59e] focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#10231c]"
-				/>
-			</label>
-
-			<div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-3">
+			<div className="mt-3">
 				<label
 					className="block text-xs font-semibold"
 					htmlFor={`ingredient-quantity-${ingredient.key}`}
@@ -132,22 +96,6 @@ export function IngredientRow({
 						className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d0d4c8] bg-white px-3 font-normal outline-none transition focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#10231c]"
 					/>
 				</label>
-				<div className="block text-xs font-semibold">
-					<label htmlFor={`ingredient-unit-${ingredient.key}`}>Unidad</label>
-					<SelectField
-						id={`ingredient-unit-${ingredient.key}`}
-						value={ingredient.unit}
-						disabled={ingredient.inventoryItemId.length > 0}
-						onValueChange={(unit) =>
-							onChange({
-								...ingredient,
-								unit: unit as QuantityUnit,
-							})
-						}
-						options={unitOptions}
-						className="mt-1.5 min-h-11 focus:border-[#8a7633] focus:ring-[#8a7633]/20"
-					/>
-				</div>
 			</div>
 		</div>
 	);
