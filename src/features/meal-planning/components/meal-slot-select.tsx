@@ -69,21 +69,23 @@ export function MealSlotSelect({
         >
           {label}
         </label>
-        <div className="flex items-center gap-2">
-          {isPending ? (
-            <span className="text-xs font-bold text-[#c36d49]">Guardando…</span>
-          ) : null}
-          {dragHandle}
-        </div>
+        {isPending ? (
+          <span className="text-xs font-bold text-[#c36d49]">Guardando…</span>
+        ) : null}
       </div>
-      <SelectField
-        id={`${date}-${mealType}`}
-        value={selectedDishId}
-        onValueChange={handleChange}
-        disabled={disabled || isPending}
-        options={dishOptions}
-        className="min-h-11 border-[#d8ded5] text-sm font-medium text-[#28483d] dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
-      />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <SelectField
+            id={`${date}-${mealType}`}
+            value={selectedDishId}
+            onValueChange={handleChange}
+            disabled={disabled || isPending}
+            options={dishOptions}
+            className="min-h-11 border-[#d8ded5] text-sm font-medium text-[#28483d] dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
+          />
+        </div>
+        {dragHandle}
+      </div>
       {error ? (
         <p className="mt-1.5 text-xs font-medium text-[#a34435]" role="alert">
           {error}
