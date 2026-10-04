@@ -1,17 +1,46 @@
+import Link from "next/link";
+
 export default function DashboardPage() {
 	return (
-		<main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center p-6">
-			<section className="w-full rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-				<p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400">
+		<main className="flex min-h-screen items-center bg-[#f5f4ee] p-4 text-[#17352b] sm:p-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
+			<section className="mx-auto w-full max-w-5xl rounded-[2rem] border border-[#dde1d8] bg-white/75 p-6 shadow-[0_24px_70px_rgba(50,72,60,0.1)] sm:p-10 dark:border-white/10 dark:bg-[#182e26]/90">
+				<p className="text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49]">
 					Dali
 				</p>
-				<h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-					Tu espacio ya está protegido
+				<h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+					Nuestro espacio
 				</h1>
-				<p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
-					Las próximas utilidades para gestionar el hogar se construirán sobre
-					este espacio privado.
+				<p className="mt-4 max-w-2xl leading-7 text-[#63736a] dark:text-[#b4c0b8]">
+					Las utilidades que Dani y Pali utilizamos para llevar la casa con
+					menos esfuerzo.
 				</p>
+
+				<div className="mt-9 grid gap-4 sm:grid-cols-2">
+					<Link
+						href="/inventory"
+						className="group rounded-2xl bg-[#1d4f40] p-6 text-white shadow-[0_15px_35px_rgba(29,79,64,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 dark:ring-offset-[#182e26]"
+					>
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#bdd1c4]">
+							Disponible
+						</p>
+						<div className="mt-3 flex items-end justify-between gap-4">
+							<div>
+								<h2 className="text-2xl font-semibold tracking-[-0.04em]">
+									Inventario
+								</h2>
+								<p className="mt-2 text-sm text-[#c8d8ce]">
+									Todo lo que tenemos en casa.
+								</p>
+							</div>
+							<span
+								className="text-2xl transition group-hover:translate-x-1"
+								aria-hidden="true"
+							>
+								→
+							</span>
+						</div>
+					</Link>
+				</div>
 			</section>
 		</main>
 	);
