@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { clearWeeklyMealPlanAction } from "@/features/meal-planning/actions";
 
 interface ClearWeekButtonProps {
@@ -11,16 +12,11 @@ interface ClearWeekButtonProps {
 export function ClearWeekButton({ weekStart }: ClearWeekButtonProps) {
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
 
 	function clearWeek() {
-		const confirmed = window.confirm(
-			"¿Vaciar todas las comidas y cenas de esta semana?",
-		);
-		if (!confirmed) {
-			return;
-		}
-
+		setIsDialogOpen(false);
 		setError(null);
 		startTransition(async () => {
 			try {
@@ -41,7 +37,7 @@ export function ClearWeekButton({ weekStart }: ClearWeekButtonProps) {
 		<div>
 			<button
 				type="button"
-				onClick={clearWeek}
+				onClick={() => setIsDialogOpen(true)}
 				disabled={isPending}
 				className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8b8ad] bg-white/70 px-4 text-sm font-semibold text-[#9a4d39] transition hover:bg-[#fff3ef] focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:cursor-wait disabled:opacity-65 dark:border-[#754c40] dark:bg-white/5 dark:text-[#f2b7a5] dark:hover:bg-[#4b3027]"
 			>
@@ -55,6 +51,15 @@ export function ClearWeekButton({ weekStart }: ClearWeekButtonProps) {
 					{error}
 				</p>
 			) : null}
+			<ConfirmationDialog
+				open={isDialogOpen}
+				title="Vaciar esta semana"
+				description="Se quitarán todas las comidas y cenas planificadas para esta semana."
+				confirmLabel="Vaciar semana"
+				tone="danger"
+				onConfirm={clearWeek}
+				onDismiss={() => setIsDialogOpen(false)}
+			/>
 		</div>
 	);
 }
