@@ -13,8 +13,7 @@ class FakeMigrationStore implements ProductCatalogMigrationStore {
 	ingredients: LegacyIngredientReference[];
 	shoppingItems: LegacyShoppingReference[];
 	linkedShoppingProductIds = new Set<string>();
-	collisionResult: "merged" | "status-conflict" | "concurrent-change" =
-		"merged";
+	collisionResult: "merged" | "concurrent-change" = "merged";
 	linkedIngredients: Array<{ referenceId: string; productId: string }> = [];
 	linkedShoppingItems: Array<{ referenceId: string; productId: string }> = [];
 
@@ -162,7 +161,7 @@ describe("product catalog migration", () => {
 		});
 	});
 
-	test("reports ambiguous products and shopping-list collisions", async () => {
+	test("reports ambiguous products and concurrent shopping-list changes", async () => {
 		const store = new FakeMigrationStore({
 			products: [
 				{
@@ -204,7 +203,7 @@ describe("product catalog migration", () => {
 			],
 		});
 		store.linkedShoppingProductIds.add("bread");
-		store.collisionResult = "status-conflict";
+		store.collisionResult = "concurrent-change";
 
 		const report = await migrateProductCatalogReferences(store);
 
@@ -224,12 +223,12 @@ describe("product catalog migration", () => {
 				referenceId: "shopping-bread",
 				name: "Bread",
 				unit: "unit",
-				reason: "shopping-list-status-conflict",
+				reason: "concurrent-change",
 			},
 		]);
 	});
 
-	test("merges compatible shopping-list collisions only once", async () => {
+	test("merges shopping-list collisions only once", async () => {
 		const store = new FakeMigrationStore({
 			products: [
 				{

@@ -180,10 +180,6 @@ export function createMongoProductCatalogMigrationStore(): ProductCatalogMigrati
 			if (!target) {
 				return "concurrent-change";
 			}
-			if (target.isPurchased !== reference.isPurchased) {
-				return "status-conflict";
-			}
-
 			const wasAlreadyMerged = target.mergedLegacyItemIds?.some((id) =>
 				id.equals(legacyItemId),
 			);
@@ -191,21 +187,45 @@ export function createMongoProductCatalogMigrationStore(): ProductCatalogMigrati
 				await collection.updateOne(
 					{
 						_id: target._id,
-						isPurchased: reference.isPurchased,
 						mergedLegacyItemIds: { $ne: legacyItemId },
 					},
-					{
-						$inc: { quantity: reference.quantity },
-						$set: {
-							name: product.name,
-							unit: product.unit,
-							isMealPlanGenerated:
-								(target.isMealPlanGenerated ?? false) &&
-								reference.isMealPlanGenerated,
-							updatedAt: new Date(),
+					[
+						{
+							$set: {
+								quantity: {
+									$cond: [
+										{ $eq: ["$isPurchased", reference.isPurchased] },
+										{ $add: ["$quantity", reference.quantity] },
+										{
+											$cond: [
+												reference.isPurchased,
+												"$quantity",
+												reference.quantity,
+											],
+										},
+									],
+								},
+								name: product.name,
+								unit: product.unit,
+								isPurchased: {
+									$and: ["$isPurchased", reference.isPurchased],
+								},
+								isMealPlanGenerated: {
+									$and: [
+										{ $ifNull: ["$isMealPlanGenerated", false] },
+										reference.isMealPlanGenerated,
+									],
+								},
+								mergedLegacyItemIds: {
+									$setUnion: [
+										{ $ifNull: ["$mergedLegacyItemIds", []] },
+										[legacyItemId],
+									],
+								},
+								updatedAt: new Date(),
+							},
 						},
-						$addToSet: { mergedLegacyItemIds: legacyItemId },
-					},
+					],
 				);
 			}
 

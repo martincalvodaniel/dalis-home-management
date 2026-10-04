@@ -38,7 +38,7 @@ export interface ProductCatalogMigrationStore {
 	mergeShoppingItemCollision(
 		reference: LegacyShoppingReference,
 		product: MigrationProduct,
-	): Promise<"merged" | "status-conflict" | "concurrent-change">;
+	): Promise<"merged" | "concurrent-change">;
 	linkShoppingItem(
 		reference: LegacyShoppingReference,
 		product: MigrationProduct,
@@ -50,10 +50,7 @@ interface ProductCatalogMigrationIssue {
 	referenceId: string;
 	name: string;
 	unit: QuantityUnit;
-	reason:
-		| "ambiguous-product"
-		| "shopping-list-status-conflict"
-		| "concurrent-change";
+	reason: "ambiguous-product" | "concurrent-change";
 }
 
 export interface ProductCatalogMigrationReport {
@@ -185,10 +182,7 @@ export async function migrateProductCatalogReferences(
 					referenceId: reference.id,
 					name: reference.name,
 					unit: reference.unit,
-					reason:
-						mergeResult === "status-conflict"
-							? "shopping-list-status-conflict"
-							: "concurrent-change",
+					reason: "concurrent-change",
 				});
 			}
 			continue;
