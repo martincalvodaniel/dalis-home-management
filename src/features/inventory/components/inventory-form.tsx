@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState, useTransition } from "react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { SelectField } from "@/components/ui/select-field";
 import {
 	createInventoryItemAction,
 	updateInventoryItemAction,
@@ -21,6 +22,16 @@ interface InventoryFormProps {
 	onCancel: () => void;
 	onSaved: () => void;
 }
+
+const unitOptions = inventoryItemUnits.map((unit) => ({
+	value: unit,
+	label: inventoryUnitLabels[unit],
+}));
+
+const locationOptions = inventoryItemLocations.map((location) => ({
+	value: location,
+	label: inventoryLocationLabels[location],
+}));
 
 export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
 	const [error, setError] = useState<string | null>(null);
@@ -97,38 +108,28 @@ export function InventoryForm({ item, onCancel, onSaved }: InventoryFormProps) {
 							className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-4 font-normal outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c]"
 						/>
 					</label>
-					<label className="block text-sm font-semibold" htmlFor="unit">
-						Unidad
-						<select
+					<div className="block text-sm font-semibold">
+						<label htmlFor="unit">Unidad</label>
+						<SelectField
 							id="unit"
 							name="unit"
 							defaultValue={item?.unit ?? "unit"}
-							className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-3 font-normal outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c]"
-						>
-							{inventoryItemUnits.map((unit) => (
-								<option key={unit} value={unit}>
-									{inventoryUnitLabels[unit]}
-								</option>
-							))}
-						</select>
-					</label>
+							options={unitOptions}
+							className="mt-2"
+						/>
+					</div>
 				</div>
 
-				<label className="block text-sm font-semibold" htmlFor="location">
-					Ubicación
-					<select
+				<div className="block text-sm font-semibold">
+					<label htmlFor="location">Ubicación</label>
+					<SelectField
 						id="location"
 						name="location"
 						defaultValue={item?.location ?? "pantry"}
-						className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-3 font-normal outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c]"
-					>
-						{inventoryItemLocations.map((location) => (
-							<option key={location} value={location}>
-								{inventoryLocationLabels[location]}
-							</option>
-						))}
-					</select>
-				</label>
+						options={locationOptions}
+						className="mt-2"
+					/>
+				</div>
 
 				{error ? <ErrorBanner>{error}</ErrorBanner> : null}
 

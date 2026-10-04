@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { SelectField } from "@/components/ui/select-field";
 import { setWeeklyMealSlotAction } from "@/features/meal-planning/actions";
 import type { DishOption } from "@/features/meal-planning/dish-option";
 import type { MealType } from "@/schemas/weekly-meal-plan";
@@ -29,6 +30,10 @@ export function MealSlotSelect({
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const label = mealLabels[mealType];
+	const dishOptions = [
+		{ value: "", label: "Sin planificar" },
+		...dishes.map((dish) => ({ value: dish.id, label: dish.name })),
+	];
 
 	function handleChange(nextDishId: string) {
 		const previousDishId = selectedDishId;
@@ -63,20 +68,14 @@ export function MealSlotSelect({
 					</span>
 				) : null}
 			</label>
-			<select
+			<SelectField
 				id={`${date}-${mealType}`}
 				value={selectedDishId}
-				onChange={(event) => handleChange(event.target.value)}
+				onValueChange={handleChange}
 				disabled={isPending}
-				className="min-h-11 w-full rounded-xl border border-[#d8ded5] bg-white px-3 text-sm font-medium text-[#28483d] outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/20 disabled:cursor-wait disabled:opacity-70 dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
-			>
-				<option value="">Sin planificar</option>
-				{dishes.map((dish) => (
-					<option key={dish.id} value={dish.id}>
-						{dish.name}
-					</option>
-				))}
-			</select>
+				options={dishOptions}
+				className="min-h-11 border-[#d8ded5] text-sm font-medium text-[#28483d] dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
+			/>
 			{error ? (
 				<p className="mt-1.5 text-xs font-medium text-[#a34435]" role="alert">
 					{error}

@@ -54,7 +54,7 @@ export function MealPlanPage({
 					<div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 						<div>
 							<Link
-								href="/dashboard"
+								href="/"
 								className="inline-flex items-center gap-2 rounded-lg text-sm font-semibold text-[#5f7167] transition hover:text-[#17352b] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] dark:text-[#aebcb3] dark:hover:text-white"
 							>
 								<span aria-hidden="true">←</span>

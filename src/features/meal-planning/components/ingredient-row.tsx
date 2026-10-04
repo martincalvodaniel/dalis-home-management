@@ -1,8 +1,14 @@
 "use client";
 
+import { SelectField } from "@/components/ui/select-field";
 import { quantityUnitLabels } from "@/config/quantity-units";
 import { type QuantityUnit, quantityUnits } from "@/schemas/quantity-unit";
 import type { InventoryIngredientOption } from "../ingredient-option";
+
+const unitOptions = quantityUnits.map((unit) => ({
+	value: unit,
+	label: quantityUnitLabels[unit],
+}));
 
 export interface IngredientDraft {
 	key: string;
@@ -29,6 +35,14 @@ export function IngredientRow({
 	onChange,
 	onRemove,
 }: IngredientRowProps) {
+	const inventorySelectOptions = [
+		{ value: "", label: "Sin vincular" },
+		...inventoryOptions.map((option) => ({
+			value: option.id,
+			label: option.name,
+		})),
+	];
+
 	function selectInventoryItem(inventoryItemId: string) {
 		const inventoryItem = inventoryOptions.find(
 			(option) => option.id === inventoryItemId,
@@ -59,25 +73,18 @@ export function IngredientRow({
 				) : null}
 			</div>
 
-			<label
-				className="mt-3 block text-xs font-semibold"
-				htmlFor={`inventory-${ingredient.key}`}
-			>
-				Vincular al inventario
-				<select
+			<div className="mt-3 block text-xs font-semibold">
+				<label htmlFor={`inventory-${ingredient.key}`}>
+					Vincular al inventario
+				</label>
+				<SelectField
 					id={`inventory-${ingredient.key}`}
 					value={ingredient.inventoryItemId}
-					onChange={(event) => selectInventoryItem(event.target.value)}
-					className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d0d4c8] bg-white px-3 font-normal outline-none transition focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#10231c]"
-				>
-					<option value="">Sin vincular</option>
-					{inventoryOptions.map((option) => (
-						<option key={option.id} value={option.id}>
-							{option.name}
-						</option>
-					))}
-				</select>
-			</label>
+					onValueChange={selectInventoryItem}
+					options={inventorySelectOptions}
+					className="mt-1.5 min-h-11 focus:border-[#8a7633] focus:ring-[#8a7633]/20"
+				/>
+			</div>
 			{ingredient.inventoryItemId ? (
 				<p className="mt-2 text-xs leading-5 text-[#66766c] dark:text-[#acb8b0]">
 					El nombre y la unidad se mantienen sincronizados con el inventario.
@@ -125,30 +132,22 @@ export function IngredientRow({
 						className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d0d4c8] bg-white px-3 font-normal outline-none transition focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#10231c]"
 					/>
 				</label>
-				<label
-					className="block text-xs font-semibold"
-					htmlFor={`ingredient-unit-${ingredient.key}`}
-				>
-					Unidad
-					<select
+				<div className="block text-xs font-semibold">
+					<label htmlFor={`ingredient-unit-${ingredient.key}`}>Unidad</label>
+					<SelectField
 						id={`ingredient-unit-${ingredient.key}`}
 						value={ingredient.unit}
 						disabled={ingredient.inventoryItemId.length > 0}
-						onChange={(event) =>
+						onValueChange={(unit) =>
 							onChange({
 								...ingredient,
-								unit: event.target.value as QuantityUnit,
+								unit: unit as QuantityUnit,
 							})
 						}
-						className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d0d4c8] bg-white px-3 font-normal outline-none transition focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#10231c]"
-					>
-						{quantityUnits.map((unit) => (
-							<option key={unit} value={unit}>
-								{quantityUnitLabels[unit]}
-							</option>
-						))}
-					</select>
-				</label>
+						options={unitOptions}
+						className="mt-1.5 min-h-11 focus:border-[#8a7633] focus:ring-[#8a7633]/20"
+					/>
+				</div>
 			</div>
 		</div>
 	);

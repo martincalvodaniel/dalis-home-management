@@ -1,4 +1,4 @@
-const DEFAULT_CALLBACK_URL = "/dashboard";
+const DEFAULT_CALLBACK_URL = "/";
 
 export function getSafeCallbackUrl(value: string | undefined): string {
 	if (!value?.startsWith("/") || value.startsWith("//")) {

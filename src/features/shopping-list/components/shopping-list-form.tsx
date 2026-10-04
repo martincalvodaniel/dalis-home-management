@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState, useTransition } from "react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { SelectField } from "@/components/ui/select-field";
 import { quantityUnitLabels } from "@/config/quantity-units";
 import {
 	createShoppingListItemAction,
@@ -15,6 +16,11 @@ interface ShoppingListFormProps {
 	onCancel: () => void;
 	onSaved: () => void;
 }
+
+const unitOptions = quantityUnits.map((unit) => ({
+	value: unit,
+	label: quantityUnitLabels[unit],
+}));
 
 export function ShoppingListForm({
 	item,
@@ -94,21 +100,16 @@ export function ShoppingListForm({
 							className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-4 font-normal outline-none transition focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
 						/>
 					</label>
-					<label className="block text-sm font-semibold" htmlFor="unit">
-						Unidad
-						<select
+					<div className="block text-sm font-semibold">
+						<label htmlFor="unit">Unidad</label>
+						<SelectField
 							id="unit"
 							name="unit"
 							defaultValue={item?.unit ?? "unit"}
-							className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-3 font-normal outline-none transition focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
-						>
-							{quantityUnits.map((unit) => (
-								<option key={unit} value={unit}>
-									{quantityUnitLabels[unit]}
-								</option>
-							))}
-						</select>
-					</label>
+							options={unitOptions}
+							className="mt-2 border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
+						/>
+					</div>
 				</div>
 
 				{error ? <ErrorBanner>{error}</ErrorBanner> : null}

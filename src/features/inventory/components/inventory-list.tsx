@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
+import { SelectField } from "@/components/ui/select-field";
 import { inventoryLocationLabels } from "@/features/inventory/inventory-options";
 import type { InventoryItem } from "@/schemas/inventory-item";
 import { inventoryItemLocations } from "@/schemas/inventory-item";
@@ -12,6 +13,14 @@ interface InventoryListProps {
 }
 
 type LocationFilter = InventoryItem["location"] | "all";
+
+const locationFilterOptions = [
+	{ value: "all", label: "Todas las ubicaciones" },
+	...inventoryItemLocations.map((location) => ({
+		value: location,
+		label: inventoryLocationLabels[location],
+	})),
+];
 
 const diacriticPattern = /\p{Diacritic}/gu;
 
@@ -81,24 +90,20 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
 						placeholder="Buscar productos"
 						className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
 					/>
-					<label className="sr-only" htmlFor="inventory-location-filter">
-						Filtrar por ubicación
-					</label>
-					<select
-						id="inventory-location-filter"
-						value={location}
-						onChange={(event) =>
-							setLocation(event.target.value as LocationFilter)
-						}
-						className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
-					>
-						<option value="all">Todas las ubicaciones</option>
-						{inventoryItemLocations.map((itemLocation) => (
-							<option key={itemLocation} value={itemLocation}>
-								{inventoryLocationLabels[itemLocation]}
-							</option>
-						))}
-					</select>
+					<div>
+						<label className="sr-only" htmlFor="inventory-location-filter">
+							Filtrar por ubicación
+						</label>
+						<SelectField
+							id="inventory-location-filter"
+							value={location}
+							onValueChange={(nextLocation) =>
+								setLocation(nextLocation as LocationFilter)
+							}
+							options={locationFilterOptions}
+							className="min-h-11 rounded-full bg-white/75 text-sm dark:bg-[#182e26]"
+						/>
+					</div>
 				</div>
 			</div>
 
