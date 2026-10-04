@@ -4,7 +4,7 @@ import { WeeklyMenuFeature } from "./weekly-menu-feature";
 export function UpcomingFeatures() {
 	return (
 		<section
-			id="proximamente"
+			id="utilidades"
 			className="scroll-mt-8 px-5 py-20 sm:px-8 sm:py-28 lg:px-10"
 		>
 			<div className="mx-auto max-w-7xl">

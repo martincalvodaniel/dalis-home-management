@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrandMark } from "./brand-mark";
+import { BrandMark } from "@/components/shared/brand-mark";
 
 export function LandingFooter() {
 	return (

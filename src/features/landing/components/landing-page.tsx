@@ -46,7 +46,7 @@ export function LandingPage() {
 									</span>
 								</Link>
 								<Link
-									href="#proximamente"
+									href="#utilidades"
 									className="inline-flex min-h-13 items-center justify-center rounded-full border border-[#ccd5ca] bg-white/55 px-7 text-sm font-semibold text-[#314d40] backdrop-blur transition hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 focus:ring-offset-[#f5f4ee] active:translate-y-0 dark:border-white/15 dark:bg-white/5 dark:text-[#d8e2db] dark:hover:bg-white/10"
 								>
 									Ver las utilidades

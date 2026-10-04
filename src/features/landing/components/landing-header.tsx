@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrandMark } from "./brand-mark";
+import { BrandMark } from "@/components/shared/brand-mark";
 
 export function LandingHeader() {
 	return (
@@ -17,10 +17,10 @@ export function LandingHeader() {
 				className="flex items-center gap-2"
 			>
 				<Link
-					href="#proximamente"
+					href="#utilidades"
 					className="hidden rounded-full px-4 py-2.5 text-sm font-medium text-[#51655a] transition hover:bg-white/70 hover:text-[#17352b] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] sm:inline-flex dark:text-[#b9c4bc] dark:hover:bg-white/10 dark:hover:text-white"
 				>
-					Lo que viene
+					Utilidades
 				</Link>
 				<Link
 					href="/auth/signin"

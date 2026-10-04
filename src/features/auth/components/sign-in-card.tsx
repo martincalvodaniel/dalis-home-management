@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useState, useTransition } from "react";
+import { BrandMark } from "@/components/shared/brand-mark";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { authClient } from "@/lib/auth/auth-client";
 
@@ -11,39 +13,53 @@ interface SignInCardProps {
 
 export function SignInCard({ callbackUrl, initialError }: SignInCardProps) {
 	const [error, setError] = useState(initialError);
-	const [isPending, setIsPending] = useState(false);
+	const [isPending, startTransition] = useTransition();
 
-	async function handleSignIn(): Promise<void> {
+	function handleSignIn(): void {
 		setError(undefined);
-		setIsPending(true);
+		startTransition(async () => {
+			try {
+				const result = await authClient.signIn.social({
+					provider: "google",
+					callbackURL: callbackUrl,
+				});
 
-		try {
-			const result = await authClient.signIn.social({
-				provider: "google",
-				callbackURL: callbackUrl,
-			});
-
-			if (result.error) {
+				if (result.error) {
+					setError("No se ha podido conectar con Google. Inténtalo de nuevo.");
+				}
+			} catch {
 				setError("No se ha podido conectar con Google. Inténtalo de nuevo.");
-				setIsPending(false);
 			}
-		} catch {
-			setError("No se ha podido conectar con Google. Inténtalo de nuevo.");
-			setIsPending(false);
-		}
+		});
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
-			<section className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-				<div className="mb-7 text-center">
-					<p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400">
-						Dalis Home
+		<main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f5f4ee] p-4 text-[#17352b] sm:p-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
+			<div
+				className="absolute -left-28 -top-32 size-80 rounded-full bg-[#dce8d9] blur-3xl dark:bg-[#1d4035]"
+				aria-hidden="true"
+			/>
+			<div
+				className="absolute -bottom-36 -right-24 size-80 rounded-full bg-[#f2d8c9]/70 blur-3xl dark:bg-[#4a3025]/60"
+				aria-hidden="true"
+			/>
+			<section className="relative w-full max-w-md rounded-[2rem] border border-[#dde1d8] bg-white/75 p-6 shadow-[0_24px_70px_rgba(50,72,60,0.12)] backdrop-blur sm:p-9 dark:border-white/10 dark:bg-[#182e26]/90">
+				<Link
+					href="/"
+					aria-label="Volver al inicio de Dali"
+					className="inline-flex rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-4 dark:ring-offset-[#182e26]"
+				>
+					<BrandMark />
+				</Link>
+
+				<div className="mb-7 mt-9">
+					<p className="text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49]">
+						Acceso privado
 					</p>
-					<h1 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+					<h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
 						Bienvenido de nuevo
 					</h1>
-					<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+					<p className="mt-3 text-sm leading-6 text-[#63736a] dark:text-[#b4c0b8]">
 						Inicia sesión para acceder a la gestión del hogar.
 					</p>
 				</div>
@@ -54,7 +70,7 @@ export function SignInCard({ callbackUrl, initialError }: SignInCardProps) {
 					type="button"
 					onClick={handleSignIn}
 					disabled={isPending}
-					className="mt-5 flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 dark:focus:ring-offset-zinc-900"
+					className="mt-5 flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-[#1d4f40] px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(29,79,64,0.2)] transition hover:-translate-y-0.5 hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#182e26]"
 				>
 					<svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
 						<path
