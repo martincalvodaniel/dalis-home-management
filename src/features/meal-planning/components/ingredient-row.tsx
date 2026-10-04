@@ -31,6 +31,10 @@ export function IngredientRow({
   onRemove,
   onRequestProductCreation,
 }: IngredientRowProps) {
+  const selectedProduct = products.find(
+    (product) => product.id === ingredient.inventoryItemId
+  )
+
   return (
     <div className="rounded-2xl border border-[#ded9c7] bg-white/65 p-4 dark:border-white/10 dark:bg-[#182e26]/80">
       <div className="flex items-center justify-between gap-3">
@@ -41,7 +45,8 @@ export function IngredientRow({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-full px-2.5 py-1 text-xs font-semibold text-[#92523e] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 dark:text-[#e9a995] dark:hover:bg-red-950/30"
+            disabled={disabled}
+            className="rounded-full px-2.5 py-1 text-xs font-semibold text-[#92523e] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
           >
             Quitar
           </button>
@@ -49,25 +54,42 @@ export function IngredientRow({
       </div>
 
       <div className="mt-3 text-xs font-semibold">
-        <label htmlFor={`inventory-${ingredient.key}`}>Producto</label>
-        <ProductPicker
-          id={`inventory-${ingredient.key}`}
-          products={products}
-          value={ingredient.inventoryItemId}
-          onValueChange={(inventoryItemId) =>
-            onChange({ ...ingredient, inventoryItemId, legacyName: undefined })
-          }
-          disabled={disabled}
-          className="mt-1.5 min-h-11 focus:border-[#8a7633] focus:ring-[#8a7633]/20"
-        />
-        <button
-          type="button"
-          onClick={onRequestProductCreation}
-          disabled={disabled}
-          className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#75611f] underline decoration-[#b4a66e] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:opacity-60 dark:text-[#dccb8d]"
-        >
-          + Crear producto nuevo
-        </button>
+        {selectedProduct ? (
+          <div>
+            <p className="text-[#7e806d] dark:text-[#adb3a4]">Producto</p>
+            <p className="mt-1.5 rounded-xl border border-[#d0c69d] bg-[#faf6e8] px-3 py-3 text-sm font-semibold text-[#4d482f] dark:border-white/10 dark:bg-[#252316] dark:text-[#f0e7c7]">
+              {selectedProduct.name}
+            </p>
+          </div>
+        ) : (
+          <>
+            <label htmlFor={`inventory-${ingredient.key}`}>Producto</label>
+            <ProductPicker
+              id={`inventory-${ingredient.key}`}
+              products={products}
+              value={ingredient.inventoryItemId}
+              onValueChange={(inventoryItemId) =>
+                onChange({
+                  ...ingredient,
+                  inventoryItemId,
+                  legacyName: undefined,
+                })
+              }
+              disabled={disabled}
+              searchable
+              showPurchasePlaces={false}
+              className="border-[#d0c69d] bg-white focus:border-[#8a7633] focus:ring-[#8a7633]/20 dark:bg-[#10231c]"
+            />
+            <button
+              type="button"
+              onClick={onRequestProductCreation}
+              disabled={disabled}
+              className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#75611f] underline decoration-[#b4a66e] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:opacity-60 dark:text-[#dccb8d]"
+            >
+              + Crear producto nuevo
+            </button>
+          </>
+        )}
       </div>
       {ingredient.legacyName && !ingredient.inventoryItemId ? (
         <p className="mt-2 rounded-xl bg-[#fff3cd] px-3 py-2 text-xs leading-5 text-[#6f5a16] dark:bg-[#594917]/45 dark:text-[#f1dc93]">

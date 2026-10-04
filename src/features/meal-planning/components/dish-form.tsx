@@ -60,9 +60,13 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
   }
 
   function removeIngredient(index: number) {
-    setIngredients((current) =>
-      current.filter((_, entryIndex) => entryIndex !== index)
-    )
+    setIngredients((current) => {
+      if (current.length === 1) {
+        return [{ ...blankIngredient, key: crypto.randomUUID() }]
+      }
+
+      return current.filter((_, entryIndex) => entryIndex !== index)
+    })
   }
 
   function addIngredient() {
@@ -162,7 +166,9 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
               index={index}
               ingredient={ingredient}
               products={availableProducts}
-              canRemove={ingredients.length > 1}
+              canRemove={
+                ingredients.length > 1 || Boolean(ingredient.inventoryItemId)
+              }
               disabled={isPending}
               onChange={(nextIngredient) =>
                 updateIngredient(index, nextIngredient)

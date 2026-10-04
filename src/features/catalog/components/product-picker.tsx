@@ -102,7 +102,7 @@ export function ProductPicker({
           disabled={disabled}
           placeholder="Escribe para buscar producto"
           autoComplete="off"
-          className="min-h-11 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-3 text-sm font-normal outline-none transition placeholder:text-[#9b887e] focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 disabled:opacity-60 dark:border-white/15 dark:bg-[#2e211c]"
+          className={`min-h-11 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-3 text-sm font-normal outline-none transition placeholder:text-[#9b887e] focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 disabled:opacity-60 dark:border-white/15 dark:bg-[#2e211c] ${className ?? ""}`}
         />
         {isOpen ? (
           <div
