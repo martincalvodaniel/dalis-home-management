@@ -81,6 +81,21 @@ constraint must evaluate its index requirements in the same change and add the
 required specification to `ensure-indexes.ts`. Index behavior is covered by
 `src/lib/db/ensure-indexes.test.ts`.
 
+### Product catalog migration
+
+After deploying the catalog-backed shopping-list and dish forms, migrate legacy
+free-text references explicitly:
+
+```bash
+bun run db:migrate-product-catalog
+```
+
+The command is idempotent. It links exact normalized name-and-unit matches and
+creates missing products with zero stock in the `other` location. It does not
+change inventory quantities. Ambiguous catalog matches and shopping-list
+collisions are reported and produce exit code `2` so they can be resolved
+without an unsafe automatic merge.
+
 ## Architecture
 
 ```text

@@ -5,6 +5,7 @@
 	"scripts": {
 		"build": "next build",
 		"db:ensure-indexes": "bun run scripts/ensure-indexes.ts",
+		"db:migrate-product-catalog": "bun run scripts/migrate-product-catalog.ts",
 		"dev": "next dev",
 		"format": "biome format --write",
 		"knip": "knip",
