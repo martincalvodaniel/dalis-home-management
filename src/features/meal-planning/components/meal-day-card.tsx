@@ -1,13 +1,14 @@
 import type { DishOption } from "@/features/meal-planning/dish-option";
-import type { WeeklyMealSlot } from "@/schemas/weekly-meal-plan";
-import { MealSlotSelect } from "./meal-slot-select";
+import type { Dish } from "@/schemas/dish";
+import { PlannedMealSlot } from "./planned-meal-slot";
 
 interface MealDayCardProps {
 	weekStart: string;
 	date: string;
 	today: string;
-	slots: WeeklyMealSlot[];
-	dishes: DishOption[];
+	lunchDish: Dish | null;
+	dinnerDish: Dish | null;
+	dishOptions: DishOption[];
 }
 
 const dayFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -25,16 +26,11 @@ export function MealDayCard({
 	weekStart,
 	date,
 	today,
-	slots,
-	dishes,
+	lunchDish,
+	dinnerDish,
+	dishOptions,
 }: MealDayCardProps) {
 	const parsedDate = new Date(`${date}T00:00:00.000Z`);
-	const lunch = slots.find(
-		(slot) => slot.date === date && slot.mealType === "lunch",
-	);
-	const dinner = slots.find(
-		(slot) => slot.date === date && slot.mealType === "dinner",
-	);
 	const isToday = date === today;
 
 	return (
@@ -62,21 +58,19 @@ export function MealDayCard({
 			</header>
 
 			<div className="space-y-4">
-				<MealSlotSelect
-					key={`lunch-${lunch?.dishId ?? "empty"}`}
+				<PlannedMealSlot
 					weekStart={weekStart}
 					date={date}
 					mealType="lunch"
-					dishId={lunch?.dishId ?? null}
-					dishes={dishes}
+					dish={lunchDish}
+					dishOptions={dishOptions}
 				/>
-				<MealSlotSelect
-					key={`dinner-${dinner?.dishId ?? "empty"}`}
+				<PlannedMealSlot
 					weekStart={weekStart}
 					date={date}
 					mealType="dinner"
-					dishId={dinner?.dishId ?? null}
-					dishes={dishes}
+					dish={dinnerDish}
+					dishOptions={dishOptions}
 				/>
 			</div>
 		</article>

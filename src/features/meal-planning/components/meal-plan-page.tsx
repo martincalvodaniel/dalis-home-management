@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DishOption } from "@/features/meal-planning/dish-option";
 import type { ShoppingListSuggestion } from "@/features/meal-planning/shopping-list-suggestions";
+import type { Dish } from "@/schemas/dish";
 import {
 	addDaysToIsoDate,
 	type WeeklyMealSlot,
@@ -15,7 +16,7 @@ interface MealPlanPageProps {
 	weekStart: string;
 	today: string;
 	slots: WeeklyMealSlot[];
-	dishes: DishOption[];
+	dishes: Dish[];
 	shoppingSuggestions: ShoppingListSuggestion[];
 }
 
@@ -41,6 +42,10 @@ export function MealPlanPage({
 }: MealPlanPageProps) {
 	const previousWeek = addDaysToIsoDate(weekStart, -7);
 	const nextWeek = addDaysToIsoDate(weekStart, 7);
+	const dishOptions: DishOption[] = dishes.map(({ id, name }) => ({
+		id,
+		name,
+	}));
 
 	return (
 		<main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
@@ -129,6 +134,7 @@ export function MealPlanPage({
 							today={today}
 							slots={slots}
 							dishes={dishes}
+							dishOptions={dishOptions}
 						/>
 					) : (
 						<div className="rounded-2xl border border-dashed border-[#bdc8bf] bg-white/55 px-6 py-12 text-center dark:border-white/15 dark:bg-white/5">

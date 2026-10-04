@@ -44,7 +44,7 @@ export default async function MealPlanRoute({
 			weekStart={weekStart}
 			today={getMadridIsoDate()}
 			slots={mealPlan?.slots ?? []}
-			dishes={dishes.map(({ id, name }) => ({ id, name }))}
+			dishes={dishes}
 			shoppingSuggestions={shoppingSuggestions}
 		/>
 	);
