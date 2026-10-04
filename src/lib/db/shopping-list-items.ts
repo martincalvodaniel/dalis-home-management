@@ -20,6 +20,7 @@ interface ShoppingListItemDocument
   _id: ObjectId
   inventoryItemId: ObjectId
   isMealPlanGenerated?: boolean
+  settlementState?: "processing"
 }
 
 function toShoppingListItem(
@@ -133,7 +134,7 @@ export async function updateShoppingListItem(
 
   try {
     const result = await collection.updateOne(
-      { _id: toObjectId(id) },
+      { _id: toObjectId(id), settlementState: { $exists: false } },
       {
         $set: {
           inventoryItemId: toObjectId(item.id),
@@ -164,7 +165,7 @@ export async function setShoppingListItemPurchased(
     COLLECTION_NAMES.shoppingListItems
   )
   const result = await collection.updateOne(
-    { _id: toObjectId(id) },
+    { _id: toObjectId(id), settlementState: { $exists: false } },
     { $set: { isPurchased, updatedAt: new Date() } }
   )
 
@@ -175,7 +176,10 @@ export async function deleteShoppingListItem(id: string): Promise<boolean> {
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
   )
-  const result = await collection.deleteOne({ _id: toObjectId(id) })
+  const result = await collection.deleteOne({
+    _id: toObjectId(id),
+    settlementState: { $exists: false },
+  })
 
   return result.deletedCount > 0
 }
@@ -191,67 +195,91 @@ export async function restockAndDeletePurchasedShoppingListItems(
   ids: readonly string[]
 ): Promise<number> {
   const database = await getDatabase()
-  const session = database.client.startSession()
+  const shoppingListCollection = database.collection<ShoppingListItemDocument>(
+    COLLECTION_NAMES.shoppingListItems
+  )
+  const inventoryCollection = database.collection<{
+    _id: ObjectId
+    quantity: number
+    updatedAt: Date
+    shoppingListSettlementIds?: ObjectId[]
+  }>(COLLECTION_NAMES.inventoryItems)
+  const requestedIds = ids.map(toObjectId)
+  const purchasedItems = await shoppingListCollection
+    .find(
+      { _id: { $in: requestedIds }, isPurchased: true },
+      { projection: { _id: 1, inventoryItemId: 1, quantity: 1 } }
+    )
+    .toArray()
 
-  try {
-    const settledCount = await session.withTransaction(async () => {
-      const shoppingListCollection =
-        database.collection<ShoppingListItemDocument>(
-          COLLECTION_NAMES.shoppingListItems
-        )
-      const inventoryCollection = database.collection<{
-        _id: ObjectId
-        quantity: number
-        updatedAt: Date
-      }>(COLLECTION_NAMES.inventoryItems)
-      const requestedIds = ids.map(toObjectId)
-      const purchasedItems = await shoppingListCollection
-        .find(
-          { _id: { $in: requestedIds }, isPurchased: true },
-          {
-            projection: { _id: 1, inventoryItemId: 1, quantity: 1 },
-            session,
-          }
-        )
-        .toArray()
+  if (purchasedItems.length === 0) {
+    return 0
+  }
 
-      if (purchasedItems.length === 0) {
-        return 0
+  const inventoryItemIds = purchasedItems.map((item) => item.inventoryItemId)
+  const inventoryItemCount = await inventoryCollection.countDocuments({
+    _id: { $in: inventoryItemIds },
+  })
+
+  if (inventoryItemCount !== new Set(inventoryItemIds.map(String)).size) {
+    throw new PurchasedShoppingListSettlementError()
+  }
+
+  let settledCount = 0
+
+  for (const item of purchasedItems) {
+    const now = new Date()
+    const claimedItem = await shoppingListCollection.findOneAndUpdate(
+      { _id: item._id, isPurchased: true },
+      { $set: { settlementState: "processing", updatedAt: now } },
+      { returnDocument: "after" }
+    )
+
+    if (!claimedItem) {
+      continue
+    }
+
+    const inventoryResult = await inventoryCollection.updateOne(
+      {
+        _id: claimedItem.inventoryItemId,
+        shoppingListSettlementIds: { $ne: claimedItem._id },
+      },
+      {
+        $inc: { quantity: claimedItem.quantity },
+        $set: { updatedAt: now },
+        $addToSet: { shoppingListSettlementIds: claimedItem._id },
       }
+    )
 
-      const now = new Date()
-      const inventoryResult = await inventoryCollection.bulkWrite(
-        purchasedItems.map((item) => ({
-          updateOne: {
-            filter: { _id: item.inventoryItemId },
-            update: {
-              $inc: { quantity: item.quantity },
-              $set: { updatedAt: now },
-            },
-          },
-        })),
-        { session }
-      )
+    if (inventoryResult.matchedCount === 0) {
+      const alreadyApplied = await inventoryCollection.countDocuments({
+        _id: claimedItem.inventoryItemId,
+        shoppingListSettlementIds: claimedItem._id,
+      })
 
-      if (inventoryResult.matchedCount !== purchasedItems.length) {
+      if (alreadyApplied === 0) {
         throw new PurchasedShoppingListSettlementError()
       }
+    }
 
-      const purchasedIds = purchasedItems.map((item) => item._id)
-      const deleteResult = await shoppingListCollection.deleteMany(
-        { _id: { $in: purchasedIds }, isPurchased: true },
-        { session }
-      )
-
-      if (deleteResult.deletedCount !== purchasedItems.length) {
-        throw new PurchasedShoppingListSettlementError()
-      }
-
-      return deleteResult.deletedCount
+    const deleteResult = await shoppingListCollection.deleteOne({
+      _id: claimedItem._id,
+      isPurchased: true,
+      settlementState: "processing",
     })
 
-    return settledCount ?? 0
-  } finally {
-    await session.endSession()
+    if (deleteResult.deletedCount === 0) {
+      const itemStillExists = await shoppingListCollection.countDocuments({
+        _id: claimedItem._id,
+      })
+
+      if (itemStillExists > 0) {
+        throw new PurchasedShoppingListSettlementError()
+      }
+    }
+
+    settledCount += 1
   }
+
+  return settledCount
 }
