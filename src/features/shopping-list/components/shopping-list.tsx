@@ -1,6 +1,7 @@
 "use client";
 
 import type { ShoppingListItem } from "@/schemas/shopping-list-item";
+import { ClearPurchasedButton } from "./clear-purchased-button";
 import { ShoppingListItemRow } from "./shopping-list-item-row";
 
 interface ShoppingListProps {
@@ -59,9 +60,12 @@ export function ShoppingList({ items, onEdit }: ShoppingListProps) {
 
 			{purchasedItems.length > 0 ? (
 				<div className="mt-8">
-					<p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
-						Ya comprado
-					</p>
+					<div className="flex items-center justify-between gap-3">
+						<p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
+							Ya comprado
+						</p>
+						<ClearPurchasedButton count={purchasedItems.length} />
+					</div>
 					<div className="mt-3 space-y-3 opacity-75">
 						{purchasedItems.map((item) => (
 							<ShoppingListItemRow key={item.id} item={item} onEdit={onEdit} />

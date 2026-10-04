@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAuthorizedSession } from "@/lib/auth/session";
 import {
 	createShoppingListItem,
+	deletePurchasedShoppingListItems,
 	deleteShoppingListItem,
 	setShoppingListItemPurchased,
 	updateShoppingListItem,
@@ -102,5 +103,13 @@ export async function deleteShoppingListItemAction(
 	}
 
 	revalidatePath(SHOPPING_LIST_PATH);
+	return { success: true };
+}
+
+export async function clearPurchasedShoppingListItemsAction(): Promise<ShoppingListActionResult> {
+	await requireAuthorizedSession();
+	await deletePurchasedShoppingListItems();
+	revalidatePath(SHOPPING_LIST_PATH);
+
 	return { success: true };
 }

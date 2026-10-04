@@ -97,3 +97,12 @@ export async function deleteShoppingListItem(id: string): Promise<boolean> {
 
 	return result.deletedCount > 0;
 }
+
+export async function deletePurchasedShoppingListItems(): Promise<number> {
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const result = await collection.deleteMany({ isPurchased: true });
+
+	return result.deletedCount;
+}
