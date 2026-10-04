@@ -1,90 +1,90 @@
-import "server-only";
+import "server-only"
 
-import { type Db, MongoClient } from "mongodb";
-import { getDatabaseEnv } from "@/config/env";
-import { ensureIndexes } from "@/lib/db/ensure-indexes";
+import { type Db, MongoClient } from "mongodb"
+import { getDatabaseEnv } from "@/config/env"
+import { ensureIndexes } from "@/lib/db/ensure-indexes"
 
 interface MongoGlobal {
-	dalisMongoClientPromise?: Promise<MongoClient>;
+  dalisMongoClientPromise?: Promise<MongoClient>
 }
 
-const databaseEnv = getDatabaseEnv();
-const mongoGlobal = globalThis as typeof globalThis & MongoGlobal;
+const databaseEnv = getDatabaseEnv()
+const mongoGlobal = globalThis as typeof globalThis & MongoGlobal
 
-let clientPromise: Promise<MongoClient> | undefined;
+let clientPromise: Promise<MongoClient> | undefined
 
 function createClientPromise(): Promise<MongoClient> {
-	return new MongoClient(databaseEnv.uri).connect();
+  return new MongoClient(databaseEnv.uri).connect()
 }
 
 function getClientPromise(): Promise<MongoClient> {
-	if (databaseEnv.isDevelopment) {
-		if (!mongoGlobal.dalisMongoClientPromise) {
-			const connection = createClientPromise();
-			mongoGlobal.dalisMongoClientPromise = connection;
-			connection.catch(() => {
-				if (mongoGlobal.dalisMongoClientPromise === connection) {
-					mongoGlobal.dalisMongoClientPromise = undefined;
-				}
-			});
-		}
+  if (databaseEnv.isDevelopment) {
+    if (!mongoGlobal.dalisMongoClientPromise) {
+      const connection = createClientPromise()
+      mongoGlobal.dalisMongoClientPromise = connection
+      connection.catch(() => {
+        if (mongoGlobal.dalisMongoClientPromise === connection) {
+          mongoGlobal.dalisMongoClientPromise = undefined
+        }
+      })
+    }
 
-		return mongoGlobal.dalisMongoClientPromise;
-	}
+    return mongoGlobal.dalisMongoClientPromise
+  }
 
-	if (!clientPromise) {
-		const connection = createClientPromise();
-		clientPromise = connection;
-		connection.catch(() => {
-			if (clientPromise === connection) {
-				clientPromise = undefined;
-			}
-		});
-	}
+  if (!clientPromise) {
+    const connection = createClientPromise()
+    clientPromise = connection
+    connection.catch(() => {
+      if (clientPromise === connection) {
+        clientPromise = undefined
+      }
+    })
+  }
 
-	return clientPromise;
+  return clientPromise
 }
 
-let indexesPromise: Promise<void> | undefined;
+let indexesPromise: Promise<void> | undefined
 
 async function ensureIndexesOnce(database: Db): Promise<void> {
-	if (!indexesPromise) {
-		indexesPromise = ensureIndexes(database).catch((error: unknown) => {
-			indexesPromise = undefined;
-			throw error;
-		});
-	}
+  if (!indexesPromise) {
+    indexesPromise = ensureIndexes(database).catch((error: unknown) => {
+      indexesPromise = undefined
+      throw error
+    })
+  }
 
-	await indexesPromise;
+  await indexesPromise
 }
 
 export async function getDatabase(): Promise<Db> {
-	const client = await getClientPromise();
-	const database = client.db(databaseEnv.databaseName);
+  const client = await getClientPromise()
+  const database = client.db(databaseEnv.databaseName)
 
-	await ensureIndexesOnce(database);
+  await ensureIndexesOnce(database)
 
-	return database;
+  return database
 }
 
 export async function closeDatabaseConnection(): Promise<void> {
-	const activeClientPromise = databaseEnv.isDevelopment
-		? mongoGlobal.dalisMongoClientPromise
-		: clientPromise;
+  const activeClientPromise = databaseEnv.isDevelopment
+    ? mongoGlobal.dalisMongoClientPromise
+    : clientPromise
 
-	if (!activeClientPromise) {
-		return;
-	}
+  if (!activeClientPromise) {
+    return
+  }
 
-	try {
-		const client = await activeClientPromise;
-		await client.close();
-	} finally {
-		indexesPromise = undefined;
-		clientPromise = undefined;
+  try {
+    const client = await activeClientPromise
+    await client.close()
+  } finally {
+    indexesPromise = undefined
+    clientPromise = undefined
 
-		if (databaseEnv.isDevelopment) {
-			mongoGlobal.dalisMongoClientPromise = undefined;
-		}
-	}
+    if (databaseEnv.isDevelopment) {
+      mongoGlobal.dalisMongoClientPromise = undefined
+    }
+  }
 }

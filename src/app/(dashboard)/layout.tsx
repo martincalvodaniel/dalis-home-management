@@ -1,11 +1,11 @@
-import { requireAuthorizedSession } from "@/lib/auth/session";
+import { requireAuthorizedSession } from "@/lib/auth/session"
 
 export default async function DashboardLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode
 }>) {
-	await requireAuthorizedSession();
+  await requireAuthorizedSession()
 
-	return children;
+  return children
 }

@@ -1,57 +1,57 @@
-import { describe, expect, test } from "bun:test";
-import { shoppingListItemInputSchema } from "@/schemas/shopping-list-item";
+import { describe, expect, test } from "bun:test"
+import { shoppingListItemInputSchema } from "@/schemas/shopping-list-item"
 
 describe("shoppingListItemInputSchema", () => {
-	test("accepts a catalog product and quantity", () => {
-		const result = shoppingListItemInputSchema.parse({
-			inventoryItemId: "507f1f77bcf86cd799439011",
-			quantity: 2,
-		});
+  test("accepts a catalog product and quantity", () => {
+    const result = shoppingListItemInputSchema.parse({
+      inventoryItemId: "507f1f77bcf86cd799439011",
+      quantity: 2,
+    })
 
-		expect(result).toEqual({
-			inventoryItemId: "507f1f77bcf86cd799439011",
-			quantity: 2,
-		});
-	});
+    expect(result).toEqual({
+      inventoryItemId: "507f1f77bcf86cd799439011",
+      quantity: 2,
+    })
+  })
 
-	test("requires a valid catalog product", () => {
-		const result = shoppingListItemInputSchema.safeParse({
-			inventoryItemId: "invalid",
-			quantity: 1,
-		});
+  test("requires a valid catalog product", () => {
+    const result = shoppingListItemInputSchema.safeParse({
+      inventoryItemId: "invalid",
+      quantity: 1,
+    })
 
-		expect(result.success).toBe(false);
-	});
+    expect(result.success).toBe(false)
+  })
 
-	test("rejects zero and negative quantities", () => {
-		for (const quantity of [0, -1]) {
-			const result = shoppingListItemInputSchema.safeParse({
-				inventoryItemId: "507f1f77bcf86cd799439011",
-				quantity,
-			});
+  test("rejects zero and negative quantities", () => {
+    for (const quantity of [0, -1]) {
+      const result = shoppingListItemInputSchema.safeParse({
+        inventoryItemId: "507f1f77bcf86cd799439011",
+        quantity,
+      })
 
-			expect(result.success).toBe(false);
-		}
-	});
+      expect(result.success).toBe(false)
+    }
+  })
 
-	test("keeps product snapshots out of manual item input", () => {
-		const result = shoppingListItemInputSchema.safeParse({
-			inventoryItemId: "507f1f77bcf86cd799439011",
-			quantity: 1,
-			name: "Eggs",
-			unit: "unit",
-		});
+  test("keeps product snapshots out of manual item input", () => {
+    const result = shoppingListItemInputSchema.safeParse({
+      inventoryItemId: "507f1f77bcf86cd799439011",
+      quantity: 1,
+      name: "Eggs",
+      unit: "unit",
+    })
 
-		expect(result.success).toBe(false);
-	});
+    expect(result.success).toBe(false)
+  })
 
-	test("keeps generated metadata out of manual item input", () => {
-		const result = shoppingListItemInputSchema.safeParse({
-			inventoryItemId: "507f1f77bcf86cd799439011",
-			quantity: 1,
-			isMealPlanGenerated: true,
-		});
+  test("keeps generated metadata out of manual item input", () => {
+    const result = shoppingListItemInputSchema.safeParse({
+      inventoryItemId: "507f1f77bcf86cd799439011",
+      quantity: 1,
+      isMealPlanGenerated: true,
+    })
 
-		expect(result.success).toBe(false);
-	});
-});
+    expect(result.success).toBe(false)
+  })
+})

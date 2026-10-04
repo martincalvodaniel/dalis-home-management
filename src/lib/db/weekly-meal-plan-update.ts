@@ -1,66 +1,66 @@
-import "server-only";
+import "server-only"
 
-import type { Document, ObjectId } from "mongodb";
+import type { Document, ObjectId } from "mongodb"
 import type {
-	WeeklyMealSlot,
-	WeeklyMealSlotInput,
-} from "@/schemas/weekly-meal-plan";
+  WeeklyMealSlot,
+  WeeklyMealSlotInput,
+} from "@/schemas/weekly-meal-plan"
 
 export function buildWeeklyMealSlotUpdate(
-	input: WeeklyMealSlotInput,
-	dishId: ObjectId | null,
-	now: Date,
+  input: WeeklyMealSlotInput,
+  dishId: ObjectId | null,
+  now: Date
 ): Document[] {
-	const remainingSlots = {
-		$filter: {
-			input: { $ifNull: ["$slots", []] },
-			as: "slot",
-			cond: {
-				$not: [
-					{
-						$and: [
-							{ $eq: ["$$slot.date", input.date] },
-							{ $eq: ["$$slot.mealType", input.mealType] },
-						],
-					},
-				],
-			},
-		},
-	};
-	const slots = dishId
-		? {
-				$concatArrays: [
-					remainingSlots,
-					[{ date: input.date, mealType: input.mealType, dishId }],
-				],
-			}
-		: remainingSlots;
+  const remainingSlots = {
+    $filter: {
+      input: { $ifNull: ["$slots", []] },
+      as: "slot",
+      cond: {
+        $not: [
+          {
+            $and: [
+              { $eq: ["$$slot.date", input.date] },
+              { $eq: ["$$slot.mealType", input.mealType] },
+            ],
+          },
+        ],
+      },
+    },
+  }
+  const slots = dishId
+    ? {
+        $concatArrays: [
+          remainingSlots,
+          [{ date: input.date, mealType: input.mealType, dishId }],
+        ],
+      }
+    : remainingSlots
 
-	return [
-		{
-			$set: {
-				weekStart: input.weekStart,
-				slots,
-				createdAt: { $ifNull: ["$createdAt", now] },
-				updatedAt: now,
-			},
-		},
-	];
+  return [
+    {
+      $set: {
+        weekStart: input.weekStart,
+        slots,
+        createdAt: { $ifNull: ["$createdAt", now] },
+        updatedAt: now,
+      },
+    },
+  ]
 }
 
 export function buildCopiedWeeklyMealPlanUpdate(
-	weekStart: string,
-	slots: Array<Omit<WeeklyMealSlot, "dishId"> & { dishId: ObjectId }>,
-	now: Date,
+  weekStart: string,
+  slots: Array<Omit<WeeklyMealSlot, "dishId"> & { dishId: ObjectId }>,
+  now: Date
 ): Document[] {
-	return [
-		{
-			$set: {
-				weekStart,
-				slots,
-				createdAt: { $ifNull: ["$createdAt", now] },
-				updatedAt: now,
-			},
-		},
-	];
+  return [
+    {
+      $set: {
+        weekStart,
+        slots,
+        createdAt: { $ifNull: ["$createdAt", now] },
+        updatedAt: now,
+      },
+    },
+  ]
 }
