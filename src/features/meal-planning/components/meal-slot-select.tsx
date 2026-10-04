@@ -81,6 +81,8 @@ export function MealSlotSelect({
             onValueChange={handleChange}
             disabled={disabled || isPending}
             options={dishOptions}
+            searchable
+            searchPlaceholder="Buscar plato"
             className="min-h-11 border-[#d8ded5] text-sm font-medium text-[#28483d] dark:border-white/10 dark:bg-[#20372f] dark:text-[#f4f1e7]"
           />
         </div>
