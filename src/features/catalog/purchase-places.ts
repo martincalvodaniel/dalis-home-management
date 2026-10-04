@@ -30,3 +30,32 @@ export function getPurchasePlaces(
     left.localeCompare(right, "es", { sensitivity: "base" })
   )
 }
+
+export function resolveSelectedPurchasePlaces(
+  availablePlaces: readonly string[],
+  selectedPlaces: readonly string[]
+): string[] {
+  const selectedPlaceKeys = new Set(
+    selectedPlaces.map(normalizePurchasePlaceKey)
+  )
+
+  return availablePlaces.filter((place) =>
+    selectedPlaceKeys.has(normalizePurchasePlaceKey(place))
+  )
+}
+
+export function matchesSelectedPurchasePlaces(
+  productPlaces: readonly string[],
+  selectedPlaces: readonly string[]
+): boolean {
+  if (selectedPlaces.length === 0) {
+    return true
+  }
+
+  const selectedPlaceKeys = new Set(
+    selectedPlaces.map(normalizePurchasePlaceKey)
+  )
+  return productPlaces.some((place) =>
+    selectedPlaceKeys.has(normalizePurchasePlaceKey(place))
+  )
+}

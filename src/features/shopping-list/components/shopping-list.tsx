@@ -5,7 +5,8 @@ import { PurchasePlaceFilter } from "@/features/catalog/components/purchase-plac
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import {
   getPurchasePlaces,
-  normalizePurchasePlaceKey,
+  matchesSelectedPurchasePlaces,
+  resolveSelectedPurchasePlaces,
 } from "@/features/catalog/purchase-places"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ClearPurchasedButton } from "./clear-purchased-button"
@@ -37,7 +38,9 @@ export function ShoppingList({
 }: ShoppingListProps) {
   const titleId = useId()
   const searchInputId = useId()
-  const [activePurchasePlace, setActivePurchasePlace] = useState("*")
+  const [selectedPurchasePlaces, setSelectedPurchasePlaces] = useState<
+    string[]
+  >([])
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
   const productsById = new Map(products.map((product) => [product.id, product]))
@@ -47,15 +50,10 @@ export function ShoppingList({
   const purchasePlaces = getPurchasePlaces(
     products.filter((product) => listedProductIds.has(product.id))
   )
-  const effectivePurchasePlace =
-    activePurchasePlace === "*" ||
-    purchasePlaces.some(
-      (place) =>
-        normalizePurchasePlaceKey(place) ===
-        normalizePurchasePlaceKey(activePurchasePlace)
-    )
-      ? activePurchasePlace
-      : "*"
+  const effectivePurchasePlaces = resolveSelectedPurchasePlaces(
+    purchasePlaces,
+    selectedPurchasePlaces
+  )
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       normalizedSearch.length === 0 ||
@@ -65,17 +63,12 @@ export function ShoppingList({
       return false
     }
 
-    if (effectivePurchasePlace === "*") {
-      return true
-    }
-
     const product = item.inventoryItemId
       ? productsById.get(item.inventoryItemId)
       : undefined
-    return product?.purchasePlaces.some(
-      (place) =>
-        normalizePurchasePlaceKey(place) ===
-        normalizePurchasePlaceKey(effectivePurchasePlace)
+    return matchesSelectedPurchasePlaces(
+      product?.purchasePlaces ?? [],
+      effectivePurchasePlaces
     )
   })
   const pendingItems = filteredItems.filter((item) => !item.isPurchased)
@@ -128,8 +121,8 @@ export function ShoppingList({
 
       <PurchasePlaceFilter
         places={purchasePlaces}
-        activePlace={effectivePurchasePlace}
-        onPlaceChange={setActivePurchasePlace}
+        selectedPlaces={effectivePurchasePlaces}
+        onSelectedPlacesChange={setSelectedPurchasePlaces}
       />
 
       {filteredItems.length === 0 ? (
