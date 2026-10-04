@@ -3,7 +3,9 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
+import { findInventoryItemsByIds } from "@/lib/db/inventory-items";
 import type { Dish, DishIngredient, DishInput } from "@/schemas/dish";
+import type { InventoryItem } from "@/schemas/inventory-item";
 
 interface DishIngredientDocument
 	extends Omit<DishIngredient, "inventoryItemId"> {
@@ -15,16 +17,23 @@ interface DishDocument extends Omit<Dish, "id" | "ingredients"> {
 	ingredients: DishIngredientDocument[];
 }
 
-function toIngredient(document: DishIngredientDocument): DishIngredient {
+function toIngredient(
+	document: DishIngredientDocument,
+	inventoryItemsById: ReadonlyMap<string, InventoryItem>,
+): DishIngredient {
+	const inventoryItemId = document.inventoryItemId?.toHexString();
+	const inventoryItem = inventoryItemId
+		? inventoryItemsById.get(inventoryItemId)
+		: undefined;
 	const ingredient: DishIngredient = {
 		id: document.id,
-		name: document.name,
+		name: inventoryItem?.name ?? document.name,
 		quantity: document.quantity,
-		unit: document.unit,
+		unit: inventoryItem?.unit ?? document.unit,
 	};
 
-	if (document.inventoryItemId) {
-		ingredient.inventoryItemId = document.inventoryItemId.toHexString();
+	if (inventoryItemId) {
+		ingredient.inventoryItemId = inventoryItemId;
 	}
 
 	return ingredient;
@@ -47,14 +56,34 @@ function toIngredientDocument(
 	return document;
 }
 
-function toDish(document: DishDocument): Dish {
+function toDish(
+	document: DishDocument,
+	inventoryItemsById: ReadonlyMap<string, InventoryItem>,
+): Dish {
 	return {
 		id: document._id.toHexString(),
 		name: document.name,
-		ingredients: document.ingredients.map(toIngredient),
+		ingredients: document.ingredients.map((ingredient) =>
+			toIngredient(ingredient, inventoryItemsById),
+		),
 		createdAt: document.createdAt,
 		updatedAt: document.updatedAt,
 	};
+}
+
+async function loadInventoryItemsById(
+	documents: readonly DishDocument[],
+): Promise<Map<string, InventoryItem>> {
+	const ids = documents.flatMap((document) =>
+		document.ingredients.flatMap((ingredient) =>
+			ingredient.inventoryItemId
+				? [ingredient.inventoryItemId.toHexString()]
+				: [],
+		),
+	);
+	const inventoryItems = await findInventoryItemsByIds(ids);
+
+	return new Map(inventoryItems.map((item) => [item.id, item]));
 }
 
 function toObjectId(id: string): ObjectId {
@@ -68,15 +97,21 @@ export async function listDishes(): Promise<Dish[]> {
 		.sort({ name: 1 })
 		.collation({ locale: "es", strength: 1 })
 		.toArray();
+	const inventoryItemsById = await loadInventoryItemsById(documents);
 
-	return documents.map(toDish);
+	return documents.map((document) => toDish(document, inventoryItemsById));
 }
 
 export async function findDishById(id: string): Promise<Dish | null> {
 	const collection = await getCollection<DishDocument>(COLLECTION_NAMES.dishes);
 	const document = await collection.findOne({ _id: toObjectId(id) });
 
-	return document ? toDish(document) : null;
+	if (!document) {
+		return null;
+	}
+
+	const inventoryItemsById = await loadInventoryItemsById([document]);
+	return toDish(document, inventoryItemsById);
 }
 
 export async function isInventoryItemUsedInDishes(

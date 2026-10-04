@@ -6,6 +6,7 @@ import { isInventoryItemUsedInDishes } from "@/lib/db/dishes";
 import {
 	createInventoryItem,
 	deleteInventoryItem,
+	findInventoryItemByNameAndUnit,
 	markInventoryItemOutOfStock,
 	updateInventoryItem,
 } from "@/lib/db/inventory-items";
@@ -16,6 +17,9 @@ import {
 } from "@/schemas/inventory-item";
 
 const INVENTORY_PATH = "/inventory";
+const MEALS_PATH = "/meals";
+const MEAL_PLAN_PATH = "/meal-plan";
+const SHOPPING_LIST_PATH = "/shopping-list";
 
 type InventoryActionResult =
 	| { success: true }
@@ -34,6 +38,14 @@ export async function createInventoryItemAction(
 
 	if (!result.success) {
 		return invalidInputResult;
+	}
+	if (
+		await findInventoryItemByNameAndUnit(result.data.name, result.data.unit)
+	) {
+		return {
+			success: false,
+			message: "Ya existe un producto con ese nombre y unidad.",
+		};
 	}
 
 	await createInventoryItem(result.data);
@@ -54,12 +66,26 @@ export async function updateInventoryItemAction(
 		return invalidInputResult;
 	}
 
+	const duplicate = await findInventoryItemByNameAndUnit(
+		inputResult.data.name,
+		inputResult.data.unit,
+	);
+	if (duplicate && duplicate.id !== idResult.data) {
+		return {
+			success: false,
+			message: "Ya existe otro producto con ese nombre y unidad.",
+		};
+	}
+
 	const updated = await updateInventoryItem(idResult.data, inputResult.data);
 	if (!updated) {
 		return { success: false, message: "No se ha encontrado el producto." };
 	}
 
 	revalidatePath(INVENTORY_PATH);
+	revalidatePath(MEALS_PATH);
+	revalidatePath(MEAL_PLAN_PATH);
+	revalidatePath(SHOPPING_LIST_PATH);
 	return { success: true };
 }
 

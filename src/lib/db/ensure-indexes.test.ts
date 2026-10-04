@@ -44,6 +44,17 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers the canonical product lookup index", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "inventory_items",
+			keys: { normalizedName: 1, unit: 1 },
+			options: {
+				name: "normalized_name_asc_unit_asc",
+				partialFilterExpression: { normalizedName: { $type: "string" } },
+			},
+		});
+	});
+
 	test("registers the shopping list sort index", () => {
 		expect(INDEX_SPECS).toContainEqual({
 			collection: "shopping_list_items",

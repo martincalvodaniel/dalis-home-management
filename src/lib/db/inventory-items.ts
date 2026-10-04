@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ObjectId } from "mongodb";
+import { normalizeProductName } from "@/lib/catalog/product-name";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
 import type {
 	InventoryItem,
@@ -9,6 +10,7 @@ import type {
 
 interface InventoryItemDocument extends Omit<InventoryItem, "id"> {
 	_id: ObjectId;
+	normalizedName?: string;
 }
 
 function toInventoryItem(document: InventoryItemDocument): InventoryItem {
@@ -51,6 +53,45 @@ export async function findInventoryItemById(
 	return document ? toInventoryItem(document) : null;
 }
 
+export async function findInventoryItemsByIds(
+	ids: readonly string[],
+): Promise<InventoryItem[]> {
+	if (ids.length === 0) {
+		return [];
+	}
+
+	const collection = await getCollection<InventoryItemDocument>(
+		COLLECTION_NAMES.inventoryItems,
+	);
+	const documents = await collection
+		.find({ _id: { $in: [...new Set(ids)].map(toObjectId) } })
+		.toArray();
+
+	return documents.map(toInventoryItem);
+}
+
+export async function findInventoryItemByNameAndUnit(
+	name: string,
+	unit: InventoryItem["unit"],
+): Promise<InventoryItem | null> {
+	const collection = await getCollection<InventoryItemDocument>(
+		COLLECTION_NAMES.inventoryItems,
+	);
+	const normalizedName = normalizeProductName(name);
+	const normalizedDocument = await collection.findOne({ normalizedName, unit });
+
+	if (normalizedDocument) {
+		return toInventoryItem(normalizedDocument);
+	}
+
+	const legacyDocument = await collection.findOne(
+		{ name: name.trim(), unit },
+		{ collation: { locale: "es", strength: 1 } },
+	);
+
+	return legacyDocument ? toInventoryItem(legacyDocument) : null;
+}
+
 export async function createInventoryItem(
 	input: InventoryItemInput,
 ): Promise<string> {
@@ -61,6 +102,7 @@ export async function createInventoryItem(
 	const result = await collection.insertOne({
 		_id: new ObjectId(),
 		...input,
+		normalizedName: normalizeProductName(input.name),
 		createdAt: now,
 		updatedAt: now,
 	});
@@ -77,7 +119,13 @@ export async function updateInventoryItem(
 	);
 	const result = await collection.updateOne(
 		{ _id: toObjectId(id) },
-		{ $set: { ...input, updatedAt: new Date() } },
+		{
+			$set: {
+				...input,
+				normalizedName: normalizeProductName(input.name),
+				updatedAt: new Date(),
+			},
+		},
 	);
 
 	return result.matchedCount > 0;

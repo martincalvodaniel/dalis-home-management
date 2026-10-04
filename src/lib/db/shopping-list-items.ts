@@ -2,6 +2,7 @@ import "server-only";
 
 import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
+import { findInventoryItemsByIds } from "@/lib/db/inventory-items";
 import { buildInventoryShoppingListUpdate } from "@/lib/db/shopping-list-item-update";
 import type { InventoryItem } from "@/schemas/inventory-item";
 import type { QuantityUnit } from "@/schemas/quantity-unit";
@@ -31,23 +32,39 @@ interface MealPlanShoppingListSuggestion {
 
 function toShoppingListItem(
 	document: ShoppingListItemDocument,
+	inventoryItemsById: ReadonlyMap<string, InventoryItem>,
 ): ShoppingListItem {
+	const inventoryItemId = document.inventoryItemId?.toHexString();
+	const inventoryItem = inventoryItemId
+		? inventoryItemsById.get(inventoryItemId)
+		: undefined;
 	const item: ShoppingListItem = {
 		id: document._id.toHexString(),
-		name: document.name,
+		name: inventoryItem?.name ?? document.name,
 		quantity: document.quantity,
-		unit: document.unit,
+		unit: inventoryItem?.unit ?? document.unit,
 		isMealPlanGenerated: document.isMealPlanGenerated ?? false,
 		isPurchased: document.isPurchased,
 		createdAt: document.createdAt,
 		updatedAt: document.updatedAt,
 	};
 
-	if (document.inventoryItemId) {
-		item.inventoryItemId = document.inventoryItemId.toHexString();
+	if (inventoryItemId) {
+		item.inventoryItemId = inventoryItemId;
 	}
 
 	return item;
+}
+
+async function loadInventoryItemsById(
+	documents: readonly ShoppingListItemDocument[],
+): Promise<Map<string, InventoryItem>> {
+	const ids = documents.flatMap((document) =>
+		document.inventoryItemId ? [document.inventoryItemId.toHexString()] : [],
+	);
+	const inventoryItems = await findInventoryItemsByIds(ids);
+
+	return new Map(inventoryItems.map((item) => [item.id, item]));
 }
 
 function toObjectId(id: string): ObjectId {
@@ -62,8 +79,11 @@ export async function listShoppingListItems(): Promise<ShoppingListItem[]> {
 		.find({})
 		.sort({ isPurchased: 1, createdAt: 1 })
 		.toArray();
+	const inventoryItemsById = await loadInventoryItemsById(documents);
 
-	return documents.map(toShoppingListItem);
+	return documents.map((document) =>
+		toShoppingListItem(document, inventoryItemsById),
+	);
 }
 
 export async function findShoppingListItemById(
@@ -74,7 +94,12 @@ export async function findShoppingListItemById(
 	);
 	const document = await collection.findOne({ _id: toObjectId(id) });
 
-	return document ? toShoppingListItem(document) : null;
+	if (!document) {
+		return null;
+	}
+
+	const inventoryItemsById = await loadInventoryItemsById([document]);
+	return toShoppingListItem(document, inventoryItemsById);
 }
 
 export async function isInventoryItemUsedInShoppingList(
