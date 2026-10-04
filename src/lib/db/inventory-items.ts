@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { normalizeProductName } from "@/lib/catalog/product-name";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
 import type {
@@ -11,6 +11,21 @@ import type {
 interface InventoryItemDocument extends Omit<InventoryItem, "id"> {
 	_id: ObjectId;
 	normalizedName?: string;
+}
+
+export class DuplicateInventoryItemError extends Error {
+	constructor() {
+		super("A product with the same normalized name and unit already exists");
+		this.name = "DuplicateInventoryItemError";
+	}
+}
+
+function throwInventoryDuplicate(error: unknown): never {
+	if (error instanceof MongoServerError && error.code === 11000) {
+		throw new DuplicateInventoryItemError();
+	}
+
+	throw error;
 }
 
 function toInventoryItem(document: InventoryItemDocument): InventoryItem {
@@ -99,15 +114,18 @@ export async function createInventoryItem(
 		COLLECTION_NAMES.inventoryItems,
 	);
 	const now = new Date();
-	const result = await collection.insertOne({
-		_id: new ObjectId(),
-		...input,
-		normalizedName: normalizeProductName(input.name),
-		createdAt: now,
-		updatedAt: now,
-	});
-
-	return result.insertedId.toHexString();
+	try {
+		const result = await collection.insertOne({
+			_id: new ObjectId(),
+			...input,
+			normalizedName: normalizeProductName(input.name),
+			createdAt: now,
+			updatedAt: now,
+		});
+		return result.insertedId.toHexString();
+	} catch (error) {
+		throwInventoryDuplicate(error);
+	}
 }
 
 export async function updateInventoryItem(
@@ -117,18 +135,21 @@ export async function updateInventoryItem(
 	const collection = await getCollection<InventoryItemDocument>(
 		COLLECTION_NAMES.inventoryItems,
 	);
-	const result = await collection.updateOne(
-		{ _id: toObjectId(id) },
-		{
-			$set: {
-				...input,
-				normalizedName: normalizeProductName(input.name),
-				updatedAt: new Date(),
+	try {
+		const result = await collection.updateOne(
+			{ _id: toObjectId(id) },
+			{
+				$set: {
+					...input,
+					normalizedName: normalizeProductName(input.name),
+					updatedAt: new Date(),
+				},
 			},
-		},
-	);
-
-	return result.matchedCount > 0;
+		);
+		return result.matchedCount > 0;
+	} catch (error) {
+		throwInventoryDuplicate(error);
+	}
 }
 
 export async function markInventoryItemOutOfStock(

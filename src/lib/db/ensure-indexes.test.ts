@@ -49,7 +49,8 @@ describe("MongoDB index specifications", () => {
 			collection: "inventory_items",
 			keys: { normalizedName: 1, unit: 1 },
 			options: {
-				name: "normalized_name_asc_unit_asc",
+				name: "normalized_name_asc_unit_unique",
+				unique: true,
 				partialFilterExpression: { normalizedName: { $type: "string" } },
 			},
 		});

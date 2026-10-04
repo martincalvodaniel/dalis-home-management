@@ -5,6 +5,7 @@ import { requireAuthorizedSession } from "@/lib/auth/session";
 import { isInventoryItemUsedInDishes } from "@/lib/db/dishes";
 import {
 	createInventoryItem,
+	DuplicateInventoryItemError,
 	deleteInventoryItem,
 	findInventoryItemByNameAndUnit,
 	markInventoryItemOutOfStock,
@@ -48,7 +49,17 @@ export async function createInventoryItemAction(
 		};
 	}
 
-	await createInventoryItem(result.data);
+	try {
+		await createInventoryItem(result.data);
+	} catch (error) {
+		if (error instanceof DuplicateInventoryItemError) {
+			return {
+				success: false,
+				message: "Ya existe un producto con ese nombre y unidad.",
+			};
+		}
+		throw error;
+	}
 	revalidatePath(INVENTORY_PATH);
 
 	return { success: true };
@@ -77,7 +88,18 @@ export async function updateInventoryItemAction(
 		};
 	}
 
-	const updated = await updateInventoryItem(idResult.data, inputResult.data);
+	let updated: boolean;
+	try {
+		updated = await updateInventoryItem(idResult.data, inputResult.data);
+	} catch (error) {
+		if (error instanceof DuplicateInventoryItemError) {
+			return {
+				success: false,
+				message: "Ya existe otro producto con ese nombre y unidad.",
+			};
+		}
+		throw error;
+	}
 	if (!updated) {
 		return { success: false, message: "No se ha encontrado el producto." };
 	}

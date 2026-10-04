@@ -8,6 +8,7 @@ import {
 import { requireAuthorizedSession } from "@/lib/auth/session";
 import {
 	createInventoryItem,
+	DuplicateInventoryItemError,
 	findInventoryItemByNameAndUnit,
 } from "@/lib/db/inventory-items";
 import { catalogProductInputSchema } from "@/schemas/inventory-item";
@@ -41,7 +42,28 @@ export async function createCatalogProductAction(
 		};
 	}
 
-	const id = await createInventoryItem({ ...result.data, quantity: 0 });
+	let id: string;
+	try {
+		id = await createInventoryItem({ ...result.data, quantity: 0 });
+	} catch (error) {
+		if (!(error instanceof DuplicateInventoryItemError)) {
+			throw error;
+		}
+
+		const concurrentlyCreated = await findInventoryItemByNameAndUnit(
+			result.data.name,
+			result.data.unit,
+		);
+		if (!concurrentlyCreated) {
+			throw error;
+		}
+
+		return {
+			success: true,
+			product: toCatalogProductOption(concurrentlyCreated),
+			created: false,
+		};
+	}
 
 	revalidatePath("/inventory");
 	return {
