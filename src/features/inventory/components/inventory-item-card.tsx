@@ -103,13 +103,13 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   return (
     <>
       <article
-        className={`rounded-2xl border p-5 transition ${
+        className={`min-w-0 max-w-full rounded-2xl border p-5 transition ${
           isOutOfStock
             ? "border-[#ead6ca] bg-[#fbede5]/70 dark:border-[#704735] dark:bg-[#412d24]/80"
             : "border-[#dde1d8] bg-white/75 shadow-[0_10px_30px_rgba(50,72,60,0.05)] dark:border-white/10 dark:bg-[#182e26]/80"
         }`}
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start justify-between gap-3">
           <p className="min-w-0 truncate text-lg font-semibold tracking-[-0.03em]">
             {item.name}
           </p>
@@ -121,7 +121,7 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
             disabled={isPending}
             onValueChange={setQuantityDraft}
             onValueCommit={updateQuantity}
-            className="ml-auto w-40 shrink-0"
+            className="ml-auto w-40 max-w-[60%] shrink-0"
             buttonClassName={
               isOutOfStock
                 ? "border-[#e7bda8] bg-[#f3cdb9] text-[#7d3e25] hover:bg-[#efbea5] dark:border-[#8a563e] dark:bg-[#754530] dark:text-[#ffe2d2] dark:hover:bg-[#815039]"

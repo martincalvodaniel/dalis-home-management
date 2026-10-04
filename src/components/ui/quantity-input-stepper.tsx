@@ -110,7 +110,7 @@ export function QuantityInputStepper({
 
   return (
     <fieldset
-      className={`m-0 flex min-w-0 items-center gap-1.5 border-0 p-0 ${className ?? ""}`}
+      className={`m-0 flex min-w-0 max-w-full items-center gap-1.5 border-0 p-0 ${className ?? ""}`}
       onBlur={handleBlur}
       aria-label={`Cantidad de ${label}`}
     >
@@ -141,7 +141,7 @@ export function QuantityInputStepper({
           }}
           onKeyDown={handleKeyDown}
           aria-label={`Cantidad de ${label}`}
-          className="h-full min-w-0 flex-1 bg-transparent px-2 text-right font-normal outline-none disabled:opacity-65"
+          className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right font-normal outline-none disabled:opacity-65"
         />
         {unit ? (
           <span className="shrink-0 pr-3 text-xs font-semibold opacity-75">

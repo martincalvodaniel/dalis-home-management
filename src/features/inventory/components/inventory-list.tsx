@@ -118,7 +118,7 @@ export function InventoryList({
           </p>
         </div>
       ) : (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => (
             <InventoryItemCard key={item.id} item={item} onEdit={onEdit} />
           ))}

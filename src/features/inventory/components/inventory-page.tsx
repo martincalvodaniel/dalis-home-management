@@ -24,7 +24,7 @@ export function InventoryPage({ items }: InventoryPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
+    <main className="min-h-screen overflow-x-clip bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
       <div className="mx-auto w-full max-w-7xl">
         <header className="flex flex-col gap-3 border-b border-[#d9ded3] pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:pb-6 dark:border-white/10">
           <div>
