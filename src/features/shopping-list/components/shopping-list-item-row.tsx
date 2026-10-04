@@ -102,40 +102,38 @@ export function ShoppingListItemRow({
           </button>
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <p
-                  className={`font-semibold ${item.isPurchased ? "text-[#7f8d85] line-through" : ""}`}
-                >
-                  {item.name}
-                </p>
-                {item.isMealPlanGenerated ? (
-                  <span
-                    className="grid size-6 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"
-                    title="Menú semanal"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      role="img"
-                      aria-label="Añadido desde el menú semanal"
-                      className="size-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M7 3v3M17 3v3M4 9h16" />
-                      <rect x="4" y="5" width="16" height="15" rx="2" />
-                      <path d="m9 14 2 2 4-4" />
-                    </svg>
-                  </span>
-                ) : null}
-              </div>
+            <div className="flex min-w-0 items-center gap-2">
+              <p
+                className={`min-w-0 truncate font-semibold ${item.isPurchased ? "text-[#7f8d85] line-through" : ""}`}
+              >
+                {item.name}
+              </p>
               <p className="shrink-0 text-sm font-semibold text-[#6b7a72] dark:text-[#abb8b0]">
                 {quantityFormatter.format(item.quantity)}{" "}
                 {quantityUnitShortLabels[item.unit]}
               </p>
+              {item.isMealPlanGenerated ? (
+                <span
+                  className="grid size-6 shrink-0 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"
+                  title="Menú semanal"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    role="img"
+                    aria-label="Añadido desde el menú semanal"
+                    className="size-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M7 3v3M17 3v3M4 9h16" />
+                    <rect x="4" y="5" width="16" height="15" rx="2" />
+                    <path d="m9 14 2 2 4-4" />
+                  </svg>
+                </span>
+              ) : null}
             </div>
             {error ? (
               <p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
