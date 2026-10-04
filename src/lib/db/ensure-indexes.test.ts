@@ -14,6 +14,17 @@ describe("MongoDB index specifications", () => {
 		expect(() => validateIndexSpecs(INDEX_SPECS)).not.toThrow();
 	});
 
+	test("registers the dish name sort index", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "dishes",
+			keys: { name: 1 },
+			options: {
+				name: "name_asc",
+				collation: { locale: "es", strength: 1 },
+			},
+		});
+	});
+
 	test("registers the inventory list sort index", () => {
 		expect(INDEX_SPECS).toContainEqual({
 			collection: "inventory_items",

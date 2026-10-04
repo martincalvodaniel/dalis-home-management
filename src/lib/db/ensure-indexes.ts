@@ -20,6 +20,14 @@ export interface IndexSpec {
 // collection or query pattern. Do not add speculative indexes.
 export const INDEX_SPECS: readonly IndexSpec[] = [
 	{
+		collection: "dishes",
+		keys: { name: 1 },
+		options: {
+			name: "name_asc",
+			collation: { locale: "es", strength: 1 },
+		},
+	},
+	{
 		collection: "inventory_items",
 		keys: { location: 1, name: 1 },
 		options: {
