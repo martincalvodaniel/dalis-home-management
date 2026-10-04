@@ -3,6 +3,7 @@
 import {
   type FormEvent,
   useEffect,
+  useId,
   useRef,
   useState,
   useTransition,
@@ -44,6 +45,9 @@ export function CatalogProductDialog({
   onCreated,
 }: CatalogProductDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const nameId = useId()
+  const unitId = useId()
+  const locationId = useId()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -110,10 +114,10 @@ export function CatalogProductDialog({
         </p>
 
         <div className="mt-6 space-y-4">
-          <label className="block text-sm font-semibold" htmlFor="catalog-name">
+          <label className="block text-sm font-semibold" htmlFor={nameId}>
             Nombre
             <input
-              id="catalog-name"
+              id={nameId}
               name="name"
               type="text"
               required
@@ -126,9 +130,9 @@ export function CatalogProductDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="text-sm font-semibold">
-              <label htmlFor="catalog-unit">Unidad base</label>
+              <label htmlFor={unitId}>Unidad base</label>
               <SelectField
-                id="catalog-unit"
+                id={unitId}
                 name="unit"
                 defaultValue="unit"
                 options={unitOptions}
@@ -136,9 +140,9 @@ export function CatalogProductDialog({
               />
             </div>
             <div className="text-sm font-semibold">
-              <label htmlFor="catalog-location">Ubicación</label>
+              <label htmlFor={locationId}>Ubicación</label>
               <SelectField
-                id="catalog-location"
+                id={locationId}
                 name="location"
                 defaultValue="pantry"
                 options={locationOptions}
