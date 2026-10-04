@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import type { Dish } from "@/schemas/dish"
 import { DishManager } from "./dish-manager"
@@ -9,6 +12,19 @@ interface DishCatalogPageProps {
 }
 
 export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
+  const [editingDish, setEditingDish] = useState<Dish | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+
+  function closeForm() {
+    setIsFormOpen(false)
+    setEditingDish(null)
+  }
+
+  function editDish(dish: Dish) {
+    setEditingDish(dish)
+    setIsFormOpen(true)
+  }
+
   return (
     <main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
       <div className="mx-auto w-full max-w-7xl">
@@ -39,14 +55,31 @@ export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
             >
               Abrir menú semanal
             </Link>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
+            <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-4 text-sm font-semibold text-[#53675c] dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
               <span className="size-2 rounded-full bg-[#d3a448]" />
               {dishes.length} {dishes.length === 1 ? "plato" : "platos"}
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingDish(null)
+                setIsFormOpen(true)
+              }}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#75611f] px-4 text-sm font-semibold text-white transition hover:bg-[#615018] focus:outline-none focus:ring-2 focus:ring-[#75611f] focus:ring-offset-2 dark:ring-offset-[#10221c]"
+            >
+              + Añadir
+            </button>
           </div>
         </header>
 
-        <DishManager dishes={dishes} products={products} />
+        <DishManager
+          dishes={dishes}
+          products={products}
+          editingDish={editingDish}
+          isFormOpen={isFormOpen}
+          onEdit={editDish}
+          onClose={closeForm}
+        />
       </div>
     </main>
   )

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { ModalDialog } from "@/components/ui/modal-dialog"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import type { Dish } from "@/schemas/dish"
@@ -10,50 +9,36 @@ import { DishList } from "./dish-list"
 interface DishManagerProps {
   dishes: Dish[]
   products: CatalogProductOption[]
+  editingDish: Dish | null
+  isFormOpen: boolean
+  onEdit: (dish: Dish) => void
+  onClose: () => void
 }
 
-export function DishManager({ dishes, products }: DishManagerProps) {
-  const [editingDish, setEditingDish] = useState<Dish | null>(null)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-
-  function closeForm() {
-    setIsFormOpen(false)
-    setEditingDish(null)
-  }
-
-  function editDish(dish: Dish) {
-    setEditingDish(dish)
-    setIsFormOpen(true)
-  }
-
+export function DishManager({
+  dishes,
+  products,
+  editingDish,
+  isFormOpen,
+  onEdit,
+  onClose,
+}: DishManagerProps) {
   return (
     <div className="py-7 xl:py-10">
-      <div className="mb-5 flex justify-end">
-        <button
-          type="button"
-          onClick={() => {
-            setEditingDish(null)
-            setIsFormOpen(true)
-          }}
-          className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#75611f] px-5 text-sm font-semibold text-white transition hover:bg-[#615018] focus:outline-none focus:ring-2 focus:ring-[#75611f] focus:ring-offset-2 dark:ring-offset-[#10221c]"
-        >
-          + Añadir plato
-        </button>
-      </div>
-      <DishList dishes={dishes} onEdit={editDish} />
+      <DishList dishes={dishes} onEdit={onEdit} />
       <ModalDialog
         open={isFormOpen}
         ariaLabel={editingDish ? `Editar ${editingDish.name}` : "Añadir plato"}
         size="lg"
-        onDismiss={closeForm}
+        onDismiss={onClose}
       >
         {isFormOpen ? (
           <DishForm
             key={editingDish?.id ?? "new-dish"}
             dish={editingDish}
             products={products}
-            onCancel={closeForm}
-            onSaved={closeForm}
+            onCancel={onClose}
+            onSaved={onClose}
           />
         ) : null}
       </ModalDialog>

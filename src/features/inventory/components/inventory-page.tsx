@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useState } from "react"
 import type { InventoryItem } from "@/schemas/inventory-item"
 import { InventoryManager } from "./inventory-manager"
 
@@ -7,6 +10,19 @@ interface InventoryPageProps {
 }
 
 export function InventoryPage({ items }: InventoryPageProps) {
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+
+  function closeForm() {
+    setIsFormOpen(false)
+    setEditingItem(null)
+  }
+
+  function editItem(item: InventoryItem) {
+    setEditingItem(item)
+    setIsFormOpen(true)
+  }
+
   return (
     <main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
       <div className="mx-auto w-full max-w-7xl">
@@ -30,13 +46,31 @@ export function InventoryPage({ items }: InventoryPageProps) {
               Pali.
             </p>
           </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-3 py-1.5 text-xs font-semibold text-[#53675c] sm:px-4 sm:py-2 sm:text-sm dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
-            <span className="size-2 rounded-full bg-[#7fa184]" />
-            {items.length} {items.length === 1 ? "producto" : "productos"}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#d6ddd3] bg-white/65 px-4 text-sm font-semibold text-[#53675c] dark:border-white/10 dark:bg-white/5 dark:text-[#c4d0c8]">
+              <span className="size-2 rounded-full bg-[#7fa184]" />
+              {items.length} {items.length === 1 ? "producto" : "productos"}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingItem(null)
+                setIsFormOpen(true)
+              }}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#1d4f40] px-4 text-sm font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 dark:ring-offset-[#10221c]"
+            >
+              + Añadir
+            </button>
           </div>
         </header>
 
-        <InventoryManager items={items} />
+        <InventoryManager
+          items={items}
+          editingItem={editingItem}
+          isFormOpen={isFormOpen}
+          onEdit={editItem}
+          onClose={closeForm}
+        />
       </div>
     </main>
   )
