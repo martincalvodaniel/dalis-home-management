@@ -77,7 +77,7 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
   return (
     <section aria-labelledby={listTitleId}>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
+        <div className="hidden sm:block">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
             En casa
           </p>
