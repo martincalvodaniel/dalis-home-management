@@ -1,6 +1,11 @@
+import Link from "next/link";
+
 export function WeeklyMenuFeature() {
 	return (
-		<article className="group relative overflow-hidden rounded-[2rem] border border-[#d8d7bd] bg-[#eeeddc] p-7 text-[#303b2d] md:col-span-2 sm:p-9 dark:border-[#59624e] dark:bg-[#2e382b] dark:text-[#f4f3e7]">
+		<Link
+			href="/meal-plan"
+			className="group relative overflow-hidden rounded-[2rem] border border-[#d8d7bd] bg-[#eeeddc] p-7 text-[#303b2d] transition hover:-translate-y-1 hover:border-[#bfc09d] focus:outline-none focus:ring-2 focus:ring-[#74794f] focus:ring-offset-4 focus:ring-offset-[#f5f4ee] md:col-span-2 sm:p-9 dark:border-[#59624e] dark:bg-[#2e382b] dark:text-[#f4f3e7] dark:ring-offset-[#10221c]"
+		>
 			<div
 				className="absolute -left-20 -top-24 size-64 rounded-full bg-[#dfe1bd]/70 blur-2xl transition-transform duration-500 group-hover:scale-110 dark:bg-[#46533e]/70"
 				aria-hidden="true"
@@ -22,16 +27,15 @@ export function WeeklyMenuFeature() {
 						</svg>
 					</div>
 					<p className="mt-10 text-xs font-semibold uppercase tracking-[0.18em] text-[#74794f] dark:text-[#c3c99e]">
-						Menú semanal
+						Menú semanal · Disponible
 					</p>
 					<h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
 						Planear la semana y comprar sólo lo que falta.
 					</h3>
 					<p className="mt-5 max-w-xl leading-7 text-[#626953] dark:text-[#c7cdbb]">
-						Organizaremos comidas y cenas en un calendario, guardando los
-						ingredientes de cada plato para reutilizarlos en semanas distintas.
-						Dali cruzará el menú con el inventario y preparará la lista de la
-						compra automáticamente.
+						Organiza comidas y cenas, reutiliza los platos de otras semanas y
+						deja que Dali cruce sus ingredientes con el inventario para preparar
+						sólo lo que falta en la lista de la compra.
 					</p>
 
 					<div className="mt-7 flex flex-wrap gap-2 text-xs font-semibold text-[#626a49] dark:text-[#d3d8ba]">
@@ -45,6 +49,15 @@ export function WeeklyMenuFeature() {
 							Compra inteligente
 						</span>
 					</div>
+					<span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold">
+						Abrir menú semanal
+						<span
+							className="transition group-hover:translate-x-1"
+							aria-hidden="true"
+						>
+							→
+						</span>
+					</span>
 				</div>
 
 				<div className="rounded-[1.6rem] border border-white/70 bg-white/70 p-4 shadow-[0_22px_55px_rgba(75,82,52,0.12)] backdrop-blur dark:border-white/10 dark:bg-[#222d21]/80 sm:p-5">
@@ -143,6 +156,6 @@ export function WeeklyMenuFeature() {
 					</div>
 				</div>
 			</div>
-		</article>
+		</Link>
 	);
 }

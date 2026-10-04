@@ -10,14 +10,14 @@ export function UpcomingFeatures() {
 			<div className="mx-auto max-w-7xl">
 				<div className="max-w-2xl">
 					<p className="text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49]">
-						Disponible y lo próximo
+						Ya disponible
 					</p>
 					<h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[#17352b] dark:text-[#f4f1e7] sm:text-5xl">
-						Empezamos a poner la casa en orden.
+						Todo conectado para organizar la semana.
 					</h2>
 					<p className="mt-5 text-base leading-7 text-[#617168] dark:text-[#b4c0b8] sm:text-lg">
-						El inventario ya está listo. Dali seguirá creciendo poco a poco con
-						utilidades sencillas para nuestra casa.
+						Inventario, lista de la compra, recetario y menú semanal ya trabajan
+						juntos para Dani y Pali.
 					</p>
 				</div>
 
@@ -96,7 +96,7 @@ export function UpcomingFeatures() {
 							</h3>
 							<p className="mt-5 max-w-md leading-7 text-[#77513e] dark:text-[#ebcbbb]">
 								Una lista común para Dani y Pali, siempre disponible cuando haga
-								falta y preparada para conectarse con el inventario.
+								falta y conectada con el inventario y el menú semanal.
 							</p>
 							<span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold">
 								Abrir lista
