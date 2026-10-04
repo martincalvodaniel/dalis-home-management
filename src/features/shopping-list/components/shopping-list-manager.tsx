@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import type { ShoppingListItem } from "@/schemas/shopping-list-item";
 import { ShoppingList } from "./shopping-list";
 import { ShoppingListForm } from "./shopping-list-form";
 
 interface ShoppingListManagerProps {
 	items: ShoppingListItem[];
+	products: CatalogProductOption[];
 }
 
-export function ShoppingListManager({ items }: ShoppingListManagerProps) {
+export function ShoppingListManager({
+	items,
+	products,
+}: ShoppingListManagerProps) {
 	const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
 
 	return (
@@ -18,6 +23,7 @@ export function ShoppingListManager({ items }: ShoppingListManagerProps) {
 				<ShoppingListForm
 					key={editingItem?.id ?? "new-item"}
 					item={editingItem}
+					products={products}
 					onCancel={() => setEditingItem(null)}
 					onSaved={() => setEditingItem(null)}
 				/>

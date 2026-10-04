@@ -1,12 +1,14 @@
 import Link from "next/link";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import type { ShoppingListItem } from "@/schemas/shopping-list-item";
 import { ShoppingListManager } from "./shopping-list-manager";
 
 interface ShoppingListPageProps {
 	items: ShoppingListItem[];
+	products: CatalogProductOption[];
 }
 
-export function ShoppingListPage({ items }: ShoppingListPageProps) {
+export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
 	const pendingCount = items.filter((item) => !item.isPurchased).length;
 
 	return (
@@ -38,7 +40,7 @@ export function ShoppingListPage({ items }: ShoppingListPageProps) {
 					</div>
 				</header>
 
-				<ShoppingListManager items={items} />
+				<ShoppingListManager items={items} products={products} />
 			</div>
 		</main>
 	);

@@ -8,7 +8,6 @@ import {
 } from "@/lib/db/inventory-items";
 import {
 	addInventoryItemToShoppingList,
-	createShoppingListItem,
 	deletePurchasedShoppingListItems,
 	deleteShoppingListItem,
 	findShoppingListItemById,
@@ -45,7 +44,15 @@ export async function createShoppingListItemAction(
 		return invalidInputResult;
 	}
 
-	await createShoppingListItem(result.data);
+	const item = await findInventoryItemById(result.data.inventoryItemId);
+	if (!item) {
+		return {
+			success: false,
+			message: "No se ha encontrado el producto del catálogo.",
+		};
+	}
+
+	await addInventoryItemToShoppingList(item, result.data.quantity);
 	revalidatePath(SHOPPING_LIST_PATH);
 	return { success: true };
 }
@@ -86,9 +93,27 @@ export async function updateShoppingListItemAction(
 		return invalidInputResult;
 	}
 
-	const updated = await updateShoppingListItem(idResult.data, inputResult.data);
-	if (!updated) {
+	const item = await findInventoryItemById(inputResult.data.inventoryItemId);
+	if (!item) {
+		return {
+			success: false,
+			message: "No se ha encontrado el producto del catálogo.",
+		};
+	}
+
+	const updateResult = await updateShoppingListItem(
+		idResult.data,
+		item,
+		inputResult.data.quantity,
+	);
+	if (updateResult === "missing") {
 		return { success: false, message: "No se ha encontrado el producto." };
+	}
+	if (updateResult === "duplicate") {
+		return {
+			success: false,
+			message: "Ese producto ya está en la lista de la compra.",
+		};
 	}
 
 	revalidatePath(SHOPPING_LIST_PATH);

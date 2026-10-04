@@ -7,6 +7,7 @@ export function buildInventoryShoppingListUpdate(
 	item: InventoryItem,
 	inventoryItemId: ObjectId,
 	now: Date,
+	quantity = 1,
 ): Document[] {
 	return [
 		{
@@ -18,8 +19,8 @@ export function buildInventoryShoppingListUpdate(
 				quantity: {
 					$cond: [
 						{ $eq: ["$isPurchased", false] },
-						{ $add: [{ $ifNull: ["$quantity", 0] }, 1] },
-						1,
+						{ $add: [{ $ifNull: ["$quantity", 0] }, quantity] },
+						quantity,
 					],
 				},
 				isPurchased: false,

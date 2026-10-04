@@ -2,31 +2,34 @@
 
 import { type FormEvent, useState, useTransition } from "react";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { SelectField } from "@/components/ui/select-field";
-import { quantityUnitLabels } from "@/config/quantity-units";
+import { CatalogProductDialog } from "@/features/catalog/components/catalog-product-dialog";
+import { ProductPicker } from "@/features/catalog/components/product-picker";
+import type { CatalogProductOption } from "@/features/catalog/product-option";
 import {
 	createShoppingListItemAction,
 	updateShoppingListItemAction,
 } from "@/features/shopping-list/actions";
-import { quantityUnits } from "@/schemas/quantity-unit";
 import type { ShoppingListItem } from "@/schemas/shopping-list-item";
 
 interface ShoppingListFormProps {
 	item: ShoppingListItem | null;
+	products: CatalogProductOption[];
 	onCancel: () => void;
 	onSaved: () => void;
 }
 
-const unitOptions = quantityUnits.map((unit) => ({
-	value: unit,
-	label: quantityUnitLabels[unit],
-}));
-
 export function ShoppingListForm({
 	item,
+	products,
 	onCancel,
 	onSaved,
 }: ShoppingListFormProps) {
+	const [availableProducts, setAvailableProducts] = useState(products);
+	const [selectedProductId, setSelectedProductId] = useState(
+		item?.inventoryItemId ?? "",
+	);
+	const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+	const [notice, setNotice] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const isEditing = item !== null;
@@ -37,9 +40,8 @@ export function ShoppingListForm({
 		const form = event.currentTarget;
 		const formData = new FormData(form);
 		const input = {
-			name: formData.get("name"),
+			inventoryItemId: selectedProductId,
 			quantity: Number(formData.get("quantity")),
-			unit: formData.get("unit"),
 		};
 
 		startTransition(async () => {
@@ -54,11 +56,32 @@ export function ShoppingListForm({
 				}
 
 				form.reset();
+				setSelectedProductId("");
 				onSaved();
 			} catch {
 				setError("No se ha podido guardar el producto. Inténtalo de nuevo.");
 			}
 		});
+	}
+
+	function handleProductCreated(
+		product: CatalogProductOption,
+		created: boolean,
+	) {
+		setAvailableProducts((current) =>
+			current.some((entry) => entry.id === product.id)
+				? current
+				: [...current, product].toSorted((left, right) =>
+						left.name.localeCompare(right.name, "es", { sensitivity: "base" }),
+					),
+		);
+		setSelectedProductId(product.id);
+		setNotice(
+			created
+				? "Producto creado y seleccionado."
+				: "El producto ya existía y ha quedado seleccionado.",
+		);
+		setIsProductDialogOpen(false);
 	}
 
 	return (
@@ -71,46 +94,49 @@ export function ShoppingListForm({
 			</h2>
 
 			<form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-				<label className="block text-sm font-semibold" htmlFor="name">
-					Nombre
+				<div className="text-sm font-semibold">
+					<label htmlFor="shopping-product">Producto</label>
+					<ProductPicker
+						id="shopping-product"
+						products={availableProducts}
+						value={selectedProductId}
+						onValueChange={(productId) => {
+							setSelectedProductId(productId);
+							setNotice(null);
+						}}
+						disabled={isPending}
+						className="mt-2 border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
+					/>
+					<button
+						type="button"
+						onClick={() => setIsProductDialogOpen(true)}
+						disabled={isPending}
+						className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
+					>
+						+ Crear producto nuevo
+					</button>
+				</div>
+
+				<label className="block text-sm font-semibold" htmlFor="quantity">
+					Cantidad a comprar
 					<input
-						id="name"
-						name="name"
-						type="text"
+						id="quantity"
+						name="quantity"
+						type="number"
+						min="0.01"
+						max="999999"
+						step="any"
 						required
-						maxLength={120}
-						defaultValue={item?.name}
-						placeholder="Por ejemplo, tomates"
-						className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-4 font-normal outline-none transition placeholder:text-[#9c887d] focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
+						defaultValue={item?.quantity ?? 1}
+						className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-4 font-normal outline-none transition focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
 					/>
 				</label>
 
-				<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] gap-3">
-					<label className="block text-sm font-semibold" htmlFor="quantity">
-						Cantidad
-						<input
-							id="quantity"
-							name="quantity"
-							type="number"
-							min="0.01"
-							max="999999"
-							step="any"
-							required
-							defaultValue={item?.quantity ?? 1}
-							className="mt-2 min-h-12 w-full rounded-xl border border-[#d8c5b8] bg-white/85 px-4 font-normal outline-none transition focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#2e211c]"
-						/>
-					</label>
-					<div className="block text-sm font-semibold">
-						<label htmlFor="unit">Unidad</label>
-						<SelectField
-							id="unit"
-							name="unit"
-							defaultValue={item?.unit ?? "unit"}
-							options={unitOptions}
-							className="mt-2 border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
-						/>
-					</div>
-				</div>
+				{notice ? (
+					<p className="text-xs font-semibold text-[#477052]" role="status">
+						{notice}
+					</p>
+				) : null}
 
 				{error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
@@ -134,6 +160,11 @@ export function ShoppingListForm({
 					) : null}
 				</div>
 			</form>
+			<CatalogProductDialog
+				open={isProductDialogOpen}
+				onDismiss={() => setIsProductDialogOpen(false)}
+				onCreated={handleProductCreated}
+			/>
 		</section>
 	);
 }

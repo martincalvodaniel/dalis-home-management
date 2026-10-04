@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { inventoryItemInputSchema } from "@/schemas/inventory-item";
+import {
+	catalogProductInputSchema,
+	inventoryItemInputSchema,
+} from "@/schemas/inventory-item";
 
 describe("inventoryItemInputSchema", () => {
 	test("normalizes a valid inventory item", () => {
@@ -46,6 +49,33 @@ describe("inventoryItemInputSchema", () => {
 			quantity: 1,
 			unit: "box",
 			location: "garage",
+		});
+
+		expect(result.success).toBe(false);
+	});
+});
+
+describe("catalogProductInputSchema", () => {
+	test("accepts catalog identity without stock", () => {
+		expect(
+			catalogProductInputSchema.parse({
+				name: "  Tomatoes  ",
+				unit: "kilogram",
+				location: "fridge",
+			}),
+		).toEqual({
+			name: "Tomatoes",
+			unit: "kilogram",
+			location: "fridge",
+		});
+	});
+
+	test("keeps stock quantity out of catalog identity input", () => {
+		const result = catalogProductInputSchema.safeParse({
+			name: "Tomatoes",
+			unit: "kilogram",
+			location: "fridge",
+			quantity: 2,
 		});
 
 		expect(result.success).toBe(false);

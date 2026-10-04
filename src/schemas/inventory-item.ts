@@ -30,6 +30,14 @@ export const inventoryItemInputSchema = inventoryItemSchema
 	})
 	.strict();
 
+export const catalogProductInputSchema = inventoryItemSchema
+	.pick({
+		name: true,
+		unit: true,
+		location: true,
+	})
+	.strict();
+
 export const inventoryItemIdSchema = z.string().regex(/^[0-9a-f]{24}$/i);
 
 export type InventoryItem = z.infer<typeof inventoryItemSchema>;

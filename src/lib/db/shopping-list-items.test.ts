@@ -18,7 +18,7 @@ describe("inventory shopping-list update", () => {
 		};
 
 		expect(
-			buildInventoryShoppingListUpdate(item, inventoryItemId, now),
+			buildInventoryShoppingListUpdate(item, inventoryItemId, now, 2),
 		).toEqual([
 			{
 				$set: {
@@ -29,8 +29,8 @@ describe("inventory shopping-list update", () => {
 					quantity: {
 						$cond: [
 							{ $eq: ["$isPurchased", false] },
-							{ $add: [{ $ifNull: ["$quantity", 0] }, 1] },
-							1,
+							{ $add: [{ $ifNull: ["$quantity", 0] }, 2] },
+							2,
 						],
 					},
 					isPurchased: false,

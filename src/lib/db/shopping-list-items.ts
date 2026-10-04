@@ -1,15 +1,12 @@
 import "server-only";
 
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items";
 import { buildInventoryShoppingListUpdate } from "@/lib/db/shopping-list-item-update";
 import type { InventoryItem } from "@/schemas/inventory-item";
 import type { QuantityUnit } from "@/schemas/quantity-unit";
-import type {
-	ShoppingListItem,
-	ShoppingListItemInput,
-} from "@/schemas/shopping-list-item";
+import type { ShoppingListItem } from "@/schemas/shopping-list-item";
 
 interface ShoppingListItemDocument
 	extends Omit<
@@ -116,27 +113,9 @@ export async function isInventoryItemUsedInShoppingList(
 	return document !== null;
 }
 
-export async function createShoppingListItem(
-	input: ShoppingListItemInput,
-): Promise<string> {
-	const collection = await getCollection<ShoppingListItemDocument>(
-		COLLECTION_NAMES.shoppingListItems,
-	);
-	const now = new Date();
-	const result = await collection.insertOne({
-		_id: new ObjectId(),
-		...input,
-		isMealPlanGenerated: false,
-		isPurchased: false,
-		createdAt: now,
-		updatedAt: now,
-	});
-
-	return result.insertedId.toHexString();
-}
-
 export async function addInventoryItemToShoppingList(
 	item: InventoryItem,
+	quantity = 1,
 ): Promise<void> {
 	const collection = await getCollection<ShoppingListItemDocument>(
 		COLLECTION_NAMES.shoppingListItems,
@@ -146,7 +125,7 @@ export async function addInventoryItemToShoppingList(
 
 	await collection.updateOne(
 		{ inventoryItemId },
-		buildInventoryShoppingListUpdate(item, inventoryItemId, now),
+		buildInventoryShoppingListUpdate(item, inventoryItemId, now, quantity),
 		{ upsert: true },
 	);
 }
@@ -212,26 +191,41 @@ export async function addMealPlanSuggestionsToShoppingList(
 	);
 }
 
+export type UpdateShoppingListItemResult = "updated" | "missing" | "duplicate";
+
 export async function updateShoppingListItem(
 	id: string,
-	input: ShoppingListItemInput,
-): Promise<boolean> {
+	item: InventoryItem,
+	quantity: number,
+): Promise<UpdateShoppingListItemResult> {
 	const collection = await getCollection<ShoppingListItemDocument>(
 		COLLECTION_NAMES.shoppingListItems,
 	);
-	const result = await collection.updateOne(
-		{ _id: toObjectId(id) },
-		{
-			$set: {
-				...input,
-				isMealPlanGenerated: false,
-				updatedAt: new Date(),
-			},
-			$unset: { mealPlanIngredientKey: "" },
-		},
-	);
 
-	return result.matchedCount > 0;
+	try {
+		const result = await collection.updateOne(
+			{ _id: toObjectId(id) },
+			{
+				$set: {
+					inventoryItemId: toObjectId(item.id),
+					name: item.name,
+					quantity,
+					unit: item.unit,
+					isMealPlanGenerated: false,
+					updatedAt: new Date(),
+				},
+				$unset: { mealPlanIngredientKey: "" },
+			},
+		);
+
+		return result.matchedCount > 0 ? "updated" : "missing";
+	} catch (error) {
+		if (error instanceof MongoServerError && error.code === 11000) {
+			return "duplicate";
+		}
+
+		throw error;
+	}
 }
 
 export async function setShoppingListItemPurchased(

@@ -2,25 +2,22 @@ import { describe, expect, test } from "bun:test";
 import { shoppingListItemInputSchema } from "@/schemas/shopping-list-item";
 
 describe("shoppingListItemInputSchema", () => {
-	test("normalizes a valid shopping list item", () => {
+	test("accepts a catalog product and quantity", () => {
 		const result = shoppingListItemInputSchema.parse({
-			name: "  Oat milk  ",
+			inventoryItemId: "507f1f77bcf86cd799439011",
 			quantity: 2,
-			unit: "liter",
 		});
 
 		expect(result).toEqual({
-			name: "Oat milk",
+			inventoryItemId: "507f1f77bcf86cd799439011",
 			quantity: 2,
-			unit: "liter",
 		});
 	});
 
-	test("rejects empty names", () => {
+	test("requires a valid catalog product", () => {
 		const result = shoppingListItemInputSchema.safeParse({
-			name: "   ",
+			inventoryItemId: "invalid",
 			quantity: 1,
-			unit: "unit",
 		});
 
 		expect(result.success).toBe(false);
@@ -29,31 +26,20 @@ describe("shoppingListItemInputSchema", () => {
 	test("rejects zero and negative quantities", () => {
 		for (const quantity of [0, -1]) {
 			const result = shoppingListItemInputSchema.safeParse({
-				name: "Bread",
+				inventoryItemId: "507f1f77bcf86cd799439011",
 				quantity,
-				unit: "unit",
 			});
 
 			expect(result.success).toBe(false);
 		}
 	});
 
-	test("rejects unsupported units", () => {
+	test("keeps product snapshots out of manual item input", () => {
 		const result = shoppingListItemInputSchema.safeParse({
-			name: "Eggs",
-			quantity: 1,
-			unit: "box",
-		});
-
-		expect(result.success).toBe(false);
-	});
-
-	test("keeps inventory links out of manual item input", () => {
-		const result = shoppingListItemInputSchema.safeParse({
-			name: "Eggs",
-			quantity: 1,
-			unit: "unit",
 			inventoryItemId: "507f1f77bcf86cd799439011",
+			quantity: 1,
+			name: "Eggs",
+			unit: "unit",
 		});
 
 		expect(result.success).toBe(false);
@@ -61,9 +47,8 @@ describe("shoppingListItemInputSchema", () => {
 
 	test("keeps generated metadata out of manual item input", () => {
 		const result = shoppingListItemInputSchema.safeParse({
-			name: "Eggs",
+			inventoryItemId: "507f1f77bcf86cd799439011",
 			quantity: 1,
-			unit: "unit",
 			isMealPlanGenerated: true,
 		});
 
