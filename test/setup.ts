@@ -1,3 +1,3 @@
-import { mock } from "bun:test"
+import { mock } from "bun:test";
 
-mock.module("server-only", () => ({}))
+mock.module("server-only", () => ({}));
