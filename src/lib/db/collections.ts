@@ -8,6 +8,7 @@ export const COLLECTION_NAMES = {
 	dishes: "dishes",
 	inventoryItems: "inventory_items",
 	shoppingListItems: "shopping_list_items",
+	weeklyMealPlans: "weekly_meal_plans",
 } as const satisfies Record<string, string>;
 
 export type CollectionName =

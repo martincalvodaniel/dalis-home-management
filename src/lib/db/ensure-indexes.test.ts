@@ -56,6 +56,22 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers one meal plan per week", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "weekly_meal_plans",
+			keys: { weekStart: 1 },
+			options: { name: "week_start_unique", unique: true },
+		});
+	});
+
+	test("registers the planned dish lookup index", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "weekly_meal_plans",
+			keys: { "slots.dishId": 1 },
+			options: { name: "slots_dish_id_asc" },
+		});
+	});
+
 	test("rejects duplicate names within a collection", () => {
 		const specs: IndexSpec[] = [
 			{

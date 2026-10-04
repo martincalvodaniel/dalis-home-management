@@ -49,6 +49,16 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 			partialFilterExpression: { inventoryItemId: { $type: "objectId" } },
 		},
 	},
+	{
+		collection: "weekly_meal_plans",
+		keys: { weekStart: 1 },
+		options: { name: "week_start_unique", unique: true },
+	},
+	{
+		collection: "weekly_meal_plans",
+		keys: { "slots.dishId": 1 },
+		options: { name: "slots_dish_id_asc" },
+	},
 ];
 
 export function validateIndexSpecs(specs: readonly IndexSpec[]): void {
