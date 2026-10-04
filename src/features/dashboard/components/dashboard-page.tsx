@@ -3,19 +3,19 @@ import Link from "next/link"
 export function DashboardPage() {
   return (
     <main className="flex min-h-screen items-center bg-[#f5f4ee] p-4 text-[#17352b] sm:p-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
-      <section className="mx-auto w-full max-w-5xl rounded-[2rem] border border-[#dde1d8] bg-white/75 p-6 shadow-[0_24px_70px_rgba(50,72,60,0.1)] sm:p-10 dark:border-white/10 dark:bg-[#182e26]/90">
+      <section className="mx-auto w-full max-w-5xl rounded-[2rem] border border-[#dde1d8] bg-white/75 p-5 shadow-[0_24px_70px_rgba(50,72,60,0.1)] sm:p-10 dark:border-white/10 dark:bg-[#182e26]/90">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#c36d49]">
           Dali
         </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] sm:mt-3 sm:text-5xl">
           Nuestro espacio
         </h1>
-        <p className="mt-4 max-w-2xl leading-7 text-[#63736a] dark:text-[#b4c0b8]">
+        <p className="mt-4 hidden max-w-2xl leading-7 text-[#63736a] sm:block dark:text-[#b4c0b8]">
           Las utilidades que Dani y Pali utilizamos para llevar la casa con
           menos esfuerzo.
         </p>
 
-        <div className="mt-9 grid gap-4 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 sm:mt-9 sm:grid-cols-2">
           <Link
             href="/inventory"
             className="group rounded-2xl bg-[#1d4f40] p-6 text-white shadow-[0_15px_35px_rgba(29,79,64,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 dark:ring-offset-[#182e26]"
