@@ -33,6 +33,18 @@ describe("MongoDB index specifications", () => {
 		});
 	});
 
+	test("registers the unique inventory shopping-list link", () => {
+		expect(INDEX_SPECS).toContainEqual({
+			collection: "shopping_list_items",
+			keys: { inventoryItemId: 1 },
+			options: {
+				name: "inventory_item_id_unique",
+				unique: true,
+				partialFilterExpression: { inventoryItemId: { $type: "objectId" } },
+			},
+		});
+	});
+
 	test("rejects duplicate names within a collection", () => {
 		const specs: IndexSpec[] = [
 			{

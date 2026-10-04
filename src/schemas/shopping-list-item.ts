@@ -6,6 +6,10 @@ export const shoppingListItemSchema = z.object({
 	name: z.string().trim().min(1).max(120),
 	quantity: z.number().finite().positive().max(999_999),
 	unit: quantityUnitSchema,
+	inventoryItemId: z
+		.string()
+		.regex(/^[0-9a-f]{24}$/i)
+		.optional(),
 	isPurchased: z.boolean(),
 	createdAt: z.date(),
 	updatedAt: z.date(),

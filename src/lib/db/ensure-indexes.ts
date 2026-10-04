@@ -32,6 +32,15 @@ export const INDEX_SPECS: readonly IndexSpec[] = [
 		keys: { isPurchased: 1, createdAt: 1 },
 		options: { name: "is_purchased_asc_created_at_asc" },
 	},
+	{
+		collection: "shopping_list_items",
+		keys: { inventoryItemId: 1 },
+		options: {
+			name: "inventory_item_id_unique",
+			unique: true,
+			partialFilterExpression: { inventoryItemId: { $type: "objectId" } },
+		},
+	},
 ];
 
 export function validateIndexSpecs(specs: readonly IndexSpec[]): void {

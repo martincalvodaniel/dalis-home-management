@@ -2,19 +2,23 @@ import "server-only";
 
 import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
+import { buildInventoryShoppingListUpdate } from "@/lib/db/shopping-list-item-update";
+import type { InventoryItem } from "@/schemas/inventory-item";
 import type {
 	ShoppingListItem,
 	ShoppingListItemInput,
 } from "@/schemas/shopping-list-item";
 
-interface ShoppingListItemDocument extends Omit<ShoppingListItem, "id"> {
+interface ShoppingListItemDocument
+	extends Omit<ShoppingListItem, "id" | "inventoryItemId"> {
 	_id: ObjectId;
+	inventoryItemId?: ObjectId;
 }
 
 function toShoppingListItem(
 	document: ShoppingListItemDocument,
 ): ShoppingListItem {
-	return {
+	const item: ShoppingListItem = {
 		id: document._id.toHexString(),
 		name: document.name,
 		quantity: document.quantity,
@@ -23,6 +27,12 @@ function toShoppingListItem(
 		createdAt: document.createdAt,
 		updatedAt: document.updatedAt,
 	};
+
+	if (document.inventoryItemId) {
+		item.inventoryItemId = document.inventoryItemId.toHexString();
+	}
+
+	return item;
 }
 
 function toObjectId(id: string): ObjectId {
@@ -57,6 +67,22 @@ export async function createShoppingListItem(
 	});
 
 	return result.insertedId.toHexString();
+}
+
+export async function addInventoryItemToShoppingList(
+	item: InventoryItem,
+): Promise<void> {
+	const collection = await getCollection<ShoppingListItemDocument>(
+		COLLECTION_NAMES.shoppingListItems,
+	);
+	const inventoryItemId = toObjectId(item.id);
+	const now = new Date();
+
+	await collection.updateOne(
+		{ inventoryItemId },
+		buildInventoryShoppingListUpdate(item, inventoryItemId, now),
+		{ upsert: true },
+	);
 }
 
 export async function updateShoppingListItem(

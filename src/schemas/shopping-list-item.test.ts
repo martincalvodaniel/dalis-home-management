@@ -47,4 +47,15 @@ describe("shoppingListItemInputSchema", () => {
 
 		expect(result.success).toBe(false);
 	});
+
+	test("keeps inventory links out of manual item input", () => {
+		const result = shoppingListItemInputSchema.safeParse({
+			name: "Eggs",
+			quantity: 1,
+			unit: "unit",
+			inventoryItemId: "507f1f77bcf86cd799439011",
+		});
+
+		expect(result.success).toBe(false);
+	});
 });

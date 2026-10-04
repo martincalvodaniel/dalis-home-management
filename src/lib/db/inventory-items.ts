@@ -40,6 +40,17 @@ export async function listInventoryItems(): Promise<InventoryItem[]> {
 	return documents.map(toInventoryItem);
 }
 
+export async function findInventoryItemById(
+	id: string,
+): Promise<InventoryItem | null> {
+	const collection = await getCollection<InventoryItemDocument>(
+		COLLECTION_NAMES.inventoryItems,
+	);
+	const document = await collection.findOne({ _id: toObjectId(id) });
+
+	return document ? toInventoryItem(document) : null;
+}
+
 export async function createInventoryItem(
 	input: InventoryItemInput,
 ): Promise<string> {
