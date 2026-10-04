@@ -1,11 +1,13 @@
 "use client"
 
-import { useDeferredValue, useId, useState } from "react"
+import { useDeferredValue, useId } from "react"
 import type { Dish } from "@/schemas/dish"
 import { DishCard } from "./dish-card"
 
 interface DishListProps {
   dishes: Dish[]
+  search: string
+  onSearchChange: (search: string) => void
   onEdit: (dish: Dish) => void
 }
 
@@ -18,9 +20,13 @@ function normalizeSearchText(value: string): string {
     .toLocaleLowerCase("es")
 }
 
-export function DishList({ dishes, onEdit }: DishListProps) {
+export function DishList({
+  dishes,
+  search,
+  onSearchChange,
+  onEdit,
+}: DishListProps) {
   const titleId = useId()
-  const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
   const filteredDishes = dishes.filter(
@@ -69,7 +75,7 @@ export function DishList({ dishes, onEdit }: DishListProps) {
           <input
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar plato o ingrediente"
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#75611f] focus:ring-2 focus:ring-[#75611f]/15 dark:border-white/15 dark:bg-[#182e26]"
           />

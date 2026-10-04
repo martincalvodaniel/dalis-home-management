@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useState } from "react"
+import { useDeferredValue, useId, useState } from "react"
 import { PurchasePlaceFilter } from "@/features/catalog/components/purchase-place-filter"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import {
@@ -14,12 +14,32 @@ import { ShoppingListItemRow } from "./shopping-list-item-row"
 interface ShoppingListProps {
   items: ShoppingListItem[]
   products: CatalogProductOption[]
+  search: string
+  onSearchChange: (search: string) => void
   onEdit: (item: ShoppingListItem) => void
 }
 
-export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
+const diacriticPattern = /\p{Diacritic}/gu
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(diacriticPattern, "")
+    .toLocaleLowerCase("es")
+}
+
+export function ShoppingList({
+  items,
+  products,
+  search,
+  onSearchChange,
+  onEdit,
+}: ShoppingListProps) {
   const titleId = useId()
+  const searchInputId = useId()
   const [activePurchasePlace, setActivePurchasePlace] = useState("*")
+  const deferredSearch = useDeferredValue(search)
+  const normalizedSearch = normalizeSearchText(deferredSearch.trim())
   const productsById = new Map(products.map((product) => [product.id, product]))
   const listedProductIds = new Set(
     items.map((item) => item.inventoryItemId).filter(Boolean)
@@ -37,6 +57,14 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
       ? activePurchasePlace
       : "*"
   const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      normalizedSearch.length === 0 ||
+      normalizeSearchText(item.name).includes(normalizedSearch)
+
+    if (!matchesSearch) {
+      return false
+    }
+
     if (effectivePurchasePlace === "*") {
       return true
     }
@@ -52,7 +80,6 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
   })
   const pendingItems = filteredItems.filter((item) => !item.isPurchased)
   const purchasedItems = filteredItems.filter((item) => item.isPurchased)
-  const totalPurchasedCount = items.filter((item) => item.isPurchased).length
 
   if (items.length === 0) {
     return (
@@ -74,16 +101,29 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
 
   return (
     <section aria-labelledby={titleId}>
-      <div className="hidden sm:block">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
-          Por comprar
-        </p>
-        <h2
-          id={titleId}
-          className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
-        >
-          Nuestra lista
-        </h2>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="hidden sm:block">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
+            Por comprar
+          </p>
+          <h2
+            id={titleId}
+            className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
+          >
+            Nuestra lista
+          </h2>
+        </div>
+        <label className="sm:w-64" htmlFor={searchInputId}>
+          <span className="sr-only">Buscar productos en la lista</span>
+          <input
+            id={searchInputId}
+            type="search"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Buscar producto"
+            className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#a75938] focus:ring-2 focus:ring-[#a75938]/15 dark:border-white/15 dark:bg-[#182e26]"
+          />
+        </label>
       </div>
 
       <PurchasePlaceFilter
@@ -92,36 +132,57 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
         onPlaceChange={setActivePurchasePlace}
       />
 
-      <div className="mt-4 space-y-3">
-        {pendingItems.length === 0 ? (
-          <div className="rounded-2xl border border-[#dce5d9] bg-[#e9f0e7]/65 px-5 py-8 text-center dark:border-[#345245] dark:bg-[#203b31]">
-            <p className="font-semibold">Todo comprado</p>
-            <p className="mt-1 text-sm text-[#627268] dark:text-[#b7c5bc]">
-              No queda nada pendiente en la lista.
-            </p>
-          </div>
-        ) : (
-          pendingItems.map((item) => (
-            <ShoppingListItemRow key={item.id} item={item} onEdit={onEdit} />
-          ))
-        )}
-      </div>
-
-      {purchasedItems.length > 0 ? (
-        <div className="mt-8">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
-              Ya comprado
-            </p>
-            <ClearPurchasedButton count={totalPurchasedCount} />
-          </div>
-          <div className="mt-3 space-y-3 opacity-75">
-            {purchasedItems.map((item) => (
-              <ShoppingListItemRow key={item.id} item={item} onEdit={onEdit} />
-            ))}
-          </div>
+      {filteredItems.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-dashed border-[#d8c5b8] bg-white/35 px-5 py-10 text-center dark:border-white/15 dark:bg-white/[0.025]">
+          <p className="font-semibold">No hay productos que coincidan.</p>
+          <p className="mt-1 text-sm text-[#697970] dark:text-[#aebbb3]">
+            Prueba con otro nombre o lugar de compra.
+          </p>
         </div>
-      ) : null}
+      ) : (
+        <>
+          <div className="mt-4 space-y-3">
+            {pendingItems.length === 0 ? (
+              <div className="rounded-2xl border border-[#dce5d9] bg-[#e9f0e7]/65 px-5 py-8 text-center dark:border-[#345245] dark:bg-[#203b31]">
+                <p className="font-semibold">Todo comprado</p>
+                <p className="mt-1 text-sm text-[#627268] dark:text-[#b7c5bc]">
+                  No queda nada pendiente en la lista.
+                </p>
+              </div>
+            ) : (
+              pendingItems.map((item) => (
+                <ShoppingListItemRow
+                  key={item.id}
+                  item={item}
+                  onEdit={onEdit}
+                />
+              ))
+            )}
+          </div>
+
+          {purchasedItems.length > 0 ? (
+            <div className="mt-8">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
+                  Ya comprado
+                </p>
+                <ClearPurchasedButton
+                  itemIds={purchasedItems.map((item) => item.id)}
+                />
+              </div>
+              <div className="mt-3 space-y-3 opacity-75">
+                {purchasedItems.map((item) => (
+                  <ShoppingListItemRow
+                    key={item.id}
+                    item={item}
+                    onEdit={onEdit}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
     </section>
   )
 }

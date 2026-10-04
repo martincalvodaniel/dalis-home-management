@@ -11,6 +11,8 @@ import { InventoryItemCard } from "./inventory-item-card"
 
 interface InventoryListProps {
   items: InventoryItem[]
+  search: string
+  onSearchChange: (search: string) => void
   onEdit: (item: InventoryItem) => void
 }
 
@@ -23,10 +25,14 @@ function normalizeSearchText(value: string): string {
     .toLocaleLowerCase("es")
 }
 
-export function InventoryList({ items, onEdit }: InventoryListProps) {
+export function InventoryList({
+  items,
+  search,
+  onSearchChange,
+  onEdit,
+}: InventoryListProps) {
   const listTitleId = useId()
   const searchInputId = useId()
-  const [search, setSearch] = useState("")
   const [activePurchasePlace, setActivePurchasePlace] = useState("*")
   const deferredSearch = useDeferredValue(search)
   const normalizedSearch = normalizeSearchText(deferredSearch.trim())
@@ -96,7 +102,7 @@ export function InventoryList({ items, onEdit }: InventoryListProps) {
             id={searchInputId}
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar productos"
             className="min-h-11 w-full rounded-full border border-[#ccd5ca] bg-white/75 px-4 text-sm outline-none transition placeholder:text-[#8d9a92] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#182e26]"
           />

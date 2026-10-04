@@ -19,9 +19,6 @@ export function DishCard({ dish, onEdit }: DishCardProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const linkedIngredients = dish.ingredients.filter(
-    (ingredient) => ingredient.inventoryItemId
-  ).length
 
   function removeDish() {
     setIsDeleteDialogOpen(false)
@@ -46,16 +43,11 @@ export function DishCard({ dish, onEdit }: DishCardProps) {
             <p className="text-xl font-semibold tracking-[-0.035em]">
               {dish.name}
             </p>
-            <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[#818b80] dark:text-[#a6b3ab]">
-              {dish.ingredients.length}{" "}
-              {dish.ingredients.length === 1 ? "ingrediente" : "ingredientes"}
-            </p>
           </div>
-          {linkedIngredients > 0 ? (
-            <span className="shrink-0 rounded-full bg-[#e5ede3] px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-[#4e6c57] dark:bg-[#29473b] dark:text-[#c3d8c9]">
-              {linkedIngredients} vinculados
-            </span>
-          ) : null}
+          <span className="shrink-0 rounded-full bg-[#e5ede3] px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-[#4e6c57] dark:bg-[#29473b] dark:text-[#c3d8c9]">
+            {dish.ingredients.length}{" "}
+            {dish.ingredients.length === 1 ? "ingrediente" : "ingredientes"}
+          </span>
         </div>
 
         <ul className="mt-5 space-y-2 text-sm text-[#5d6e64] dark:text-[#bac5bd]">

@@ -11,6 +11,7 @@ interface DishCatalogPageProps {
 }
 
 export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
+  const [search, setSearch] = useState("")
   const [editingDish, setEditingDish] = useState<Dish | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
 
@@ -61,6 +62,8 @@ export function DishCatalogPage({ dishes, products }: DishCatalogPageProps) {
         <DishManager
           dishes={dishes}
           products={products}
+          search={search}
+          onSearchChange={setSearch}
           editingDish={editingDish}
           isFormOpen={isFormOpen}
           onEdit={editDish}

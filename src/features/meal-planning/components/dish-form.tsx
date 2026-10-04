@@ -14,6 +14,7 @@ import { type IngredientDraft, IngredientRow } from "./ingredient-row"
 
 interface DishFormProps {
   dish: Dish | null
+  initialName?: string
   products: CatalogProductOption[]
   onCancel: () => void
   onSaved: () => void
@@ -38,7 +39,13 @@ function getInitialIngredients(dish: Dish | null): IngredientDraft[] {
   }))
 }
 
-export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
+export function DishForm({
+  dish,
+  initialName,
+  products,
+  onCancel,
+  onSaved,
+}: DishFormProps) {
   const nameId = useId()
   const [ingredients, setIngredients] = useState<IngredientDraft[]>(() =>
     getInitialIngredients(dish)
@@ -95,6 +102,7 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
                 ...ingredient,
                 inventoryItemId: product.id,
                 legacyName: undefined,
+                productSearch: undefined,
               }
             : ingredient
         )
@@ -155,13 +163,13 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
             type="text"
             required
             maxLength={120}
-            defaultValue={dish?.name}
+            defaultValue={dish?.name ?? initialName}
             placeholder="Por ejemplo, lentejas"
             className="mt-2 min-h-12 w-full rounded-xl border border-[#d0c69d] bg-white/85 px-4 font-normal outline-none transition placeholder:text-[#9a9788] focus:border-[#8a7633] focus:ring-2 focus:ring-[#8a7633]/15 dark:border-white/15 dark:bg-[#252316]"
           />
         </label>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {ingredients.map((ingredient, index) => (
             <IngredientRow
               key={ingredient.key}
@@ -216,7 +224,8 @@ export function DishForm({ dish, products, onCancel, onSaved }: DishFormProps) {
         initialName={
           creatingProductForIndex === null
             ? undefined
-            : ingredients[creatingProductForIndex]?.legacyName
+            : ingredients[creatingProductForIndex]?.productSearch?.trim() ||
+              ingredients[creatingProductForIndex]?.legacyName
         }
         purchasePlaces={getPurchasePlaces(availableProducts)}
         onDismiss={() => setCreatingProductForIndex(null)}

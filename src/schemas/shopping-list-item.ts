@@ -23,5 +23,14 @@ export const shoppingListItemInputSchema = shoppingListItemSchema
 
 export const shoppingListItemIdSchema = z.string().regex(/^[0-9a-f]{24}$/i)
 export const shoppingListItemPurchasedSchema = z.boolean()
+export const shoppingListItemQuantitySchema =
+  shoppingListItemSchema.shape.quantity
+export const purchasedShoppingListItemIdsSchema = z
+  .array(shoppingListItemIdSchema)
+  .min(1)
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: "Purchased shopping-list item IDs must be unique",
+  })
 
 export type ShoppingListItem = z.infer<typeof shoppingListItemSchema>

@@ -11,6 +11,7 @@ interface ShoppingListPageProps {
 }
 
 export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
+  const [search, setSearch] = useState("")
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const pendingCount = items.filter((item) => !item.isPurchased).length
@@ -62,6 +63,8 @@ export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
         <ShoppingListManager
           items={items}
           products={products}
+          search={search}
+          onSearchChange={setSearch}
           editingItem={editingItem}
           isFormOpen={isFormOpen}
           onEdit={editItem}

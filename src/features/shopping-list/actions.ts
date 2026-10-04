@@ -2,24 +2,23 @@
 
 import { revalidatePath } from "next/cache"
 import { requireAuthorizedSession } from "@/lib/auth/session"
-import {
-  findInventoryItemById,
-  increaseInventoryItemQuantity,
-} from "@/lib/db/inventory-items"
+import { findInventoryItemById } from "@/lib/db/inventory-items"
 import {
   addInventoryItemToShoppingList,
-  deletePurchasedShoppingListItems,
   deleteShoppingListItem,
-  findShoppingListItemById,
-  markShoppingListItemPurchasedIfPending,
+  PurchasedShoppingListSettlementError,
+  restockAndDeletePurchasedShoppingListItems,
   setShoppingListItemPurchased,
+  setShoppingListItemQuantity,
   updateShoppingListItem,
 } from "@/lib/db/shopping-list-items"
 import { inventoryItemIdSchema } from "@/schemas/inventory-item"
 import {
+  purchasedShoppingListItemIdsSchema,
   shoppingListItemIdSchema,
   shoppingListItemInputSchema,
   shoppingListItemPurchasedSchema,
+  shoppingListItemQuantitySchema,
 } from "@/schemas/shopping-list-item"
 
 const SHOPPING_LIST_PATH = "/shopping-list"
@@ -32,6 +31,11 @@ type ShoppingListActionResult =
 const invalidInputResult: ShoppingListActionResult = {
   success: false,
   message: "Revisa los datos del producto e inténtalo de nuevo.",
+}
+
+function revalidateShoppingList() {
+  revalidatePath("/")
+  revalidatePath(SHOPPING_LIST_PATH)
 }
 
 export async function createShoppingListItemAction(
@@ -53,7 +57,7 @@ export async function createShoppingListItemAction(
   }
 
   await addInventoryItemToShoppingList(item, result.data.quantity)
-  revalidatePath(SHOPPING_LIST_PATH)
+  revalidateShoppingList()
   return { success: true }
 }
 
@@ -76,7 +80,7 @@ export async function addInventoryItemToShoppingListAction(
   }
 
   await addInventoryItemToShoppingList(item)
-  revalidatePath(SHOPPING_LIST_PATH)
+  revalidateShoppingList()
 
   return { success: true }
 }
@@ -116,7 +120,7 @@ export async function updateShoppingListItemAction(
     }
   }
 
-  revalidatePath(SHOPPING_LIST_PATH)
+  revalidateShoppingList()
   return { success: true }
 }
 
@@ -140,44 +144,59 @@ export async function setShoppingListItemPurchasedAction(
     return { success: false, message: "No se ha encontrado el producto." }
   }
 
-  revalidatePath(SHOPPING_LIST_PATH)
+  revalidateShoppingList()
   return { success: true }
 }
 
-export async function purchaseShoppingListItemAndRestockAction(
-  id: unknown
+export async function setShoppingListItemQuantityAction(
+  id: unknown,
+  quantity: unknown
 ): Promise<ShoppingListActionResult> {
   await requireAuthorizedSession()
-  const result = shoppingListItemIdSchema.safeParse(id)
+  const idResult = shoppingListItemIdSchema.safeParse(id)
+  const quantityResult = shoppingListItemQuantitySchema.safeParse(quantity)
+
+  if (!idResult.success || !quantityResult.success) {
+    return invalidInputResult
+  }
+
+  const updated = await setShoppingListItemQuantity(
+    idResult.data,
+    quantityResult.data
+  )
+  if (!updated) {
+    return { success: false, message: "No se ha encontrado el producto." }
+  }
+
+  revalidateShoppingList()
+  return { success: true }
+}
+
+export async function restockAndClearPurchasedShoppingListItemsAction(
+  ids: unknown
+): Promise<ShoppingListActionResult> {
+  await requireAuthorizedSession()
+  const result = purchasedShoppingListItemIdsSchema.safeParse(ids)
 
   if (!result.success) {
     return invalidInputResult
   }
 
-  const item = await findShoppingListItemById(result.data)
-  if (!item?.inventoryItemId) {
-    return {
-      success: false,
-      message: "Este producto ya no está vinculado al inventario.",
-    }
-  }
-
-  const claimed = await markShoppingListItemPurchasedIfPending(item.id)
-  if (claimed) {
-    const inventoryUpdated = await increaseInventoryItemQuantity(
-      item.inventoryItemId,
-      item.quantity
-    )
-    if (!inventoryUpdated) {
-      await setShoppingListItemPurchased(item.id, false)
+  try {
+    await restockAndDeletePurchasedShoppingListItems(result.data)
+  } catch (error) {
+    if (error instanceof PurchasedShoppingListSettlementError) {
       return {
         success: false,
-        message: "No se ha encontrado el producto en el inventario.",
+        message:
+          "No se ha podido actualizar todo el inventario. No se ha eliminado ningún producto.",
       }
     }
+
+    throw error
   }
 
-  revalidatePath(SHOPPING_LIST_PATH)
+  revalidateShoppingList()
   revalidatePath(INVENTORY_PATH)
   return { success: true }
 }
@@ -194,17 +213,12 @@ export async function deleteShoppingListItemAction(
 
   const deleted = await deleteShoppingListItem(result.data)
   if (!deleted) {
-    return { success: false, message: "No se ha encontrado el producto." }
+    return {
+      success: false,
+      message: "No se ha encontrado el producto.",
+    }
   }
 
-  revalidatePath(SHOPPING_LIST_PATH)
-  return { success: true }
-}
-
-export async function clearPurchasedShoppingListItemsAction(): Promise<ShoppingListActionResult> {
-  await requireAuthorizedSession()
-  await deletePurchasedShoppingListItems()
-  revalidatePath(SHOPPING_LIST_PATH)
-
+  revalidateShoppingList()
   return { success: true }
 }

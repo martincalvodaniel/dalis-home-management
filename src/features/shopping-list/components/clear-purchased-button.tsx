@@ -2,28 +2,30 @@
 
 import { useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { clearPurchasedShoppingListItemsAction } from "@/features/shopping-list/actions"
+import { restockAndClearPurchasedShoppingListItemsAction } from "@/features/shopping-list/actions"
 
 interface ClearPurchasedButtonProps {
-  count: number
+  itemIds: string[]
 }
 
-export function ClearPurchasedButton({ count }: ClearPurchasedButtonProps) {
+export function ClearPurchasedButton({ itemIds }: ClearPurchasedButtonProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const count = itemIds.length
 
-  function clearPurchasedItems() {
+  function updateInventoryAndClear() {
     setIsDialogOpen(false)
     setError(null)
     startTransition(async () => {
       try {
-        const result = await clearPurchasedShoppingListItemsAction()
+        const result =
+          await restockAndClearPurchasedShoppingListItemsAction(itemIds)
         if (!result.success) {
           setError(result.message)
         }
       } catch {
-        setError("No se han podido limpiar los productos comprados.")
+        setError("No se ha podido actualizar el inventario y limpiar la lista.")
       }
     })
   }
@@ -36,7 +38,7 @@ export function ClearPurchasedButton({ count }: ClearPurchasedButtonProps) {
         disabled={isPending}
         className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:cursor-wait disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
       >
-        {isPending ? "Limpiando…" : "Limpiar comprados"}
+        {isPending ? "Actualizando…" : "Actualizar inventario y limpiar"}
       </button>
       {error ? (
         <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-300">
@@ -45,11 +47,10 @@ export function ClearPurchasedButton({ count }: ClearPurchasedButtonProps) {
       ) : null}
       <ConfirmationDialog
         open={isDialogOpen}
-        title="Limpiar productos comprados"
-        description={`Se eliminarán ${count === 1 ? "el producto comprado" : `los ${count} productos comprados`} de la lista.`}
-        confirmLabel="Limpiar"
-        tone="danger"
-        onConfirm={clearPurchasedItems}
+        title="Actualizar inventario y limpiar"
+        description={`Se ${count === 1 ? "sumará el producto visible" : `sumarán los ${count} productos visibles`} al inventario y se eliminará de la lista ${count === 1 ? "el artículo comprado" : "solo esos artículos comprados"}.`}
+        confirmLabel="Actualizar y limpiar"
+        onConfirm={updateInventoryAndClear}
         onDismiss={() => setIsDialogOpen(false)}
       />
     </div>

@@ -7,6 +7,8 @@ import { ShoppingListForm } from "./shopping-list-form"
 interface ShoppingListManagerProps {
   items: ShoppingListItem[]
   products: CatalogProductOption[]
+  search: string
+  onSearchChange: (search: string) => void
   editingItem: ShoppingListItem | null
   isFormOpen: boolean
   onEdit: (item: ShoppingListItem) => void
@@ -16,6 +18,8 @@ interface ShoppingListManagerProps {
 export function ShoppingListManager({
   items,
   products,
+  search,
+  onSearchChange,
   editingItem,
   isFormOpen,
   onEdit,
@@ -23,7 +27,13 @@ export function ShoppingListManager({
 }: ShoppingListManagerProps) {
   return (
     <div className="py-7 lg:py-10">
-      <ShoppingList items={items} products={products} onEdit={onEdit} />
+      <ShoppingList
+        items={items}
+        products={products}
+        search={search}
+        onSearchChange={onSearchChange}
+        onEdit={onEdit}
+      />
       <ModalDialog
         open={isFormOpen}
         ariaLabel={
@@ -36,6 +46,7 @@ export function ShoppingListManager({
             key={editingItem?.id ?? "new-item"}
             item={editingItem}
             products={products}
+            initialProductSearch={search.trim()}
             onCancel={onClose}
             onSaved={onClose}
           />

@@ -15,6 +15,7 @@ import { inventoryItemUnits } from "@/schemas/inventory-item"
 
 interface InventoryFormProps {
   item: InventoryItem | null
+  initialName?: string
   purchasePlaces: readonly string[]
   onCancel: () => void
   onSaved: () => void
@@ -27,6 +28,7 @@ const unitOptions = inventoryItemUnits.map((unit) => ({
 
 export function InventoryForm({
   item,
+  initialName,
   purchasePlaces,
   onCancel,
   onSaved,
@@ -95,7 +97,7 @@ export function InventoryForm({
             type="text"
             required
             maxLength={120}
-            defaultValue={item?.name}
+            defaultValue={item?.name ?? initialName}
             placeholder="Por ejemplo, arroz"
             className="mt-2 min-h-12 w-full rounded-xl border border-[#ccd5ca] bg-white px-4 font-normal outline-none transition placeholder:text-[#9aa59e] focus:border-[#1d4f40] focus:ring-2 focus:ring-[#1d4f40]/15 dark:border-white/15 dark:bg-[#10231c] dark:placeholder:text-[#718078]"
           />

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { MongoServerError, ObjectId } from "mongodb"
+import { getDatabase } from "@/lib/db/client"
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections"
 import { findInventoryItemsByIds } from "@/lib/db/inventory-items"
 import {
@@ -19,6 +20,7 @@ interface ShoppingListItemDocument
   _id: ObjectId
   inventoryItemId: ObjectId
   isMealPlanGenerated?: boolean
+  settlementState?: "processing"
 }
 
 function toShoppingListItem(
@@ -68,22 +70,6 @@ export async function listShoppingListItems(): Promise<ShoppingListItem[]> {
   return documents.map((document) =>
     toShoppingListItem(document, inventoryItemsById)
   )
-}
-
-export async function findShoppingListItemById(
-  id: string
-): Promise<ShoppingListItem | null> {
-  const collection = await getCollection<ShoppingListItemDocument>(
-    COLLECTION_NAMES.shoppingListItems
-  )
-  const document = await collection.findOne({ _id: toObjectId(id) })
-
-  if (!document) {
-    return null
-  }
-
-  const inventoryItemsById = await loadInventoryItemsById([document])
-  return toShoppingListItem(document, inventoryItemsById)
 }
 
 export async function isInventoryItemUsedInShoppingList(
@@ -148,7 +134,7 @@ export async function updateShoppingListItem(
 
   try {
     const result = await collection.updateOne(
-      { _id: toObjectId(id) },
+      { _id: toObjectId(id), settlementState: { $exists: false } },
       {
         $set: {
           inventoryItemId: toObjectId(item.id),
@@ -179,41 +165,142 @@ export async function setShoppingListItemPurchased(
     COLLECTION_NAMES.shoppingListItems
   )
   const result = await collection.updateOne(
-    { _id: toObjectId(id) },
+    { _id: toObjectId(id), settlementState: { $exists: false } },
     { $set: { isPurchased, updatedAt: new Date() } }
   )
 
   return result.matchedCount > 0
 }
 
-export async function markShoppingListItemPurchasedIfPending(
-  id: string
+export async function setShoppingListItemQuantity(
+  id: string,
+  quantity: number
 ): Promise<boolean> {
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
   )
   const result = await collection.updateOne(
-    { _id: toObjectId(id), isPurchased: false },
-    { $set: { isPurchased: true, updatedAt: new Date() } }
+    { _id: toObjectId(id), settlementState: { $exists: false } },
+    {
+      $set: {
+        quantity,
+        isMealPlanGenerated: false,
+        updatedAt: new Date(),
+      },
+    }
   )
 
-  return result.modifiedCount > 0
+  return result.matchedCount > 0
 }
 
 export async function deleteShoppingListItem(id: string): Promise<boolean> {
   const collection = await getCollection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
   )
-  const result = await collection.deleteOne({ _id: toObjectId(id) })
+  const result = await collection.deleteOne({
+    _id: toObjectId(id),
+    settlementState: { $exists: false },
+  })
 
   return result.deletedCount > 0
 }
 
-export async function deletePurchasedShoppingListItems(): Promise<number> {
-  const collection = await getCollection<ShoppingListItemDocument>(
+export class PurchasedShoppingListSettlementError extends Error {
+  constructor() {
+    super("Could not settle all purchased shopping-list items")
+    this.name = "PurchasedShoppingListSettlementError"
+  }
+}
+
+export async function restockAndDeletePurchasedShoppingListItems(
+  ids: readonly string[]
+): Promise<number> {
+  const database = await getDatabase()
+  const shoppingListCollection = database.collection<ShoppingListItemDocument>(
     COLLECTION_NAMES.shoppingListItems
   )
-  const result = await collection.deleteMany({ isPurchased: true })
+  const inventoryCollection = database.collection<{
+    _id: ObjectId
+    quantity: number
+    updatedAt: Date
+    shoppingListSettlementIds?: ObjectId[]
+  }>(COLLECTION_NAMES.inventoryItems)
+  const requestedIds = ids.map(toObjectId)
+  const purchasedItems = await shoppingListCollection
+    .find(
+      { _id: { $in: requestedIds }, isPurchased: true },
+      { projection: { _id: 1, inventoryItemId: 1, quantity: 1 } }
+    )
+    .toArray()
 
-  return result.deletedCount
+  if (purchasedItems.length === 0) {
+    return 0
+  }
+
+  const inventoryItemIds = purchasedItems.map((item) => item.inventoryItemId)
+  const inventoryItemCount = await inventoryCollection.countDocuments({
+    _id: { $in: inventoryItemIds },
+  })
+
+  if (inventoryItemCount !== new Set(inventoryItemIds.map(String)).size) {
+    throw new PurchasedShoppingListSettlementError()
+  }
+
+  let settledCount = 0
+
+  for (const item of purchasedItems) {
+    const now = new Date()
+    const claimedItem = await shoppingListCollection.findOneAndUpdate(
+      { _id: item._id, isPurchased: true },
+      { $set: { settlementState: "processing", updatedAt: now } },
+      { returnDocument: "after" }
+    )
+
+    if (!claimedItem) {
+      continue
+    }
+
+    const inventoryResult = await inventoryCollection.updateOne(
+      {
+        _id: claimedItem.inventoryItemId,
+        shoppingListSettlementIds: { $ne: claimedItem._id },
+      },
+      {
+        $inc: { quantity: claimedItem.quantity },
+        $set: { updatedAt: now },
+        $addToSet: { shoppingListSettlementIds: claimedItem._id },
+      }
+    )
+
+    if (inventoryResult.matchedCount === 0) {
+      const alreadyApplied = await inventoryCollection.countDocuments({
+        _id: claimedItem.inventoryItemId,
+        shoppingListSettlementIds: claimedItem._id,
+      })
+
+      if (alreadyApplied === 0) {
+        throw new PurchasedShoppingListSettlementError()
+      }
+    }
+
+    const deleteResult = await shoppingListCollection.deleteOne({
+      _id: claimedItem._id,
+      isPurchased: true,
+      settlementState: "processing",
+    })
+
+    if (deleteResult.deletedCount === 0) {
+      const itemStillExists = await shoppingListCollection.countDocuments({
+        _id: claimedItem._id,
+      })
+
+      if (itemStillExists > 0) {
+        throw new PurchasedShoppingListSettlementError()
+      }
+    }
+
+    settledCount += 1
+  }
+
+  return settledCount
 }

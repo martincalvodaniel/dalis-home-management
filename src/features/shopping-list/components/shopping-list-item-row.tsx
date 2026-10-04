@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { quantityUnitShortLabels } from "@/config/quantity-units"
+import { QuantityStepper } from "@/components/ui/quantity-stepper"
 import {
   deleteShoppingListItemAction,
-  purchaseShoppingListItemAndRestockAction,
   setShoppingListItemPurchasedAction,
+  setShoppingListItemQuantityAction,
 } from "@/features/shopping-list/actions"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
@@ -15,47 +15,25 @@ interface ShoppingListItemRowProps {
   onEdit: (item: ShoppingListItem) => void
 }
 
-const quantityFormatter = new Intl.NumberFormat("es-ES", {
-  maximumFractionDigits: 2,
-})
-
 export function ShoppingListItemRow({
   item,
   onEdit,
 }: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-  const [openDialog, setOpenDialog] = useState<"restock" | "delete" | null>(
-    null
-  )
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function togglePurchased() {
-    if (!item.isPurchased && item.inventoryItemId !== undefined) {
-      setOpenDialog("restock")
-      return
-    }
-
-    updatePurchased(false)
-  }
-
-  function updatePurchased(shouldRestockInventory: boolean) {
-    setOpenDialog(null)
     setError(null)
-    setNotice(null)
 
     startTransition(async () => {
       try {
-        const result = shouldRestockInventory
-          ? await purchaseShoppingListItemAndRestockAction(item.id)
-          : await setShoppingListItemPurchasedAction(item.id, !item.isPurchased)
+        const result = await setShoppingListItemPurchasedAction(
+          item.id,
+          !item.isPurchased
+        )
         if (!result.success) {
           setError(result.message)
-          return
-        }
-
-        if (shouldRestockInventory) {
-          setNotice("Comprado e inventario actualizado.")
         }
       } catch {
         setError("No se ha podido actualizar el producto.")
@@ -64,9 +42,8 @@ export function ShoppingListItemRow({
   }
 
   function removeItem() {
-    setOpenDialog(null)
+    setIsDeleteDialogOpen(false)
     setError(null)
-    setNotice(null)
     startTransition(async () => {
       try {
         const result = await deleteShoppingListItemAction(item.id)
@@ -75,6 +52,23 @@ export function ShoppingListItemRow({
         }
       } catch {
         setError("No se ha podido eliminar el producto.")
+      }
+    })
+  }
+
+  function updateQuantity(quantity: number) {
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await setShoppingListItemQuantityAction(
+          item.id,
+          quantity
+        )
+        if (!result.success) {
+          setError(result.message)
+        }
+      } catch {
+        setError("No se ha podido actualizar la cantidad.")
       }
     })
   }
@@ -108,10 +102,6 @@ export function ShoppingListItemRow({
               >
                 {item.name}
               </p>
-              <p className="shrink-0 text-sm font-semibold text-[#6b7a72] dark:text-[#abb8b0]">
-                {quantityFormatter.format(item.quantity)}{" "}
-                {quantityUnitShortLabels[item.unit]}
-              </p>
               {item.isMealPlanGenerated ? (
                 <span
                   className="grid size-6 shrink-0 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"
@@ -134,18 +124,19 @@ export function ShoppingListItemRow({
                   </svg>
                 </span>
               ) : null}
+              <QuantityStepper
+                value={item.quantity}
+                unit={item.unit}
+                minimum={0.01}
+                label={item.name}
+                disabled={isPending}
+                onChange={updateQuantity}
+                className="ml-auto bg-[#edf0e9] text-[#5c6e64] dark:bg-white/10 dark:text-[#c6d1ca]"
+              />
             </div>
             {error ? (
               <p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
                 {error}
-              </p>
-            ) : null}
-            {notice ? (
-              <p
-                className="mt-2 text-xs font-medium text-[#3e674b] dark:text-[#b9d4c0]"
-                aria-live="polite"
-              >
-                {notice}
               </p>
             ) : null}
             <div className="mt-3 flex gap-2">
@@ -159,7 +150,7 @@ export function ShoppingListItemRow({
               </button>
               <button
                 type="button"
-                onClick={() => setOpenDialog("delete")}
+                onClick={() => setIsDeleteDialogOpen(true)}
                 disabled={isPending}
                 className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
               >
@@ -170,23 +161,13 @@ export function ShoppingListItemRow({
         </div>
       </article>
       <ConfirmationDialog
-        open={openDialog === "restock"}
-        title={`¿Reponer ${item.name}?`}
-        description={`Has comprado ${quantityFormatter.format(item.quantity)} ${quantityUnitShortLabels[item.unit]}. Puedes sumarlo al inventario o marcarlo como comprado sin modificar existencias.`}
-        confirmLabel="Comprar y reponer"
-        secondaryLabel="Solo marcar comprado"
-        onConfirm={() => updatePurchased(true)}
-        onSecondary={() => updatePurchased(false)}
-        onDismiss={() => setOpenDialog(null)}
-      />
-      <ConfirmationDialog
-        open={openDialog === "delete"}
+        open={isDeleteDialogOpen}
         title={`Eliminar ${item.name}`}
         description="El producto desaparecerá de la lista de la compra. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         tone="danger"
         onConfirm={removeItem}
-        onDismiss={() => setOpenDialog(null)}
+        onDismiss={() => setIsDeleteDialogOpen(false)}
       />
     </>
   )

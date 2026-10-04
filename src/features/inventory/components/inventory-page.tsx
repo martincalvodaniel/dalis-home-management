@@ -9,6 +9,7 @@ interface InventoryPageProps {
 }
 
 export function InventoryPage({ items }: InventoryPageProps) {
+  const [search, setSearch] = useState("")
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
 
@@ -58,6 +59,8 @@ export function InventoryPage({ items }: InventoryPageProps) {
 
         <InventoryManager
           items={items}
+          search={search}
+          onSearchChange={setSearch}
           editingItem={editingItem}
           isFormOpen={isFormOpen}
           onEdit={editItem}

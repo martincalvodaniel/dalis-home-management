@@ -170,7 +170,7 @@ export async function markInventoryItemOutOfStock(
   return result.matchedCount > 0
 }
 
-export async function increaseInventoryItemQuantity(
+export async function setInventoryItemQuantity(
   id: string,
   quantity: number
 ): Promise<boolean> {
@@ -179,10 +179,7 @@ export async function increaseInventoryItemQuantity(
   )
   const result = await collection.updateOne(
     { _id: toObjectId(id) },
-    {
-      $inc: { quantity },
-      $set: { updatedAt: new Date() },
-    }
+    { $set: { quantity, updatedAt: new Date() } }
   )
 
   return result.matchedCount > 0

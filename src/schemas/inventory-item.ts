@@ -57,6 +57,7 @@ export const catalogProductInputSchema = inventoryItemSchema
   .strict()
 
 export const inventoryItemIdSchema = z.string().regex(/^[0-9a-f]{24}$/i)
+export const inventoryItemQuantitySchema = inventoryItemSchema.shape.quantity
 
 export type InventoryItem = z.infer<typeof inventoryItemSchema>
 export type InventoryItemInput = z.infer<typeof inventoryItemInputSchema>
