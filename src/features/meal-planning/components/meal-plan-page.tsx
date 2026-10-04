@@ -4,6 +4,7 @@ import {
 	addDaysToIsoDate,
 	type WeeklyMealSlot,
 } from "@/schemas/weekly-meal-plan";
+import { CopyPreviousWeekButton } from "./copy-previous-week-button";
 import { GenerateShoppingListButton } from "./generate-shopping-list-button";
 import { WeeklyMealCalendar } from "./weekly-meal-calendar";
 
@@ -101,6 +102,9 @@ export function MealPlanPage({
 					className="space-y-4 py-6"
 					aria-label="Comidas y cenas de la semana"
 				>
+					{slots.length === 0 && dishes.length > 0 ? (
+						<CopyPreviousWeekButton weekStart={weekStart} />
+					) : null}
 					<GenerateShoppingListButton weekStart={weekStart} />
 					{dishes.length > 0 ? (
 						<WeeklyMealCalendar

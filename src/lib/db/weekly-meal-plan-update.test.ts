@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { ObjectId } from "mongodb";
-import { buildWeeklyMealSlotUpdate } from "./weekly-meal-plan-update";
+import {
+	buildCopiedWeeklyMealPlanUpdate,
+	buildWeeklyMealSlotUpdate,
+} from "./weekly-meal-plan-update";
 
 describe("weekly meal slot update", () => {
 	const input = {
@@ -42,5 +45,27 @@ describe("weekly meal slot update", () => {
 
 		expect(JSON.stringify(update)).not.toContain("$concatArrays");
 		expect(JSON.stringify(update)).toContain("$filter");
+	});
+
+	test("builds a complete copied week update", () => {
+		const dishId = new ObjectId(input.dishId);
+		const slots = [
+			{
+				date: "2026-10-14",
+				mealType: "dinner" as const,
+				dishId,
+			},
+		];
+
+		expect(buildCopiedWeeklyMealPlanUpdate("2026-10-12", slots, now)).toEqual([
+			{
+				$set: {
+					weekStart: "2026-10-12",
+					slots,
+					createdAt: { $ifNull: ["$createdAt", now] },
+					updatedAt: now,
+				},
+			},
+		]);
 	});
 });

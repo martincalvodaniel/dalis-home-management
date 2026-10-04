@@ -1,13 +1,17 @@
 import "server-only";
 
-import { ObjectId } from "mongodb";
+import { MongoServerError, ObjectId } from "mongodb";
 import { COLLECTION_NAMES, getCollection } from "@/lib/db/collections";
-import { buildWeeklyMealSlotUpdate } from "@/lib/db/weekly-meal-plan-update";
+import {
+	buildCopiedWeeklyMealPlanUpdate,
+	buildWeeklyMealSlotUpdate,
+} from "@/lib/db/weekly-meal-plan-update";
 import type {
 	WeeklyMealPlan,
 	WeeklyMealSlot,
 	WeeklyMealSlotInput,
 } from "@/schemas/weekly-meal-plan";
+import { addDaysToIsoDate } from "@/schemas/weekly-meal-plan";
 
 interface WeeklyMealSlotDocument extends Omit<WeeklyMealSlot, "dishId"> {
 	dishId: ObjectId;
@@ -68,4 +72,47 @@ export async function setWeeklyMealSlot(
 		buildWeeklyMealSlotUpdate(input, dishId, new Date()),
 		{ upsert: dishId !== null },
 	);
+}
+
+export type CopyPreviousWeekResult =
+	| "copied"
+	| "source-empty"
+	| "target-not-empty";
+
+export async function copyPreviousWeekIntoEmptyPlan(
+	weekStart: string,
+): Promise<CopyPreviousWeekResult> {
+	const collection = await getCollection<WeeklyMealPlanDocument>(
+		COLLECTION_NAMES.weeklyMealPlans,
+	);
+	const previousWeekStart = addDaysToIsoDate(weekStart, -7);
+	const source = await collection.findOne({ weekStart: previousWeekStart });
+
+	if (!source || source.slots.length === 0) {
+		return "source-empty";
+	}
+
+	const copiedSlots = source.slots.map((slot) => ({
+		...slot,
+		date: addDaysToIsoDate(slot.date, 7),
+	}));
+
+	try {
+		await collection.updateOne(
+			{
+				weekStart,
+				$or: [{ slots: { $exists: false } }, { slots: { $size: 0 } }],
+			},
+			buildCopiedWeeklyMealPlanUpdate(weekStart, copiedSlots, new Date()),
+			{ upsert: true },
+		);
+	} catch (error) {
+		if (error instanceof MongoServerError && error.code === 11000) {
+			return "target-not-empty";
+		}
+
+		throw error;
+	}
+
+	return "copied";
 }

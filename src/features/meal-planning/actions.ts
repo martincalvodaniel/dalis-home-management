@@ -12,6 +12,7 @@ import {
 import { listInventoryItems } from "@/lib/db/inventory-items";
 import { addMealPlanSuggestionsToShoppingList } from "@/lib/db/shopping-list-items";
 import {
+	copyPreviousWeekIntoEmptyPlan,
 	findWeeklyMealPlan,
 	isDishUsedInMealPlans,
 	setWeeklyMealSlot,
@@ -155,4 +156,32 @@ export async function generateWeeklyShoppingListAction(
 	revalidatePath(SHOPPING_LIST_PATH);
 
 	return { success: true, itemCount: suggestions.length };
+}
+
+export async function copyPreviousWeekAction(
+	weekStart: unknown,
+): Promise<DishActionResult> {
+	await requireAuthorizedSession();
+	const result = weekStartSchema.safeParse(weekStart);
+
+	if (!result.success) {
+		return { success: false, message: "La semana seleccionada no es válida." };
+	}
+
+	const copyResult = await copyPreviousWeekIntoEmptyPlan(result.data);
+	if (copyResult === "source-empty") {
+		return {
+			success: false,
+			message: "La semana anterior no tiene comidas que copiar.",
+		};
+	}
+	if (copyResult === "target-not-empty") {
+		return {
+			success: false,
+			message: "Esta semana ya tiene comidas y no se ha sobrescrito.",
+		};
+	}
+
+	revalidatePath(MEAL_PLAN_PATH);
+	return { success: true };
 }

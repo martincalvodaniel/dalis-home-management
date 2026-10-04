@@ -1,7 +1,10 @@
 import "server-only";
 
 import type { Document, ObjectId } from "mongodb";
-import type { WeeklyMealSlotInput } from "@/schemas/weekly-meal-plan";
+import type {
+	WeeklyMealSlot,
+	WeeklyMealSlotInput,
+} from "@/schemas/weekly-meal-plan";
 
 export function buildWeeklyMealSlotUpdate(
 	input: WeeklyMealSlotInput,
@@ -37,6 +40,23 @@ export function buildWeeklyMealSlotUpdate(
 		{
 			$set: {
 				weekStart: input.weekStart,
+				slots,
+				createdAt: { $ifNull: ["$createdAt", now] },
+				updatedAt: now,
+			},
+		},
+	];
+}
+
+export function buildCopiedWeeklyMealPlanUpdate(
+	weekStart: string,
+	slots: Array<Omit<WeeklyMealSlot, "dishId"> & { dishId: ObjectId }>,
+	now: Date,
+): Document[] {
+	return [
+		{
+			$set: {
+				weekStart,
 				slots,
 				createdAt: { $ifNull: ["$createdAt", now] },
 				updatedAt: now,
