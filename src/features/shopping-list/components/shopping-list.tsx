@@ -1,19 +1,57 @@
 "use client"
 
-import { useId } from "react"
+import { useId, useState } from "react"
+import type { CatalogProductOption } from "@/features/catalog/product-option"
+import {
+  getPurchasePlaces,
+  normalizePurchasePlaceKey,
+} from "@/features/catalog/purchase-places"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ClearPurchasedButton } from "./clear-purchased-button"
 import { ShoppingListItemRow } from "./shopping-list-item-row"
 
 interface ShoppingListProps {
   items: ShoppingListItem[]
+  products: CatalogProductOption[]
   onEdit: (item: ShoppingListItem) => void
 }
 
-export function ShoppingList({ items, onEdit }: ShoppingListProps) {
+export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
   const titleId = useId()
-  const pendingItems = items.filter((item) => !item.isPurchased)
-  const purchasedItems = items.filter((item) => item.isPurchased)
+  const [activePurchasePlace, setActivePurchasePlace] = useState("*")
+  const productsById = new Map(products.map((product) => [product.id, product]))
+  const listedProductIds = new Set(
+    items.map((item) => item.inventoryItemId).filter(Boolean)
+  )
+  const purchasePlaces = getPurchasePlaces(
+    products.filter((product) => listedProductIds.has(product.id))
+  )
+  const effectivePurchasePlace =
+    activePurchasePlace === "*" ||
+    purchasePlaces.some(
+      (place) =>
+        normalizePurchasePlaceKey(place) ===
+        normalizePurchasePlaceKey(activePurchasePlace)
+    )
+      ? activePurchasePlace
+      : "*"
+  const filteredItems = items.filter((item) => {
+    if (effectivePurchasePlace === "*") {
+      return true
+    }
+
+    const product = item.inventoryItemId
+      ? productsById.get(item.inventoryItemId)
+      : undefined
+    return product?.purchasePlaces.some(
+      (place) =>
+        normalizePurchasePlaceKey(place) ===
+        normalizePurchasePlaceKey(effectivePurchasePlace)
+    )
+  })
+  const pendingItems = filteredItems.filter((item) => !item.isPurchased)
+  const purchasedItems = filteredItems.filter((item) => item.isPurchased)
+  const totalPurchasedCount = items.filter((item) => item.isPurchased).length
 
   if (items.length === 0) {
     return (
@@ -45,7 +83,28 @@ export function ShoppingList({ items, onEdit }: ShoppingListProps) {
         Nuestra lista
       </h2>
 
-      <div className="mt-5 space-y-3">
+      <nav
+        className="mt-4 flex gap-2 overflow-x-auto pb-1"
+        aria-label="Filtrar por lugar de compra"
+      >
+        {["*", ...purchasePlaces].map((place) => {
+          const isActive = effectivePurchasePlace === place
+
+          return (
+            <button
+              key={place}
+              type="button"
+              onClick={() => setActivePurchasePlace(place)}
+              aria-pressed={isActive}
+              className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#1d4f40] ${isActive ? "border-[#1d4f40] bg-[#1d4f40] text-white dark:border-[#8bb9a6] dark:bg-[#8bb9a6] dark:text-[#10221c]" : "border-[#ccd5ca] bg-white/65 text-[#5f7167] hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-[#c4d0c8] dark:hover:bg-white/10"}`}
+            >
+              {place}
+            </button>
+          )
+        })}
+      </nav>
+
+      <div className="mt-4 space-y-3">
         {pendingItems.length === 0 ? (
           <div className="rounded-2xl border border-[#dce5d9] bg-[#e9f0e7]/65 px-5 py-8 text-center dark:border-[#345245] dark:bg-[#203b31]">
             <p className="font-semibold">Todo comprado</p>
@@ -66,7 +125,7 @@ export function ShoppingList({ items, onEdit }: ShoppingListProps) {
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#89958e]">
               Ya comprado
             </p>
-            <ClearPurchasedButton count={purchasedItems.length} />
+            <ClearPurchasedButton count={totalPurchasedCount} />
           </div>
           <div className="mt-3 space-y-3 opacity-75">
             {purchasedItems.map((item) => (

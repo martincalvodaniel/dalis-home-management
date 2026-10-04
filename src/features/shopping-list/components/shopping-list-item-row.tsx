@@ -109,14 +109,26 @@ export function ShoppingListItemRow({
                 >
                   {item.name}
                 </p>
-                {item.inventoryItemId ? (
-                  <span className="rounded-full bg-[#e5ede3] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-[#4e6c57] dark:bg-[#29473b] dark:text-[#c3d8c9]">
-                    Del inventario
-                  </span>
-                ) : null}
                 {item.isMealPlanGenerated ? (
-                  <span className="rounded-full bg-[#f3e8c8] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]">
-                    Menú semanal
+                  <span
+                    className="grid size-6 place-items-center rounded-full bg-[#f3e8c8] text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]"
+                    title="Menú semanal"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      role="img"
+                      aria-label="Añadido desde el menú semanal"
+                      className="size-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M7 3v3M17 3v3M4 9h16" />
+                      <rect x="4" y="5" width="16" height="15" rx="2" />
+                      <path d="m9 14 2 2 4-4" />
+                    </svg>
                   </span>
                 ) : null}
               </div>

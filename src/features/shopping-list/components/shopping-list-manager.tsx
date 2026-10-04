@@ -28,7 +28,7 @@ export function ShoppingListManager({
           onSaved={() => setEditingItem(null)}
         />
       </div>
-      <ShoppingList items={items} onEdit={setEditingItem} />
+      <ShoppingList items={items} products={products} onEdit={setEditingItem} />
     </div>
   )
 }

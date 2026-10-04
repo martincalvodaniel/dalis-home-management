@@ -108,7 +108,9 @@ export function ShoppingListForm({
               setNotice(null)
             }}
             disabled={isPending}
-            className="mt-2 border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
+            searchable
+            showPurchasePlaces={false}
+            className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
           />
           <button
             type="button"
