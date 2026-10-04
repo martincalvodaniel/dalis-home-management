@@ -25,6 +25,7 @@ describe("inventory shopping-list update", () => {
 					inventoryItemId,
 					name: "Olive oil",
 					unit: "liter",
+					isMealPlanGenerated: false,
 					quantity: {
 						$cond: [
 							{ $eq: ["$isPurchased", false] },

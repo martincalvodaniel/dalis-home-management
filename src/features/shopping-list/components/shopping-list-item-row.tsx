@@ -111,6 +111,11 @@ export function ShoppingListItemRow({
 									Del inventario
 								</span>
 							) : null}
+							{item.isMealPlanGenerated ? (
+								<span className="rounded-full bg-[#f3e8c8] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-[#75611f] dark:bg-[#4b4225] dark:text-[#ead78d]">
+									Menú semanal
+								</span>
+							) : null}
 						</div>
 						<p className="shrink-0 text-sm font-semibold text-[#6b7a72] dark:text-[#abb8b0]">
 							{quantityFormatter.format(item.quantity)}{" "}

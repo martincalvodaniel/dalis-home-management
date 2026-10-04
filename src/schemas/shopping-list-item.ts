@@ -10,6 +10,7 @@ export const shoppingListItemSchema = z.object({
 		.string()
 		.regex(/^[0-9a-f]{24}$/i)
 		.optional(),
+	isMealPlanGenerated: z.boolean(),
 	isPurchased: z.boolean(),
 	createdAt: z.date(),
 	updatedAt: z.date(),

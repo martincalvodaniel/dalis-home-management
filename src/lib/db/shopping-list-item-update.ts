@@ -14,6 +14,7 @@ export function buildInventoryShoppingListUpdate(
 				inventoryItemId,
 				name: item.name,
 				unit: item.unit,
+				isMealPlanGenerated: false,
 				quantity: {
 					$cond: [
 						{ $eq: ["$isPurchased", false] },

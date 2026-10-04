@@ -11,9 +11,13 @@ import type {
 } from "@/schemas/shopping-list-item";
 
 interface ShoppingListItemDocument
-	extends Omit<ShoppingListItem, "id" | "inventoryItemId"> {
+	extends Omit<
+		ShoppingListItem,
+		"id" | "inventoryItemId" | "isMealPlanGenerated"
+	> {
 	_id: ObjectId;
 	inventoryItemId?: ObjectId;
+	isMealPlanGenerated?: boolean;
 	mealPlanIngredientKey?: string;
 }
 
@@ -33,6 +37,7 @@ function toShoppingListItem(
 		name: document.name,
 		quantity: document.quantity,
 		unit: document.unit,
+		isMealPlanGenerated: document.isMealPlanGenerated ?? false,
 		isPurchased: document.isPurchased,
 		createdAt: document.createdAt,
 		updatedAt: document.updatedAt,
@@ -96,6 +101,7 @@ export async function createShoppingListItem(
 	const result = await collection.insertOne({
 		_id: new ObjectId(),
 		...input,
+		isMealPlanGenerated: false,
 		isPurchased: false,
 		createdAt: now,
 		updatedAt: now,
@@ -167,6 +173,7 @@ export async function addMealPlanSuggestionsToShoppingList(
 											mealPlanIngredientKey: suggestion.mealPlanIngredientKey,
 										}
 									: {}),
+								isMealPlanGenerated: true,
 								isPurchased: false,
 								createdAt: { $ifNull: ["$createdAt", now] },
 								updatedAt: now,
@@ -190,7 +197,11 @@ export async function updateShoppingListItem(
 	const result = await collection.updateOne(
 		{ _id: toObjectId(id) },
 		{
-			$set: { ...input, updatedAt: new Date() },
+			$set: {
+				...input,
+				isMealPlanGenerated: false,
+				updatedAt: new Date(),
+			},
 			$unset: { mealPlanIngredientKey: "" },
 		},
 	);

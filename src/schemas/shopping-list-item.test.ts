@@ -58,4 +58,15 @@ describe("shoppingListItemInputSchema", () => {
 
 		expect(result.success).toBe(false);
 	});
+
+	test("keeps generated metadata out of manual item input", () => {
+		const result = shoppingListItemInputSchema.safeParse({
+			name: "Eggs",
+			quantity: 1,
+			unit: "unit",
+			isMealPlanGenerated: true,
+		});
+
+		expect(result.success).toBe(false);
+	});
 });
