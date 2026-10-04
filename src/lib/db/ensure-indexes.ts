@@ -18,7 +18,16 @@ export interface IndexSpec {
 
 // Add index specifications here alongside the feature that introduces the
 // collection or query pattern. Do not add speculative indexes.
-export const INDEX_SPECS: readonly IndexSpec[] = [];
+export const INDEX_SPECS: readonly IndexSpec[] = [
+	{
+		collection: "inventory_items",
+		keys: { location: 1, name: 1 },
+		options: {
+			name: "location_asc_name_asc",
+			collation: { locale: "es", strength: 1 },
+		},
+	},
+];
 
 export function validateIndexSpecs(specs: readonly IndexSpec[]): void {
 	const namesByCollection = new Map<string, Set<string>>();
