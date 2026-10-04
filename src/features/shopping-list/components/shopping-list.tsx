@@ -74,15 +74,17 @@ export function ShoppingList({ items, products, onEdit }: ShoppingListProps) {
 
   return (
     <section aria-labelledby={titleId}>
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
-        Por comprar
-      </p>
-      <h2
-        id={titleId}
-        className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
-      >
-        Nuestra lista
-      </h2>
+      <div className="hidden sm:block">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a8a81] dark:text-[#9baaa1]">
+          Por comprar
+        </p>
+        <h2
+          id={titleId}
+          className="mt-1 text-2xl font-semibold tracking-[-0.04em]"
+        >
+          Nuestra lista
+        </h2>
+      </div>
 
       <PurchasePlaceFilter
         places={purchasePlaces}
