@@ -1,3 +1,5 @@
+import { WeeklyMenuFeature } from "./weekly-menu-feature";
+
 export function UpcomingFeatures() {
 	return (
 		<section
@@ -82,6 +84,8 @@ export function UpcomingFeatures() {
 							</p>
 						</div>
 					</article>
+
+					<WeeklyMenuFeature />
 				</div>
 			</div>
 		</section>
