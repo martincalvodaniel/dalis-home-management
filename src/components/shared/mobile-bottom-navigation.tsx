@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation"
 const navigationItems = [
   {
     href: "/",
-    label: "Inicio",
-    paths: ["/", "/dashboard"],
+    label: "Compra",
+    paths: ["/", "/shopping-list"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
-          d="m3.5 10.5 8.5-7 8.5 7v9a1 1 0 0 1-1 1h-5v-6h-4v6h-5a1 1 0 0 1-1-1v-9Z"
+          d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H6m4 11.5h.01m6.99 0h.01"
           stroke="currentColor"
           strokeWidth="1.75"
           strokeLinecap="round"
@@ -37,13 +37,13 @@ const navigationItems = [
     ),
   },
   {
-    href: "/shopping-list",
-    label: "Compra",
-    paths: ["/shopping-list"],
+    href: "/meal-plan",
+    label: "Menú",
+    paths: ["/meal-plan"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
-          d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L20 8H6m4 11.5h.01m6.99 0h.01"
+          d="M6.5 3.5v3m11-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3v3H8v-3Z"
           stroke="currentColor"
           strokeWidth="1.75"
           strokeLinecap="round"
@@ -68,22 +68,6 @@ const navigationItems = [
       </svg>
     ),
   },
-  {
-    href: "/meal-plan",
-    label: "Menú",
-    paths: ["/meal-plan"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M6.5 3.5v3m11-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3v3H8v-3Z"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
 ] as const
 
 export function MobileBottomNavigation() {
@@ -94,7 +78,7 @@ export function MobileBottomNavigation() {
       aria-label="Navegación principal"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d3dbd3] bg-[#fbfaf6]/95 shadow-[0_-10px_30px_rgba(30,57,47,0.08)] backdrop-blur-lg sm:hidden dark:border-white/10 dark:bg-[#142820]/95"
     >
-      <div className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         {navigationItems.map((item) => {
           const isActive = item.paths.some((path) => pathname === path)
 
