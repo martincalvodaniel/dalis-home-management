@@ -98,7 +98,17 @@ export function ShoppingListForm({
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="text-sm font-semibold">
-          <label htmlFor={productId}>Producto</label>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor={productId}>Producto</label>
+            <button
+              type="button"
+              onClick={() => setIsProductDialogOpen(true)}
+              disabled={isPending}
+              className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
+            >
+              + Crear producto nuevo
+            </button>
+          </div>
           <ProductPicker
             id={productId}
             products={availableProducts}
@@ -112,14 +122,6 @@ export function ShoppingListForm({
             showPurchasePlaces={false}
             className="border-[#d8c5b8] bg-white/85 focus:border-[#a75938] focus:ring-[#a75938]/20 dark:bg-[#2e211c]"
           />
-          <button
-            type="button"
-            onClick={() => setIsProductDialogOpen(true)}
-            disabled={isPending}
-            className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#8e4d31] underline decoration-[#c98d72] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:text-[#efb89e]"
-          >
-            + Crear producto nuevo
-          </button>
         </div>
 
         <label className="block text-sm font-semibold" htmlFor={quantityId}>

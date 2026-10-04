@@ -63,7 +63,17 @@ export function IngredientRow({
           </div>
         ) : (
           <>
-            <label htmlFor={`inventory-${ingredient.key}`}>Producto</label>
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor={`inventory-${ingredient.key}`}>Producto</label>
+              <button
+                type="button"
+                onClick={onRequestProductCreation}
+                disabled={disabled}
+                className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-[#75611f] underline decoration-[#b4a66e] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:opacity-60 dark:text-[#dccb8d]"
+              >
+                + Crear producto nuevo
+              </button>
+            </div>
             <ProductPicker
               id={`inventory-${ingredient.key}`}
               products={products}
@@ -80,14 +90,6 @@ export function IngredientRow({
               showPurchasePlaces={false}
               className="border-[#d0c69d] bg-white focus:border-[#8a7633] focus:ring-[#8a7633]/20 dark:bg-[#10231c]"
             />
-            <button
-              type="button"
-              onClick={onRequestProductCreation}
-              disabled={disabled}
-              className="mt-2 rounded-full px-2 py-1 text-xs font-semibold text-[#75611f] underline decoration-[#b4a66e] underline-offset-4 focus:outline-none focus:ring-2 focus:ring-[#8a7633] disabled:opacity-60 dark:text-[#dccb8d]"
-            >
-              + Crear producto nuevo
-            </button>
           </>
         )}
       </div>
