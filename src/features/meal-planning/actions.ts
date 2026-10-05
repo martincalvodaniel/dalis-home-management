@@ -209,6 +209,46 @@ type PrepareShoppingListResult =
   | { success: true; itemCount: number }
   | { success: false; message: string }
 
+type ShoppingListSuggestionsResult =
+  | {
+      success: true
+      suggestions: ReturnType<typeof buildMealPlanShoppingSuggestions>
+    }
+  | { success: false; message: string }
+
+export async function getWeeklyShoppingListSuggestionsAction(
+  weekStart: unknown
+): Promise<ShoppingListSuggestionsResult> {
+  await requireAuthorizedSession()
+  const result = weekStartSchema.safeParse(weekStart)
+
+  if (!result.success) {
+    return {
+      success: false,
+      message: "La semana seleccionada no es válida.",
+    }
+  }
+
+  const [mealPlan, dishes, inventoryItems] = await Promise.all([
+    findWeeklyMealPlan(result.data),
+    listDishes(),
+    listInventoryItems(),
+  ])
+
+  if (!mealPlan || mealPlan.slots.length === 0) {
+    return { success: true, suggestions: [] }
+  }
+
+  return {
+    success: true,
+    suggestions: buildMealPlanShoppingSuggestions(
+      mealPlan,
+      dishes,
+      inventoryItems
+    ),
+  }
+}
+
 export async function prepareWeeklyShoppingListAction(
   weekStart: unknown,
   input: unknown
