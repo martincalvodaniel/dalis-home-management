@@ -177,60 +177,64 @@ export function ShoppingListPreview({
         open={isOpen}
         ariaLabel="Vista previa de la compra"
         size="xl"
+        scrollable={false}
         onDismiss={() => setIsOpen(false)}
       >
-        <section className="rounded-[1.75rem] border border-[#d8d7bd] bg-[#eeeddc] p-4 text-[#303b2d] sm:p-5 dark:border-[#59624e] dark:bg-[#2e382b] dark:text-[#f4f3e7]">
-          <header className="-mx-4 -mt-4 border-b border-[#d4d3b9] bg-[#eeeddc] px-4 pt-4 pb-4 sm:-mx-5 sm:-mt-5 sm:px-5 sm:pt-5 dark:border-white/10 dark:bg-[#2e382b]">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#e99a77]">
-              Compra de esta semana
-            </p>
-            <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">
-              Ajusta inventario y compra
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#69705b] dark:text-[#c0c7b5]">
-              La información se actualiza al abrir esta ventana. Revisa lo que
-              tienes en casa; también puedes ajustar manualmente cuánto comprar.
-            </p>
-          </header>
+        <section className="flex h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-[1.75rem] border border-[#d8d7bd] bg-[#eeeddc] p-4 text-[#303b2d] sm:p-5 dark:border-[#59624e] dark:bg-[#2e382b] dark:text-[#f4f3e7]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <header className="-mx-4 -mt-4 border-b border-[#d4d3b9] bg-[#eeeddc] px-4 pt-4 pb-4 sm:-mx-5 sm:-mt-5 sm:px-5 sm:pt-5 dark:border-white/10 dark:bg-[#2e382b]">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#e99a77]">
+                Compra de esta semana
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">
+                Ajusta inventario y compra
+              </h2>
+              <p className="mt-2 hidden max-w-2xl text-sm leading-6 text-[#69705b] sm:block dark:text-[#c0c7b5]">
+                La información se actualiza al abrir esta ventana. Revisa lo que
+                tienes en casa; también puedes ajustar manualmente cuánto
+                comprar.
+              </p>
+            </header>
 
-          {isLoading ? (
-            <p
-              className="py-10 text-center text-sm font-semibold text-[#69705b] dark:text-[#c0c7b5]"
-              role="status"
-            >
-              Actualizando la compra…
-            </p>
-          ) : items.length > 0 ? (
-            <>
-              <div
-                className="mt-5 mb-2 hidden grid-cols-[minmax(10rem,1fr)_minmax(7rem,0.45fr)_repeat(2,minmax(10rem,0.65fr))] gap-3 px-3 text-xs font-bold uppercase tracking-[0.08em] text-[#69705b] lg:grid dark:text-[#c0c7b5]"
-                aria-hidden="true"
+            {isLoading ? (
+              <p
+                className="py-10 text-center text-sm font-semibold text-[#69705b] dark:text-[#c0c7b5]"
+                role="status"
               >
-                <span>Producto</span>
-                <span>Necesitas</span>
-                <span>En inventario</span>
-                <span>Añadir</span>
-              </div>
+                Actualizando la compra…
+              </p>
+            ) : items.length > 0 ? (
+              <>
+                <div
+                  className="mt-5 mb-2 hidden grid-cols-[minmax(10rem,1fr)_minmax(7rem,0.45fr)_repeat(2,minmax(10rem,0.65fr))] gap-3 px-3 text-xs font-bold uppercase tracking-[0.08em] text-[#69705b] lg:grid dark:text-[#c0c7b5]"
+                  aria-hidden="true"
+                >
+                  <span>Producto</span>
+                  <span>Necesitas</span>
+                  <span>En inventario</span>
+                  <span>Añadir</span>
+                </div>
 
-              <ul className="grid gap-3">
-                {items.map((item) => (
-                  <ShoppingListPreviewRow
-                    key={item.inventoryItemId}
-                    item={item}
-                    disabled={isPending}
-                    onInventoryQuantityChange={updateInventoryQuantity}
-                    onShoppingQuantityChange={updateShoppingQuantity}
-                  />
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="py-10 text-center text-sm leading-6 text-[#69705b] dark:text-[#c0c7b5]">
-              El menú no necesita productos para esta semana.
-            </p>
-          )}
+                <ul className="mt-3 grid gap-3 lg:mt-0">
+                  {items.map((item) => (
+                    <ShoppingListPreviewRow
+                      key={item.inventoryItemId}
+                      item={item}
+                      disabled={isPending}
+                      onInventoryQuantityChange={updateInventoryQuantity}
+                      onShoppingQuantityChange={updateShoppingQuantity}
+                    />
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="py-10 text-center text-sm leading-6 text-[#69705b] dark:text-[#c0c7b5]">
+                El menú no necesita productos para esta semana.
+              </p>
+            )}
+          </div>
 
-          <footer className="sticky -bottom-4 z-10 -mx-4 -mb-4 mt-5 border-t border-[#d4d3b9] bg-[#eeeddc] px-4 py-4 sm:-bottom-5 sm:-mx-5 sm:-mb-5 sm:px-5 dark:border-white/10 dark:bg-[#2e382b]">
+          <footer className="-mx-4 -mb-4 mt-5 border-t border-[#d4d3b9] bg-[#eeeddc] px-4 py-4 sm:-mx-5 sm:-mb-5 sm:px-5 dark:border-white/10 dark:bg-[#2e382b]">
             {message ? (
               <p
                 className={`text-sm font-semibold ${isError ? "text-[#a34435] dark:text-[#ffb4a4]" : "text-[#477052] dark:text-[#a9d6b4]"}`}
