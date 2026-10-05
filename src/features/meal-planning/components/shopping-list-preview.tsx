@@ -176,11 +176,11 @@ export function ShoppingListPreview({
       <ModalDialog
         open={isOpen}
         ariaLabel="Vista previa de la compra"
-        size="lg"
+        size="xl"
         onDismiss={() => setIsOpen(false)}
       >
         <section className="rounded-[1.75rem] border border-[#d8d7bd] bg-[#eeeddc] p-4 text-[#303b2d] sm:p-5 dark:border-[#59624e] dark:bg-[#2e382b] dark:text-[#f4f3e7]">
-          <header className="sticky -top-4 z-10 -mx-4 -mt-4 border-b border-[#d4d3b9] bg-[#eeeddc] px-4 pt-4 pb-4 sm:-top-5 sm:-mx-5 sm:-mt-5 sm:px-5 sm:pt-5 dark:border-white/10 dark:bg-[#2e382b]">
+          <header className="-mx-4 -mt-4 border-b border-[#d4d3b9] bg-[#eeeddc] px-4 pt-4 pb-4 sm:-mx-5 sm:-mt-5 sm:px-5 sm:pt-5 dark:border-white/10 dark:bg-[#2e382b]">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a75938] dark:text-[#e99a77]">
               Compra de esta semana
             </p>
@@ -231,30 +231,30 @@ export function ShoppingListPreview({
           )}
 
           <footer className="sticky -bottom-4 z-10 -mx-4 -mb-4 mt-5 border-t border-[#d4d3b9] bg-[#eeeddc] px-4 py-4 sm:-bottom-5 sm:-mx-5 sm:-mb-5 sm:px-5 dark:border-white/10 dark:bg-[#2e382b]">
-            <div className="min-h-5">
-              {message ? (
-                <p
-                  className={`text-sm font-semibold ${isError ? "text-[#a34435] dark:text-[#ffb4a4]" : "text-[#477052] dark:text-[#a9d6b4]"}`}
-                  role={isError ? "alert" : "status"}
-                >
-                  {message}{" "}
-                  {!isError ? (
-                    <Link
-                      href="/shopping-list"
-                      className="underline underline-offset-2"
-                    >
-                      Abrir lista
-                    </Link>
-                  ) : null}
-                </p>
-              ) : null}
-            </div>
-            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            {message ? (
+              <p
+                className={`text-sm font-semibold ${isError ? "text-[#a34435] dark:text-[#ffb4a4]" : "text-[#477052] dark:text-[#a9d6b4]"}`}
+                role={isError ? "alert" : "status"}
+              >
+                {message}{" "}
+                {!isError ? (
+                  <Link
+                    href="/shopping-list"
+                    className="underline underline-offset-2"
+                  >
+                    Abrir lista
+                  </Link>
+                ) : null}
+              </p>
+            ) : null}
+            <div
+              className={`flex gap-2 sm:justify-end ${message ? "mt-4" : ""}`}
+            >
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 disabled={isPending}
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#c8cab1] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#74794f] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/10"
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#c8cab1] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#74794f] disabled:opacity-60 sm:flex-none dark:border-white/15 dark:hover:bg-white/10"
               >
                 Cerrar
               </button>
@@ -263,11 +263,9 @@ export function ShoppingListPreview({
                   type="button"
                   onClick={prepareShoppingList}
                   disabled={isPending || isLoading}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#a75938] px-5 text-sm font-semibold text-white transition hover:bg-[#8f482d] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-65 dark:ring-offset-[#2e382b]"
+                  className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#a75938] px-5 text-sm font-semibold text-white transition hover:bg-[#8f482d] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-65 sm:flex-none dark:ring-offset-[#2e382b]"
                 >
-                  {isPending
-                    ? "Guardando ajustes…"
-                    : "Guardar"}
+                  {isPending ? "Guardando ajustes…" : "Guardar"}
                 </button>
               ) : null}
             </div>

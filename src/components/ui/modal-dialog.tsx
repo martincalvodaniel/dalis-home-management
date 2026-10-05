@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react"
 interface ModalDialogProps {
   open: boolean
   ariaLabel: string
-  size?: "md" | "lg"
+  size?: "md" | "lg" | "xl"
   children: ReactNode
   onDismiss: () => void
 }
@@ -14,6 +14,7 @@ interface ModalDialogProps {
 const sizeClasses = {
   md: "max-w-xl",
   lg: "max-w-2xl",
+  xl: "max-w-6xl",
 } as const
 
 export function ModalDialog({
