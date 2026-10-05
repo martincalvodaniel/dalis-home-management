@@ -10,6 +10,7 @@ import {
 import type {
   WeeklyMealPlan,
   WeeklyMealSlot,
+  WeeklyMealSlotExecutionInput,
   WeeklyMealSlotInput,
   WeeklyMealSlotMoveInput,
 } from "@/schemas/weekly-meal-plan"
@@ -32,6 +33,7 @@ function toWeeklyMealPlan(document: WeeklyMealPlanDocument): WeeklyMealPlan {
       date: slot.date,
       mealType: slot.mealType,
       dishId: slot.dishId.toHexString(),
+      isExecuted: slot.isExecuted ?? false,
     })),
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
@@ -74,17 +76,30 @@ export async function isDishUsedInMealPlans(dishId: string): Promise<boolean> {
 
 export async function setWeeklyMealSlot(
   input: WeeklyMealSlotInput
-): Promise<void> {
+): Promise<boolean> {
   const collection = await getCollection<WeeklyMealPlanDocument>(
     COLLECTION_NAMES.weeklyMealPlans
   )
   const dishId = input.dishId ? new ObjectId(input.dishId) : null
 
-  await collection.updateOne(
-    { weekStart: input.weekStart },
+  const result = await collection.updateOne(
+    {
+      weekStart: input.weekStart,
+      slots: {
+        $not: {
+          $elemMatch: {
+            date: input.date,
+            mealType: input.mealType,
+            isExecuted: true,
+          },
+        },
+      },
+    },
     buildWeeklyMealSlotUpdate(input, dishId, new Date()),
     { upsert: dishId !== null }
   )
+
+  return result.matchedCount > 0 || result.upsertedCount > 0
 }
 
 export async function moveWeeklyMealSlot(
@@ -100,13 +115,79 @@ export async function moveWeeklyMealSlot(
         $elemMatch: {
           date: input.source.date,
           mealType: input.source.mealType,
+          isExecuted: { $ne: true },
         },
       },
+      $nor: [
+        {
+          slots: {
+            $elemMatch: {
+              date: input.destination.date,
+              mealType: input.destination.mealType,
+              isExecuted: true,
+            },
+          },
+        },
+      ],
     },
     buildWeeklyMealSlotMoveUpdate(input, new Date())
   )
 
   return result.matchedCount > 0
+}
+
+export async function markWeeklyMealSlotExecuted(
+  input: WeeklyMealSlotExecutionInput
+): Promise<boolean> {
+  const collection = await getCollection<WeeklyMealPlanDocument>(
+    COLLECTION_NAMES.weeklyMealPlans
+  )
+  const result = await collection.updateOne(
+    {
+      weekStart: input.weekStart,
+      slots: {
+        $elemMatch: {
+          date: input.date,
+          mealType: input.mealType,
+          isExecuted: { $ne: true },
+        },
+      },
+    },
+    {
+      $set: {
+        "slots.$.isExecuted": true,
+        updatedAt: new Date(),
+      },
+    }
+  )
+
+  return result.modifiedCount > 0
+}
+
+export async function unmarkWeeklyMealSlotExecuted(
+  input: WeeklyMealSlotExecutionInput
+): Promise<void> {
+  const collection = await getCollection<WeeklyMealPlanDocument>(
+    COLLECTION_NAMES.weeklyMealPlans
+  )
+  await collection.updateOne(
+    {
+      weekStart: input.weekStart,
+      slots: {
+        $elemMatch: {
+          date: input.date,
+          mealType: input.mealType,
+          isExecuted: true,
+        },
+      },
+    },
+    {
+      $set: {
+        "slots.$.isExecuted": false,
+        updatedAt: new Date(),
+      },
+    }
+  )
 }
 
 export type CopyPreviousWeekResult =
@@ -130,6 +211,7 @@ export async function copyPreviousWeekIntoEmptyPlan(
   const copiedSlots = source.slots.map((slot) => ({
     ...slot,
     date: addDaysToIsoDate(slot.date, 7),
+    isExecuted: false,
   }))
 
   try {

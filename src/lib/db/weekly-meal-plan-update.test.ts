@@ -73,6 +73,7 @@ describe("weekly meal slot update", () => {
         date: "2026-10-14",
         mealType: "dinner" as const,
         dishId,
+        isExecuted: false,
       },
     ]
 

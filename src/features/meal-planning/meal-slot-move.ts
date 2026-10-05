@@ -32,7 +32,19 @@ export function moveOrSwapMealSlots(
 
   return [
     ...remainingSlots,
-    { ...destination, dishId: sourceSlot.dishId },
-    ...(destinationSlot ? [{ ...source, dishId: destinationSlot.dishId }] : []),
+    {
+      ...destination,
+      dishId: sourceSlot.dishId,
+      isExecuted: sourceSlot.isExecuted,
+    },
+    ...(destinationSlot
+      ? [
+          {
+            ...source,
+            dishId: destinationSlot.dishId,
+            isExecuted: destinationSlot.isExecuted,
+          },
+        ]
+      : []),
   ]
 }

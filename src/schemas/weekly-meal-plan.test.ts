@@ -3,6 +3,7 @@ import {
   addDaysToIsoDate,
   getWeekDates,
   weeklyMealPlanSchema,
+  weeklyMealSlotExecutionWithInventoryInputSchema,
   weeklyMealSlotInputSchema,
   weeklyMealSlotMoveInputSchema,
 } from "@/schemas/weekly-meal-plan"
@@ -49,6 +50,7 @@ describe("weekly meal plan dates", () => {
       date: "2026-10-05",
       mealType: "lunch" as const,
       dishId: "507f1f77bcf86cd799439011",
+      isExecuted: false,
     }
     const result = weeklyMealPlanSchema.safeParse({
       id: "507f191e810c19729de860ea",
@@ -61,6 +63,25 @@ describe("weekly meal plan dates", () => {
     expect(result.success).toBe(false)
   })
 
+  test("defaults stored slots to not executed", () => {
+    const now = new Date("2026-10-02T08:00:00.000Z")
+    const result = weeklyMealPlanSchema.parse({
+      id: "507f191e810c19729de860ea",
+      weekStart: "2026-10-05",
+      slots: [
+        {
+          date: "2026-10-05",
+          mealType: "lunch",
+          dishId: "507f1f77bcf86cd799439011",
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    expect(result.slots[0]?.isExecuted).toBe(false)
+  })
+
   test("accepts moving a meal to another slot in the same week", () => {
     expect(
       weeklyMealSlotMoveInputSchema.safeParse({
@@ -69,6 +90,42 @@ describe("weekly meal plan dates", () => {
         destination: { date: "2026-10-08", mealType: "dinner" },
       }).success
     ).toBe(true)
+  })
+
+  test("accepts unique final inventory quantities for an executed meal", () => {
+    const result = weeklyMealSlotExecutionWithInventoryInputSchema.safeParse({
+      weekStart: "2026-10-05",
+      date: "2026-10-05",
+      mealType: "lunch",
+      items: [
+        {
+          inventoryItemId: "507f1f77bcf86cd799439011",
+          quantity: 2,
+        },
+      ],
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  test("rejects repeated inventory quantities for an executed meal", () => {
+    const result = weeklyMealSlotExecutionWithInventoryInputSchema.safeParse({
+      weekStart: "2026-10-05",
+      date: "2026-10-05",
+      mealType: "lunch",
+      items: [
+        {
+          inventoryItemId: "507f1f77bcf86cd799439011",
+          quantity: 2,
+        },
+        {
+          inventoryItemId: "507f1f77bcf86cd799439011",
+          quantity: 1,
+        },
+      ],
+    })
+
+    expect(result.success).toBe(false)
   })
 
   test("rejects moves outside the week or to the same slot", () => {

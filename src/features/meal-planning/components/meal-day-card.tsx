@@ -10,6 +10,8 @@ interface MealDayCardProps {
   today: string
   lunchDish: Dish | null
   dinnerDish: Dish | null
+  lunchIsExecuted: boolean
+  dinnerIsExecuted: boolean
   dishOptions: DishOption[]
   draggedSlotKey: string | null
   dropTargetKey: string | null
@@ -45,6 +47,8 @@ export function MealDayCard({
   today,
   lunchDish,
   dinnerDish,
+  lunchIsExecuted,
+  dinnerIsExecuted,
   dishOptions,
   draggedSlotKey,
   dropTargetKey,
@@ -61,18 +65,18 @@ export function MealDayCard({
 
   return (
     <article
-      className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${
+      className={`min-w-0 rounded-2xl border p-4 shadow-sm sm:p-5 ${
         isToday
           ? "border-[#c36d49] bg-[#fff8f2] ring-1 ring-[#c36d49]/20 dark:bg-[#342820]"
           : "border-[#dce1d9] bg-white/80 dark:border-white/10 dark:bg-white/5"
       }`}
     >
       <header className="mb-5 flex items-start justify-between gap-3">
-        <div>
+        <div className="flex min-w-0 items-baseline gap-2">
           <h2 className="capitalize text-lg font-semibold tracking-[-0.03em]">
             {dayFormatter.format(parsedDate)}
           </h2>
-          <p className="mt-0.5 text-sm text-[#758078] dark:text-[#aeb9b2]">
+          <p className="shrink-0 text-sm text-[#758078] dark:text-[#aeb9b2]">
             {dateFormatter.format(parsedDate)}
           </p>
         </div>
@@ -89,6 +93,7 @@ export function MealDayCard({
           date={date}
           mealType="lunch"
           dish={lunchDish}
+          isExecuted={lunchIsExecuted}
           dishOptions={dishOptions}
           dragDisabled={dragDisabled}
           isDragged={draggedSlotKey === lunchKey}
@@ -103,6 +108,7 @@ export function MealDayCard({
           date={date}
           mealType="dinner"
           dish={dinnerDish}
+          isExecuted={dinnerIsExecuted}
           dishOptions={dishOptions}
           dragDisabled={dragDisabled}
           isDragged={draggedSlotKey === dinnerKey}

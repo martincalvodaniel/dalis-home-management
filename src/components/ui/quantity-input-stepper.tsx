@@ -141,7 +141,7 @@ export function QuantityInputStepper({
           }}
           onKeyDown={handleKeyDown}
           aria-label={`Cantidad de ${label}`}
-          className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right font-normal outline-none disabled:opacity-65"
+          className="h-full w-0 min-w-0 flex-1 bg-transparent px-2 text-right text-base font-semibold text-current tabular-nums outline-none disabled:opacity-65"
         />
         {unit ? (
           <span className="shrink-0 pr-3 text-xs font-semibold opacity-75">

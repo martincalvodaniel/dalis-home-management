@@ -47,7 +47,7 @@ export function MealPlanPage({
   }))
 
   return (
-    <main className="min-h-screen bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
+    <main className="min-h-screen overflow-x-clip bg-[#f5f4ee] px-4 py-5 text-[#17352b] sm:px-8 sm:py-8 dark:bg-[#10221c] dark:text-[#f4f1e7]">
       <div className="mx-auto w-full max-w-[96rem]">
         <header className="border-b border-[#d9ded3] pb-4 sm:pb-6 dark:border-white/10">
           <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -64,10 +64,10 @@ export function MealPlanPage({
               </p>
             </div>
 
-            <div className="flex items-start gap-2">
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
               <nav
                 aria-label="Cambiar semana"
-                className="flex overflow-hidden rounded-lg border border-[#ccd5ce] bg-white/70 sm:rounded-xl dark:border-white/15 dark:bg-white/5"
+                className="flex w-full overflow-hidden rounded-lg border border-[#ccd5ce] bg-white/70 sm:w-auto sm:rounded-xl dark:border-white/15 dark:bg-white/5"
               >
                 <Link
                   href={`/meal-plan?week=${previousWeek}`}
@@ -78,7 +78,7 @@ export function MealPlanPage({
                 </Link>
                 <Link
                   href="/meal-plan"
-                  className="inline-flex min-h-11 items-center border-x border-[#ccd5ce] px-3 text-xs font-semibold transition hover:bg-[#e8ece6] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d4f40] sm:px-4 sm:text-sm dark:border-white/15 dark:hover:bg-white/10"
+                  className="inline-flex min-h-11 flex-1 items-center justify-center border-x border-[#ccd5ce] px-3 text-xs font-semibold transition hover:bg-[#e8ece6] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d4f40] sm:flex-none sm:px-4 sm:text-sm dark:border-white/15 dark:hover:bg-white/10"
                 >
                   Esta semana
                 </Link>

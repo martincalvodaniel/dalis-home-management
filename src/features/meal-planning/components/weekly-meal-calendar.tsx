@@ -60,8 +60,8 @@ export function WeeklyMealCalendar({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const dishesById = new Map(dishes.map((dish) => [dish.id, dish]))
-  const dishIdsBySlot = new Map(
-    optimisticSlots.map((slot) => [getMealSlotKey(slot), slot.dishId])
+  const slotsByKey = new Map(
+    optimisticSlots.map((slot) => [getMealSlotKey(slot), slot])
   )
 
   function resetDragState() {
@@ -123,8 +123,8 @@ export function WeeklyMealCalendar({
 
   return (
     <div>
-      <div className="mb-3 flex min-h-5 items-center justify-between gap-4 px-1 text-xs text-[#68776e] dark:text-[#afbbb3]">
-        <p>
+      <div className="mb-3 flex min-h-5 flex-col items-start gap-1.5 px-1 text-xs leading-5 text-[#68776e] sm:flex-row sm:items-center sm:justify-between sm:gap-4 dark:text-[#afbbb3]">
+        <p className="min-w-0">
           Arrastra desde el asa ⠿ para mover o intercambiar platos, o usa los
           selectores.
         </p>
@@ -142,10 +142,10 @@ export function WeeklyMealCalendar({
           {error}
         </p>
       ) : null}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {getWeekDates(weekStart).map((date) => {
-          const lunchDishId = dishIdsBySlot.get(`${date}:lunch`)
-          const dinnerDishId = dishIdsBySlot.get(`${date}:dinner`)
+          const lunchSlot = slotsByKey.get(`${date}:lunch`)
+          const dinnerSlot = slotsByKey.get(`${date}:dinner`)
 
           return (
             <MealDayCard
@@ -154,11 +154,13 @@ export function WeeklyMealCalendar({
               date={date}
               today={today}
               lunchDish={
-                lunchDishId ? (dishesById.get(lunchDishId) ?? null) : null
+                lunchSlot ? (dishesById.get(lunchSlot.dishId) ?? null) : null
               }
               dinnerDish={
-                dinnerDishId ? (dishesById.get(dinnerDishId) ?? null) : null
+                dinnerSlot ? (dishesById.get(dinnerSlot.dishId) ?? null) : null
               }
+              lunchIsExecuted={lunchSlot?.isExecuted ?? false}
+              dinnerIsExecuted={dinnerSlot?.isExecuted ?? false}
               dishOptions={dishOptions}
               draggedSlotKey={draggedSlotKey}
               dropTargetKey={dropTargetKey}

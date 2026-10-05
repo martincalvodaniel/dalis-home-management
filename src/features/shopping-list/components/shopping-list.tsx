@@ -17,7 +17,6 @@ interface ShoppingListProps {
   products: CatalogProductOption[]
   search: string
   onSearchChange: (search: string) => void
-  onEdit: (item: ShoppingListItem) => void
 }
 
 const diacriticPattern = /\p{Diacritic}/gu
@@ -34,7 +33,6 @@ export function ShoppingList({
   products,
   search,
   onSearchChange,
-  onEdit,
 }: ShoppingListProps) {
   const titleId = useId()
   const searchInputId = useId()
@@ -144,11 +142,7 @@ export function ShoppingList({
               </div>
             ) : (
               pendingItems.map((item) => (
-                <ShoppingListItemRow
-                  key={item.id}
-                  item={item}
-                  onEdit={onEdit}
-                />
+                <ShoppingListItemRow key={item.id} item={item} />
               ))
             )}
           </div>
@@ -165,11 +159,7 @@ export function ShoppingList({
               </div>
               <div className="mt-3 space-y-3 opacity-75">
                 {purchasedItems.map((item) => (
-                  <ShoppingListItemRow
-                    key={item.id}
-                    item={item}
-                    onEdit={onEdit}
-                  />
+                  <ShoppingListItemRow key={item.id} item={item} />
                 ))}
               </div>
             </div>

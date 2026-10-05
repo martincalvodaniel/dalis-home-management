@@ -3,6 +3,7 @@ import type { DishOption } from "@/features/meal-planning/dish-option"
 import type { MealSlotLocation } from "@/features/meal-planning/meal-slot-move"
 import type { Dish } from "@/schemas/dish"
 import type { MealType } from "@/schemas/weekly-meal-plan"
+import { ExecuteMealButton } from "./execute-meal-button"
 import { MealSlotDragHandle } from "./meal-slot-drag-handle"
 import { MealSlotSelect } from "./meal-slot-select"
 
@@ -11,6 +12,7 @@ interface PlannedMealSlotProps {
   date: string
   mealType: MealType
   dish: Dish | null
+  isExecuted: boolean
   dishOptions: DishOption[]
   dragDisabled: boolean
   isDragged: boolean
@@ -38,6 +40,7 @@ export function PlannedMealSlot({
   date,
   mealType,
   dish,
+  isExecuted,
   dishOptions,
   dragDisabled,
   isDragged,
@@ -53,7 +56,7 @@ export function PlannedMealSlot({
     <div
       data-meal-slot-date={date}
       data-meal-slot-type={mealType}
-      className={`rounded-xl transition ${isDragged ? "opacity-45" : "opacity-100"} ${isDropTarget ? "bg-[#e7efe8] outline-2 outline-offset-4 outline-[#1d6b50] dark:bg-[#1b4537] dark:outline-[#7bc5a7]" : "outline-transparent"}`}
+      className={`min-w-0 rounded-xl transition ${isDragged ? "opacity-45" : "opacity-100"} ${isDropTarget ? "bg-[#e7efe8] outline-2 outline-offset-4 outline-[#1d6b50] dark:bg-[#1b4537] dark:outline-[#7bc5a7]" : "outline-transparent"}`}
     >
       <MealSlotSelect
         key={`${mealType}-${dish?.id ?? "empty"}`}
@@ -62,9 +65,20 @@ export function PlannedMealSlot({
         mealType={mealType}
         dishId={dish?.id ?? null}
         dishes={dishOptions}
-        disabled={dragDisabled}
+        disabled={dragDisabled || isExecuted}
+        leadingAction={
+          dish && !isExecuted ? (
+            <ExecuteMealButton
+              weekStart={weekStart}
+              date={date}
+              mealType={mealType}
+              dishName={dish.name}
+              disabled={dragDisabled}
+            />
+          ) : null
+        }
         dragHandle={
-          dish ? (
+          dish && !isExecuted ? (
             <MealSlotDragHandle
               dishName={dish.name}
               disabled={dragDisabled}

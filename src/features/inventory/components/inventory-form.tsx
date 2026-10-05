@@ -148,7 +148,7 @@ export function InventoryForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#1d4f40] px-5 text-sm font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#182e26]"
+            className="order-2 inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#1d4f40] px-5 text-sm font-semibold text-white transition hover:bg-[#173f34] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#182e26]"
           >
             {isPending ? "Guardando…" : isEditing ? "Guardar" : "Añadir"}
           </button>
@@ -156,7 +156,7 @@ export function InventoryForm({
             type="button"
             onClick={onCancel}
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#ccd5ca] px-5 text-sm font-semibold transition hover:bg-[#edf0e9] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+            className="order-1 inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#ccd5ca] px-5 text-sm font-semibold transition hover:bg-[#edf0e9] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
           >
             Cancelar
           </button>

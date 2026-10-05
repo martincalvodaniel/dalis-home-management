@@ -28,9 +28,9 @@ export function ShoppingListPreviewRow({
 
   return (
     <li className="grid gap-3 rounded-2xl border border-white/65 bg-white/55 p-3 lg:grid-cols-[minmax(10rem,1fr)_minmax(7rem,0.45fr)_repeat(2,minmax(10rem,0.65fr))] lg:items-center dark:border-white/5 dark:bg-white/5">
-      <div className="min-w-0">
+      <div className="flex min-w-0 items-baseline justify-between gap-3 lg:block">
         <p className="truncate font-semibold">{item.name}</p>
-        <p className="mt-1 text-xs text-[#69705b] lg:hidden dark:text-[#c0c7b5]">
+        <p className="shrink-0 text-xs text-[#69705b] lg:hidden dark:text-[#c0c7b5]">
           Necesitas {quantityFormatter.format(item.requiredQuantity)}{" "}
           {unitLabel}
         </p>

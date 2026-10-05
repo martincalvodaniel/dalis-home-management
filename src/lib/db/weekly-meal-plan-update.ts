@@ -32,7 +32,14 @@ export function buildWeeklyMealSlotUpdate(
     ? {
         $concatArrays: [
           remainingSlots,
-          [{ date: input.date, mealType: input.mealType, dishId }],
+          [
+            {
+              date: input.date,
+              mealType: input.mealType,
+              dishId,
+              isExecuted: false,
+            },
+          ],
         ],
       }
     : remainingSlots
@@ -111,6 +118,12 @@ export function buildWeeklyMealSlotMoveUpdate(
                         dishId: {
                           $arrayElemAt: ["$$sourceSlots.dishId", 0],
                         },
+                        isExecuted: {
+                          $ifNull: [
+                            { $arrayElemAt: ["$$sourceSlots.isExecuted", 0] },
+                            false,
+                          ],
+                        },
                       },
                     ],
                     {
@@ -122,6 +135,17 @@ export function buildWeeklyMealSlotMoveUpdate(
                             mealType: input.source.mealType,
                             dishId: {
                               $arrayElemAt: ["$$destinationSlots.dishId", 0],
+                            },
+                            isExecuted: {
+                              $ifNull: [
+                                {
+                                  $arrayElemAt: [
+                                    "$$destinationSlots.isExecuted",
+                                    0,
+                                  ],
+                                },
+                                false,
+                              ],
                             },
                           },
                         ],
