@@ -36,6 +36,10 @@ export function buildMealPlanShoppingSuggestions(
   const totals = new Map<string, IngredientTotal>()
 
   for (const slot of mealPlan.slots) {
+    if (slot.isExecuted) {
+      continue
+    }
+
     const dish = dishesById.get(slot.dishId)
     if (!dish) {
       continue

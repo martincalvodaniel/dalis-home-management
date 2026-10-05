@@ -56,6 +56,7 @@ export const weeklyMealSlotSchema = z.object({
   date: isoDateSchema,
   mealType: mealTypeSchema,
   dishId: objectIdSchema,
+  isExecuted: z.boolean().default(false),
 })
 
 export const weeklyMealPlanSchema = z
@@ -116,6 +117,40 @@ const weeklyMealSlotLocationSchema = z
   })
   .strict()
 
+export const weeklyMealSlotExecutionInputSchema = z
+  .object({
+    weekStart: weekStartSchema,
+    ...weeklyMealSlotLocationSchema.shape,
+  })
+  .strict()
+
+const weeklyMealSlotExecutionAdjustmentSchema = z
+  .object({
+    inventoryItemId: objectIdSchema,
+    quantity: z.number().finite().min(0).max(999_999),
+  })
+  .strict()
+
+export const weeklyMealSlotExecutionWithInventoryInputSchema =
+  weeklyMealSlotExecutionInputSchema
+    .extend({
+      items: z.array(weeklyMealSlotExecutionAdjustmentSchema).min(1).max(30),
+    })
+    .superRefine((input, context) => {
+      const ids = new Set<string>()
+
+      for (const [index, item] of input.items.entries()) {
+        if (ids.has(item.inventoryItemId)) {
+          context.addIssue({
+            code: "custom",
+            message: "Inventory items must be unique",
+            path: ["items", index, "inventoryItemId"],
+          })
+        }
+        ids.add(item.inventoryItemId)
+      }
+    })
+
 export const weeklyMealSlotMoveInputSchema = z
   .object({
     weekStart: weekStartSchema,
@@ -160,4 +195,7 @@ export type WeeklyMealPlan = z.infer<typeof weeklyMealPlanSchema>
 export type WeeklyMealSlotInput = z.infer<typeof weeklyMealSlotInputSchema>
 export type WeeklyMealSlotMoveInput = z.infer<
   typeof weeklyMealSlotMoveInputSchema
+>
+export type WeeklyMealSlotExecutionInput = z.infer<
+  typeof weeklyMealSlotExecutionInputSchema
 >

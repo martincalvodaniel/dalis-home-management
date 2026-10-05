@@ -60,8 +60,8 @@ export function WeeklyMealCalendar({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const dishesById = new Map(dishes.map((dish) => [dish.id, dish]))
-  const dishIdsBySlot = new Map(
-    optimisticSlots.map((slot) => [getMealSlotKey(slot), slot.dishId])
+  const slotsByKey = new Map(
+    optimisticSlots.map((slot) => [getMealSlotKey(slot), slot])
   )
 
   function resetDragState() {
@@ -144,8 +144,8 @@ export function WeeklyMealCalendar({
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {getWeekDates(weekStart).map((date) => {
-          const lunchDishId = dishIdsBySlot.get(`${date}:lunch`)
-          const dinnerDishId = dishIdsBySlot.get(`${date}:dinner`)
+          const lunchSlot = slotsByKey.get(`${date}:lunch`)
+          const dinnerSlot = slotsByKey.get(`${date}:dinner`)
 
           return (
             <MealDayCard
@@ -154,11 +154,13 @@ export function WeeklyMealCalendar({
               date={date}
               today={today}
               lunchDish={
-                lunchDishId ? (dishesById.get(lunchDishId) ?? null) : null
+                lunchSlot ? (dishesById.get(lunchSlot.dishId) ?? null) : null
               }
               dinnerDish={
-                dinnerDishId ? (dishesById.get(dinnerDishId) ?? null) : null
+                dinnerSlot ? (dishesById.get(dinnerSlot.dishId) ?? null) : null
               }
+              lunchIsExecuted={lunchSlot?.isExecuted ?? false}
+              dinnerIsExecuted={dinnerSlot?.isExecuted ?? false}
               dishOptions={dishOptions}
               draggedSlotKey={draggedSlotKey}
               dropTargetKey={dropTargetKey}

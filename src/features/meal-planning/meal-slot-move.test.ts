@@ -7,11 +7,13 @@ const slots: WeeklyMealSlot[] = [
     date: "2026-10-05",
     mealType: "lunch",
     dishId: "507f1f77bcf86cd799439011",
+    isExecuted: false,
   },
   {
     date: "2026-10-06",
     mealType: "dinner",
     dishId: "507f1f77bcf86cd799439012",
+    isExecuted: false,
   },
 ]
 
@@ -29,6 +31,7 @@ describe("meal slot moves", () => {
         date: "2026-10-07",
         mealType: "dinner",
         dishId: "507f1f77bcf86cd799439011",
+        isExecuted: false,
       },
     ])
   })
@@ -45,11 +48,13 @@ describe("meal slot moves", () => {
         date: "2026-10-06",
         mealType: "dinner",
         dishId: "507f1f77bcf86cd799439011",
+        isExecuted: false,
       },
       {
         date: "2026-10-05",
         mealType: "lunch",
         dishId: "507f1f77bcf86cd799439012",
+        isExecuted: false,
       },
     ])
   })

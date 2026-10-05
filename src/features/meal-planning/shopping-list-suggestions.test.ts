@@ -61,6 +61,7 @@ function createMealPlan(slotCount: number): WeeklyMealPlan {
       date: `2026-10-0${index + 1}`,
       mealType: index % 2 === 0 ? ("lunch" as const) : ("dinner" as const),
       dishId,
+      isExecuted: false,
     })),
     createdAt: now,
     updatedAt: now,
@@ -114,6 +115,18 @@ describe("weekly meal plan shopping suggestions", () => {
     ])
   })
 
+  test("ignores ingredients from executed meals", () => {
+    const mealPlan = createMealPlan(1)
+    mealPlan.slots = mealPlan.slots.map((slot) => ({
+      ...slot,
+      isExecuted: true,
+    }))
+
+    expect(
+      buildMealPlanShoppingSuggestions(mealPlan, [dish], inventory)
+    ).toEqual([])
+  })
+
   test("merges ingredients by product and ignores missing dishes", () => {
     const secondDish: Dish = {
       ...dish,
@@ -134,11 +147,13 @@ describe("weekly meal plan shopping suggestions", () => {
         date: "2026-10-02",
         mealType: "dinner",
         dishId: secondDish.id,
+        isExecuted: false,
       },
       {
         date: "2026-10-03",
         mealType: "lunch",
         dishId: "507f191e810c19729de860ec",
+        isExecuted: false,
       }
     )
 

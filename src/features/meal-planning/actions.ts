@@ -21,13 +21,17 @@ import {
   deleteWeeklyMealPlan,
   findWeeklyMealPlan,
   isDishUsedInMealPlans,
+  markWeeklyMealSlotExecuted,
   moveWeeklyMealSlot,
   setWeeklyMealSlot,
+  unmarkWeeklyMealSlotExecuted,
 } from "@/lib/db/weekly-meal-plans"
 import type { DishInput } from "@/schemas/dish"
 import { dishIdSchema, dishInputSchema } from "@/schemas/dish"
 import { shoppingListPreparationInputSchema } from "@/schemas/shopping-list-preparation"
 import {
+  weeklyMealSlotExecutionInputSchema,
+  weeklyMealSlotExecutionWithInventoryInputSchema,
   weeklyMealSlotInputSchema,
   weeklyMealSlotMoveInputSchema,
   weekStartSchema,
@@ -40,6 +44,20 @@ const SHOPPING_LIST_PATH = "/shopping-list"
 const INVENTORY_PATH = "/inventory"
 
 type DishActionResult = { success: true } | { success: false; message: string }
+
+type MealExecutionPreviewResult =
+  | {
+      success: true
+      items: Array<{
+        inventoryItemId: string
+        name: string
+        unit: typeof import("@/schemas/quantity-unit").quantityUnits[number]
+        consumedQuantity: number
+        initialQuantity: number
+        finalQuantity: number
+      }>
+    }
+  | { success: false; message: string }
 
 const invalidInputResult: DishActionResult = {
   success: false,
@@ -175,7 +193,14 @@ export async function setWeeklyMealSlotAction(
     }
   }
 
-  await setWeeklyMealSlot(result.data)
+  const updated = await setWeeklyMealSlot(result.data)
+  if (!updated) {
+    return {
+      success: false,
+      message: "Esta comida ya está ejecutada y no se puede modificar.",
+    }
+  }
+
   revalidatePath(MEAL_PLAN_PATH)
   return { success: true }
 }
@@ -203,6 +228,157 @@ export async function moveWeeklyMealSlotAction(
 
   revalidatePath(MEAL_PLAN_PATH)
   return { success: true }
+}
+
+export async function executeWeeklyMealSlotAction(
+  input: unknown
+): Promise<DishActionResult> {
+  await requireAuthorizedSession()
+  const result =
+    weeklyMealSlotExecutionWithInventoryInputSchema.safeParse(input)
+
+  if (!result.success) {
+    return {
+      success: false,
+      message: "No se ha podido identificar la comida a ejecutar.",
+    }
+  }
+
+  const mealPlan = await findWeeklyMealPlan(result.data.weekStart)
+  const slot = mealPlan?.slots.find(
+    (entry) =>
+      entry.date === result.data.date && entry.mealType === result.data.mealType
+  )
+
+  if (!slot) {
+    return { success: false, message: "Esta comida ya no está planificada." }
+  }
+
+  if (slot.isExecuted) {
+    return { success: false, message: "Esta comida ya está ejecutada." }
+  }
+
+  const dish = await findDishById(slot.dishId)
+  if (!dish) {
+    return { success: false, message: "No se ha encontrado el plato." }
+  }
+
+  const expectedInventoryItemIds = new Set(
+    dish.ingredients.map((ingredient) => ingredient.inventoryItemId)
+  )
+  const receivedInventoryItemIds = new Set(
+    result.data.items.map((item) => item.inventoryItemId)
+  )
+  if (
+    expectedInventoryItemIds.size !== receivedInventoryItemIds.size ||
+    [...expectedInventoryItemIds].some(
+      (inventoryItemId) => !receivedInventoryItemIds.has(inventoryItemId)
+    )
+  ) {
+    return {
+      success: false,
+      message:
+        "Los ingredientes de esta comida han cambiado. Revísalos de nuevo.",
+    }
+  }
+
+  const inventoryItems = await findInventoryItemsByIds(
+    result.data.items.map((item) => item.inventoryItemId)
+  )
+  if (inventoryItems.length !== result.data.items.length) {
+    return {
+      success: false,
+      message: "Alguno de los productos ya no existe en el inventario.",
+    }
+  }
+
+  const marked = await markWeeklyMealSlotExecuted(result.data)
+  if (!marked) {
+    return {
+      success: false,
+      message: "Esta comida ha cambiado antes de poder ejecutarla.",
+    }
+  }
+
+  try {
+    await setInventoryItemQuantities(result.data.items)
+  } catch (error) {
+    await unmarkWeeklyMealSlotExecuted(result.data)
+    throw error
+  }
+
+  revalidatePath(INVENTORY_PATH)
+  revalidatePath(MEAL_PLAN_PATH)
+  revalidatePath(SHOPPING_LIST_PATH)
+  return { success: true }
+}
+
+export async function getWeeklyMealExecutionPreviewAction(
+  input: unknown
+): Promise<MealExecutionPreviewResult> {
+  await requireAuthorizedSession()
+  const result = weeklyMealSlotExecutionInputSchema.safeParse(input)
+
+  if (!result.success) {
+    return {
+      success: false,
+      message: "No se ha podido identificar la comida a ejecutar.",
+    }
+  }
+
+  const mealPlan = await findWeeklyMealPlan(result.data.weekStart)
+  const slot = mealPlan?.slots.find(
+    (entry) =>
+      entry.date === result.data.date && entry.mealType === result.data.mealType
+  )
+
+  if (!slot || slot.isExecuted) {
+    return {
+      success: false,
+      message: "Esta comida ya no está disponible para ejecutar.",
+    }
+  }
+
+  const dish = await findDishById(slot.dishId)
+  if (!dish) {
+    return { success: false, message: "No se ha encontrado el plato." }
+  }
+
+  const inventoryItems = await findInventoryItemsByIds(
+    dish.ingredients.map((ingredient) => ingredient.inventoryItemId)
+  )
+  const inventoryItemsById = new Map(
+    inventoryItems.map((item) => [item.id, item])
+  )
+
+  if (inventoryItemsById.size !== dish.ingredients.length) {
+    return {
+      success: false,
+      message: "Alguno de los ingredientes ya no existe en el inventario.",
+    }
+  }
+
+  return {
+    success: true,
+    items: dish.ingredients.map((ingredient) => {
+      const inventoryItem = inventoryItemsById.get(ingredient.inventoryItemId)
+      if (!inventoryItem) {
+        throw new Error("Validated meal ingredient is missing from inventory")
+      }
+
+      return {
+        inventoryItemId: inventoryItem.id,
+        name: inventoryItem.name,
+        unit: inventoryItem.unit,
+        consumedQuantity: ingredient.quantity,
+        initialQuantity: inventoryItem.quantity,
+        finalQuantity: Math.max(
+          inventoryItem.quantity - ingredient.quantity,
+          0
+        ),
+      }
+    }),
+  }
 }
 
 type PrepareShoppingListResult =

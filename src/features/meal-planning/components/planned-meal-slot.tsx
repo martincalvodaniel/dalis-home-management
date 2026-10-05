@@ -3,6 +3,7 @@ import type { DishOption } from "@/features/meal-planning/dish-option"
 import type { MealSlotLocation } from "@/features/meal-planning/meal-slot-move"
 import type { Dish } from "@/schemas/dish"
 import type { MealType } from "@/schemas/weekly-meal-plan"
+import { ExecuteMealButton } from "./execute-meal-button"
 import { MealSlotDragHandle } from "./meal-slot-drag-handle"
 import { MealSlotSelect } from "./meal-slot-select"
 
@@ -11,6 +12,7 @@ interface PlannedMealSlotProps {
   date: string
   mealType: MealType
   dish: Dish | null
+  isExecuted: boolean
   dishOptions: DishOption[]
   dragDisabled: boolean
   isDragged: boolean
@@ -38,6 +40,7 @@ export function PlannedMealSlot({
   date,
   mealType,
   dish,
+  isExecuted,
   dishOptions,
   dragDisabled,
   isDragged,
@@ -62,9 +65,20 @@ export function PlannedMealSlot({
         mealType={mealType}
         dishId={dish?.id ?? null}
         dishes={dishOptions}
-        disabled={dragDisabled}
+        disabled={dragDisabled || isExecuted}
+        leadingAction={
+          dish && !isExecuted ? (
+            <ExecuteMealButton
+              weekStart={weekStart}
+              date={date}
+              mealType={mealType}
+              dishName={dish.name}
+              disabled={dragDisabled}
+            />
+          ) : null
+        }
         dragHandle={
-          dish ? (
+          dish && !isExecuted ? (
             <MealSlotDragHandle
               dishName={dish.name}
               disabled={dragDisabled}

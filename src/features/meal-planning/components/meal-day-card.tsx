@@ -10,6 +10,8 @@ interface MealDayCardProps {
   today: string
   lunchDish: Dish | null
   dinnerDish: Dish | null
+  lunchIsExecuted: boolean
+  dinnerIsExecuted: boolean
   dishOptions: DishOption[]
   draggedSlotKey: string | null
   dropTargetKey: string | null
@@ -45,6 +47,8 @@ export function MealDayCard({
   today,
   lunchDish,
   dinnerDish,
+  lunchIsExecuted,
+  dinnerIsExecuted,
   dishOptions,
   draggedSlotKey,
   dropTargetKey,
@@ -89,6 +93,7 @@ export function MealDayCard({
           date={date}
           mealType="lunch"
           dish={lunchDish}
+          isExecuted={lunchIsExecuted}
           dishOptions={dishOptions}
           dragDisabled={dragDisabled}
           isDragged={draggedSlotKey === lunchKey}
@@ -103,6 +108,7 @@ export function MealDayCard({
           date={date}
           mealType="dinner"
           dish={dinnerDish}
+          isExecuted={dinnerIsExecuted}
           dishOptions={dishOptions}
           dragDisabled={dragDisabled}
           isDragged={draggedSlotKey === dinnerKey}
