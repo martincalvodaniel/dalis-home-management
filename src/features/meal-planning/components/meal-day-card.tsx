@@ -72,11 +72,11 @@ export function MealDayCard({
       }`}
     >
       <header className="mb-5 flex items-start justify-between gap-3">
-        <div>
+        <div className="flex min-w-0 items-baseline gap-2">
           <h2 className="capitalize text-lg font-semibold tracking-[-0.03em]">
             {dayFormatter.format(parsedDate)}
           </h2>
-          <p className="mt-0.5 text-sm text-[#758078] dark:text-[#aeb9b2]">
+          <p className="shrink-0 text-sm text-[#758078] dark:text-[#aeb9b2]">
             {dateFormatter.format(parsedDate)}
           </p>
         </div>
