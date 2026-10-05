@@ -169,6 +169,17 @@ export async function deleteShoppingListItem(id: string): Promise<boolean> {
   return result.deletedCount > 0
 }
 
+export async function clearShoppingListItems(): Promise<number> {
+  const collection = await getCollection<ShoppingListItemDocument>(
+    COLLECTION_NAMES.shoppingListItems
+  )
+  const result = await collection.deleteMany({
+    settlementState: { $exists: false },
+  })
+
+  return result.deletedCount
+}
+
 export class PurchasedShoppingListSettlementError extends Error {
   constructor() {
     super("Could not settle all purchased shopping-list items")

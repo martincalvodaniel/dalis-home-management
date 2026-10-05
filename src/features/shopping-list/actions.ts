@@ -5,6 +5,7 @@ import { requireAuthorizedSession } from "@/lib/auth/session"
 import { findInventoryItemById } from "@/lib/db/inventory-items"
 import {
   addInventoryItemToShoppingList,
+  clearShoppingListItems,
   deleteShoppingListItem,
   PurchasedShoppingListSettlementError,
   restockAndDeletePurchasedShoppingListItems,
@@ -158,6 +159,13 @@ export async function restockAndClearPurchasedShoppingListItemsAction(
 
   revalidateShoppingList()
   revalidatePath(INVENTORY_PATH)
+  return { success: true }
+}
+
+export async function clearShoppingListAction(): Promise<ShoppingListActionResult> {
+  await requireAuthorizedSession()
+  await clearShoppingListItems()
+  revalidateShoppingList()
   return { success: true }
 }
 

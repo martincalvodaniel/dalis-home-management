@@ -3,6 +3,7 @@
 import { useState } from "react"
 import type { CatalogProductOption } from "@/features/catalog/product-option"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
+import { ClearShoppingListButton } from "./clear-shopping-list-button"
 import { ShoppingListManager } from "./shopping-list-manager"
 
 interface ShoppingListPageProps {
@@ -47,6 +48,7 @@ export function ShoppingListPage({ items, products }: ShoppingListPageProps) {
             >
               + Añadir
             </button>
+            <ClearShoppingListButton itemCount={items.length} />
           </div>
         </header>
 
