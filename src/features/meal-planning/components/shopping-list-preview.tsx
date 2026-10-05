@@ -267,7 +267,7 @@ export function ShoppingListPreview({
                 >
                   {isPending
                     ? "Guardando ajustes…"
-                    : "Actualizar y preparar lista"}
+                    : "Guardar"}
                 </button>
               ) : null}
             </div>
