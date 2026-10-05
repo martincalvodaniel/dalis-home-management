@@ -204,7 +204,7 @@ export function ExecuteMealButton({
                 disabled={isLoading || isPending || items.length === 0}
                 className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#477052] px-5 text-sm font-semibold text-white transition hover:bg-[#385e43] focus:outline-none focus:ring-2 focus:ring-[#477052] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-65 sm:flex-none dark:ring-offset-[#2e382b]"
               >
-                {isPending ? "Ejecutando…" : "Confirmar ejecución"}
+                {isPending ? "Preparando…" : "Confirmar"}
               </button>
             </div>
           </footer>
