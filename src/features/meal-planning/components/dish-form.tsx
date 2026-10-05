@@ -204,7 +204,7 @@ export function DishForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#75611f] px-5 text-sm font-semibold text-white transition hover:bg-[#615018] focus:outline-none focus:ring-2 focus:ring-[#75611f] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#39331f]"
+            className="order-2 inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#75611f] px-5 text-sm font-semibold text-white transition hover:bg-[#615018] focus:outline-none focus:ring-2 focus:ring-[#75611f] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#39331f]"
           >
             {isPending ? "Guardando…" : isEditing ? "Guardar" : "Crear plato"}
           </button>
@@ -212,7 +212,7 @@ export function DishForm({
             type="button"
             onClick={onCancel}
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#c4b989] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#75611f] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+            className="order-1 inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#c4b989] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#75611f] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
           >
             Cancelar
           </button>

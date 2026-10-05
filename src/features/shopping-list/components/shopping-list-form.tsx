@@ -160,7 +160,7 @@ export function ShoppingListForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#a75938] px-5 text-sm font-semibold text-white transition hover:bg-[#8e472c] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#412d24]"
+            className="order-2 inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-[#a75938] px-5 text-sm font-semibold text-white transition hover:bg-[#8e472c] focus:outline-none focus:ring-2 focus:ring-[#a75938] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-60 dark:ring-offset-[#412d24]"
           >
             {isPending ? "Guardando…" : "Añadir"}
           </button>
@@ -168,7 +168,7 @@ export function ShoppingListForm({
             type="button"
             onClick={onCancel}
             disabled={isPending}
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#d8c5b8] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
+            className="order-1 inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#d8c5b8] px-5 text-sm font-semibold transition hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-[#a75938] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/5"
           >
             Cancelar
           </button>
