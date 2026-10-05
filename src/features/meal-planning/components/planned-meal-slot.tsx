@@ -56,7 +56,7 @@ export function PlannedMealSlot({
     <div
       data-meal-slot-date={date}
       data-meal-slot-type={mealType}
-      className={`rounded-xl transition ${isDragged ? "opacity-45" : "opacity-100"} ${isDropTarget ? "bg-[#e7efe8] outline-2 outline-offset-4 outline-[#1d6b50] dark:bg-[#1b4537] dark:outline-[#7bc5a7]" : "outline-transparent"}`}
+      className={`min-w-0 rounded-xl transition ${isDragged ? "opacity-45" : "opacity-100"} ${isDropTarget ? "bg-[#e7efe8] outline-2 outline-offset-4 outline-[#1d6b50] dark:bg-[#1b4537] dark:outline-[#7bc5a7]" : "outline-transparent"}`}
     >
       <MealSlotSelect
         key={`${mealType}-${dish?.id ?? "empty"}`}

@@ -123,8 +123,8 @@ export function WeeklyMealCalendar({
 
   return (
     <div>
-      <div className="mb-3 flex min-h-5 items-center justify-between gap-4 px-1 text-xs text-[#68776e] dark:text-[#afbbb3]">
-        <p>
+      <div className="mb-3 flex min-h-5 flex-col items-start gap-1.5 px-1 text-xs leading-5 text-[#68776e] sm:flex-row sm:items-center sm:justify-between sm:gap-4 dark:text-[#afbbb3]">
+        <p className="min-w-0">
           Arrastra desde el asa ⠿ para mover o intercambiar platos, o usa los
           selectores.
         </p>
@@ -142,7 +142,7 @@ export function WeeklyMealCalendar({
           {error}
         </p>
       ) : null}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {getWeekDates(weekStart).map((date) => {
           const lunchSlot = slotsByKey.get(`${date}:lunch`)
           const dinnerSlot = slotsByKey.get(`${date}:dinner`)

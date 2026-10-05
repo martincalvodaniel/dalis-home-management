@@ -65,7 +65,7 @@ export function MealDayCard({
 
   return (
     <article
-      className={`rounded-2xl border p-4 shadow-sm sm:p-5 ${
+      className={`min-w-0 rounded-2xl border p-4 shadow-sm sm:p-5 ${
         isToday
           ? "border-[#c36d49] bg-[#fff8f2] ring-1 ring-[#c36d49]/20 dark:bg-[#342820]"
           : "border-[#dce1d9] bg-white/80 dark:border-white/10 dark:bg-white/5"

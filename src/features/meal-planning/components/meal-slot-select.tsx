@@ -63,7 +63,7 @@ export function MealSlotSelect({
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="mb-1.5 flex min-h-7 items-center justify-between gap-2">
         <label
           htmlFor={`${date}-${mealType}`}
@@ -75,7 +75,7 @@ export function MealSlotSelect({
           <span className="text-xs font-bold text-[#c36d49]">Guardando…</span>
         ) : null}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {leadingAction}
         <div className="min-w-0 flex-1">
           <SelectField
