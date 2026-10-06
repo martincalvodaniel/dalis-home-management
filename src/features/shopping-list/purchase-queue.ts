@@ -1,7 +1,4 @@
-import {
-  ItemUpdateQueue,
-  type ItemUpdateResult,
-} from "@/features/shopping-list/item-update-queue"
+import { ItemUpdateQueue, type ItemUpdateResult } from "@/lib/item-update-queue"
 
 interface PurchaseState {
   isPurchased: boolean

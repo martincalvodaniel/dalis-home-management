@@ -3,7 +3,7 @@ import {
   ItemUpdateQueue,
   type ItemUpdateResult,
   type ItemUpdateState,
-} from "@/features/shopping-list/item-update-queue"
+} from "@/lib/item-update-queue"
 
 function createHarness() {
   const requests: {
@@ -28,7 +28,46 @@ function createHarness() {
 
 const item = { id: "item", value: 2 }
 
-describe("optimistic shopping-list quantities", () => {
+describe("optimistic item quantities", () => {
+  test("reaches zero immediately and can restock while the save is pending", async () => {
+    const { queue, requests, state } = createHarness()
+    const saving = queue.update({ id: "item", value: 1 }, 0)
+    expect(state()).toMatchObject({ value: 0, isSaving: true })
+    await queue.update({ id: "item", value: 0 }, 1)
+    expect(state()?.value).toBe(1)
+    requests[0].resolve({ success: true })
+    await Promise.resolve()
+    expect(requests[1].quantity).toBe(1)
+    requests[1].resolve({ success: true })
+    await saving
+    expect(state()).toMatchObject({ value: 1, isSaving: false, error: null })
+  })
+
+  test("restores in-stock quantity when saving zero fails", async () => {
+    const { queue, requests, state } = createHarness()
+    const saving = queue.update(item, 0)
+    requests[0].reject(new Error("Network failure"))
+    await saving
+    expect(state()).toMatchObject({
+      value: 2,
+      isSaving: false,
+      error: "Quantity save failed",
+    })
+  })
+
+  test("restores zero stock when an increment from zero fails", async () => {
+    const { queue, requests, state } = createHarness()
+    const saving = queue.update({ id: "item", value: 0 }, 1)
+    expect(state()?.value).toBe(1)
+    requests[0].resolve({ success: false, message: "Save failed" })
+    await saving
+    expect(state()).toMatchObject({
+      value: 0,
+      isSaving: false,
+      error: "Save failed",
+    })
+  })
+
   test("shows increments and decrements immediately and saves the final quantity", async () => {
     const { queue, requests, state } = createHarness()
     const saving = queue.update(item, 3)
