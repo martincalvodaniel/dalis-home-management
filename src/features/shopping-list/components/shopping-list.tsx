@@ -8,6 +8,8 @@ import {
   matchesSelectedPurchasePlaces,
   resolveSelectedPurchasePlaces,
 } from "@/features/catalog/purchase-places"
+import { useItemQuantities } from "@/features/shopping-list/hooks/use-item-quantities"
+import { usePurchasedItems } from "@/features/shopping-list/hooks/use-purchased-items"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ClearPurchasedButton } from "./clear-purchased-button"
 import { ShoppingListItemRow } from "./shopping-list-item-row"
@@ -29,11 +31,21 @@ function normalizeSearchText(value: string): string {
 }
 
 export function ShoppingList({
-  items,
+  items: serverItems,
   products,
   search,
   onSearchChange,
 }: ShoppingListProps) {
+  const {
+    items: purchasedItemsState,
+    states,
+    togglePurchased,
+  } = usePurchasedItems(serverItems)
+  const {
+    items,
+    states: quantityStates,
+    updateQuantity,
+  } = useItemQuantities(purchasedItemsState)
   const titleId = useId()
   const searchInputId = useId()
   const [selectedPurchasePlaces, setSelectedPurchasePlaces] = useState<
@@ -142,7 +154,18 @@ export function ShoppingList({
               </div>
             ) : (
               pendingItems.map((item) => (
-                <ShoppingListItemRow key={item.id} item={item} />
+                <ShoppingListItemRow
+                  key={item.id}
+                  item={item}
+                  onTogglePurchased={togglePurchased}
+                  isSavingPurchase={states.get(item.id)?.isSaving ?? false}
+                  purchaseError={states.get(item.id)?.error ?? null}
+                  onQuantityChange={updateQuantity}
+                  isSavingQuantity={
+                    quantityStates.get(item.id)?.isSaving ?? false
+                  }
+                  quantityError={quantityStates.get(item.id)?.error ?? null}
+                />
               ))
             )}
           </div>
@@ -155,11 +178,30 @@ export function ShoppingList({
                 </p>
                 <ClearPurchasedButton
                   itemIds={purchasedItems.map((item) => item.id)}
+                  disabled={
+                    Array.from(states.values()).some(
+                      (state) => state.isSaving
+                    ) ||
+                    Array.from(quantityStates.values()).some(
+                      (state) => state.isSaving
+                    )
+                  }
                 />
               </div>
               <div className="mt-3 space-y-3 opacity-75">
                 {purchasedItems.map((item) => (
-                  <ShoppingListItemRow key={item.id} item={item} />
+                  <ShoppingListItemRow
+                    key={item.id}
+                    item={item}
+                    onTogglePurchased={togglePurchased}
+                    isSavingPurchase={states.get(item.id)?.isSaving ?? false}
+                    purchaseError={states.get(item.id)?.error ?? null}
+                    onQuantityChange={updateQuantity}
+                    isSavingQuantity={
+                      quantityStates.get(item.id)?.isSaving ?? false
+                    }
+                    quantityError={quantityStates.get(item.id)?.error ?? null}
+                  />
                 ))}
               </div>
             </div>

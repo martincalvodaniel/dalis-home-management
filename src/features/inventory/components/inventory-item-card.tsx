@@ -3,20 +3,25 @@
 import { useEffect, useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
-import {
-  deleteInventoryItemAction,
-  markInventoryItemOutOfStockAction,
-  setInventoryItemQuantityAction,
-} from "@/features/inventory/actions"
+import { deleteInventoryItemAction } from "@/features/inventory/actions"
 import { addInventoryItemToShoppingListAction } from "@/features/shopping-list/actions"
 import type { InventoryItem } from "@/schemas/inventory-item"
 
 interface InventoryItemCardProps {
   item: InventoryItem
   onEdit: (item: InventoryItem) => void
+  onQuantityChange: (item: InventoryItem, quantity: number) => void
+  isSavingQuantity: boolean
+  quantityError: string | null
 }
 
-export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
+export function InventoryItemCard({
+  item,
+  onEdit,
+  onQuantityChange,
+  isSavingQuantity,
+  quantityError,
+}: InventoryItemCardProps) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -29,41 +34,14 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
   }, [item.quantity])
 
   function markOutOfStock() {
-    setError(null)
-    setNotice(null)
-    startTransition(async () => {
-      try {
-        const result = await markInventoryItemOutOfStockAction(item.id)
-        if (!result.success) {
-          setError(result.message)
-          return
-        }
-        setQuantityDraft("0")
-      } catch {
-        setError("No se ha podido actualizar el producto.")
-      }
-    })
+    setQuantityDraft("0")
+    updateQuantity(0)
   }
 
   function updateQuantity(quantity: number) {
-    if (quantity === item.quantity) {
-      return
-    }
-
     setError(null)
     setNotice(null)
-    startTransition(async () => {
-      try {
-        const result = await setInventoryItemQuantityAction(item.id, quantity)
-        if (!result.success) {
-          setError(result.message)
-          setQuantityDraft(String(item.quantity))
-        }
-      } catch {
-        setError("No se ha podido actualizar la cantidad.")
-        setQuantityDraft(String(item.quantity))
-      }
-    })
+    onQuantityChange(item, quantity)
   }
 
   function removeItem() {
@@ -135,9 +113,12 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
           />
         </div>
 
-        {error ? (
-          <p className="mt-3 text-xs font-medium text-red-700 dark:text-red-300">
-            {error}
+        {error || quantityError ? (
+          <p
+            role="alert"
+            className="mt-3 text-xs font-medium text-red-700 dark:text-red-300"
+          >
+            {error ?? quantityError}
           </p>
         ) : null}
         {notice ? (
@@ -153,7 +134,7 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
           <button
             type="button"
             onClick={() => onEdit(item)}
-            disabled={isPending}
+            disabled={isPending || isSavingQuantity}
             className="rounded-full bg-[#edf0e9] px-3.5 py-2 text-xs font-semibold transition hover:bg-[#e1e7de] focus:outline-none focus:ring-2 focus:ring-[#1d4f40] disabled:opacity-50 dark:bg-white/10 dark:hover:bg-white/15"
           >
             Editar
@@ -172,7 +153,7 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
             <button
               type="button"
               onClick={markOutOfStock}
-              disabled={isPending}
+              disabled={isPending || isSavingQuantity}
               className="rounded-full border border-[#d8c5b8] px-3.5 py-2 text-xs font-semibold text-[#8b5138] transition hover:bg-[#fae8dd] focus:outline-none focus:ring-2 focus:ring-[#b76543] disabled:opacity-50 dark:border-[#704b39] dark:text-[#efb89e] dark:hover:bg-[#4a3025]"
             >
               Marcar agotado
@@ -181,7 +162,7 @@ export function InventoryItemCard({ item, onEdit }: InventoryItemCardProps) {
           <button
             type="button"
             onClick={() => setIsDeleteDialogOpen(true)}
-            disabled={isPending}
+            disabled={isPending || isSavingQuantity}
             className="ml-auto rounded-full px-3 py-2 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
           >
             Eliminar

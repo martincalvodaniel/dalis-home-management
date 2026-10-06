@@ -6,15 +6,20 @@ import { restockAndClearPurchasedShoppingListItemsAction } from "@/features/shop
 
 interface ClearPurchasedButtonProps {
   itemIds: string[]
+  disabled?: boolean
 }
 
-export function ClearPurchasedButton({ itemIds }: ClearPurchasedButtonProps) {
+export function ClearPurchasedButton({
+  itemIds,
+  disabled = false,
+}: ClearPurchasedButtonProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const count = itemIds.length
 
   function updateInventoryAndClear() {
+    if (disabled) return
     setIsDialogOpen(false)
     setError(null)
     startTransition(async () => {
@@ -35,7 +40,7 @@ export function ClearPurchasedButton({ itemIds }: ClearPurchasedButtonProps) {
       <button
         type="button"
         onClick={() => setIsDialogOpen(true)}
-        disabled={isPending}
+        disabled={isPending || disabled}
         className="rounded-full px-3 py-1.5 text-xs font-semibold text-[#8f5140] transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:cursor-wait disabled:opacity-50 dark:text-[#e9a995] dark:hover:bg-red-950/30"
       >
         {isPending ? "Actualizando…" : "Actualizar inventario y limpiar"}

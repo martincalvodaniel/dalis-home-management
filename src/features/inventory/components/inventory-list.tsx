@@ -7,6 +7,7 @@ import {
   matchesSelectedPurchasePlaces,
   resolveSelectedPurchasePlaces,
 } from "@/features/catalog/purchase-places"
+import { useInventoryQuantities } from "@/features/inventory/hooks/use-inventory-quantities"
 import type { InventoryItem } from "@/schemas/inventory-item"
 import { InventoryItemCard } from "./inventory-item-card"
 
@@ -27,11 +28,12 @@ function normalizeSearchText(value: string): string {
 }
 
 export function InventoryList({
-  items,
+  items: serverItems,
   search,
   onSearchChange,
   onEdit,
 }: InventoryListProps) {
+  const { items, states, updateQuantity } = useInventoryQuantities(serverItems)
   const listTitleId = useId()
   const searchInputId = useId()
   const [selectedPurchasePlaces, setSelectedPurchasePlaces] = useState<
@@ -120,7 +122,14 @@ export function InventoryList({
       ) : (
         <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => (
-            <InventoryItemCard key={item.id} item={item} onEdit={onEdit} />
+            <InventoryItemCard
+              key={item.id}
+              item={item}
+              onEdit={onEdit}
+              onQuantityChange={updateQuantity}
+              isSavingQuantity={states.get(item.id)?.isSaving ?? false}
+              quantityError={states.get(item.id)?.error ?? null}
+            />
           ))}
         </div>
       )}
