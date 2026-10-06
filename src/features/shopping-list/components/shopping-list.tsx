@@ -8,6 +8,7 @@ import {
   matchesSelectedPurchasePlaces,
   resolveSelectedPurchasePlaces,
 } from "@/features/catalog/purchase-places"
+import { useItemQuantities } from "@/features/shopping-list/hooks/use-item-quantities"
 import { usePurchasedItems } from "@/features/shopping-list/hooks/use-purchased-items"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 import { ClearPurchasedButton } from "./clear-purchased-button"
@@ -35,7 +36,16 @@ export function ShoppingList({
   search,
   onSearchChange,
 }: ShoppingListProps) {
-  const { items, states, togglePurchased } = usePurchasedItems(serverItems)
+  const {
+    items: purchasedItemsState,
+    states,
+    togglePurchased,
+  } = usePurchasedItems(serverItems)
+  const {
+    items,
+    states: quantityStates,
+    updateQuantity,
+  } = useItemQuantities(purchasedItemsState)
   const titleId = useId()
   const searchInputId = useId()
   const [selectedPurchasePlaces, setSelectedPurchasePlaces] = useState<
@@ -150,6 +160,11 @@ export function ShoppingList({
                   onTogglePurchased={togglePurchased}
                   isSavingPurchase={states.get(item.id)?.isSaving ?? false}
                   purchaseError={states.get(item.id)?.error ?? null}
+                  onQuantityChange={updateQuantity}
+                  isSavingQuantity={
+                    quantityStates.get(item.id)?.isSaving ?? false
+                  }
+                  quantityError={quantityStates.get(item.id)?.error ?? null}
                 />
               ))
             )}
@@ -163,9 +178,14 @@ export function ShoppingList({
                 </p>
                 <ClearPurchasedButton
                   itemIds={purchasedItems.map((item) => item.id)}
-                  disabled={Array.from(states.values()).some(
-                    (state) => state.isSaving
-                  )}
+                  disabled={
+                    Array.from(states.values()).some(
+                      (state) => state.isSaving
+                    ) ||
+                    Array.from(quantityStates.values()).some(
+                      (state) => state.isSaving
+                    )
+                  }
                 />
               </div>
               <div className="mt-3 space-y-3 opacity-75">
@@ -176,6 +196,11 @@ export function ShoppingList({
                     onTogglePurchased={togglePurchased}
                     isSavingPurchase={states.get(item.id)?.isSaving ?? false}
                     purchaseError={states.get(item.id)?.error ?? null}
+                    onQuantityChange={updateQuantity}
+                    isSavingQuantity={
+                      quantityStates.get(item.id)?.isSaving ?? false
+                    }
+                    quantityError={quantityStates.get(item.id)?.error ?? null}
                   />
                 ))}
               </div>

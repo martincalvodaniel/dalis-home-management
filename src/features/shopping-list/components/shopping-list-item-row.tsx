@@ -3,10 +3,7 @@
 import { useEffect, useState, useTransition } from "react"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
-import {
-  deleteShoppingListItemAction,
-  setShoppingListItemQuantityAction,
-} from "@/features/shopping-list/actions"
+import { deleteShoppingListItemAction } from "@/features/shopping-list/actions"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
 interface ShoppingListItemRowProps {
@@ -14,6 +11,9 @@ interface ShoppingListItemRowProps {
   onTogglePurchased: (item: ShoppingListItem) => void
   isSavingPurchase: boolean
   purchaseError: string | null
+  onQuantityChange: (item: ShoppingListItem, quantity: number) => void
+  isSavingQuantity: boolean
+  quantityError: string | null
 }
 
 export function ShoppingListItemRow({
@@ -21,6 +21,9 @@ export function ShoppingListItemRow({
   onTogglePurchased,
   isSavingPurchase,
   purchaseError,
+  onQuantityChange,
+  isSavingQuantity,
+  quantityError,
 }: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -52,26 +55,8 @@ export function ShoppingListItemRow({
   }
 
   function updateQuantity(quantity: number) {
-    if (quantity === item.quantity) {
-      return
-    }
-
     setError(null)
-    startTransition(async () => {
-      try {
-        const result = await setShoppingListItemQuantityAction(
-          item.id,
-          quantity
-        )
-        if (!result.success) {
-          setError(result.message)
-          setQuantityDraft(String(item.quantity))
-        }
-      } catch {
-        setError("No se ha podido actualizar la cantidad.")
-        setQuantityDraft(String(item.quantity))
-      }
-    })
+    onQuantityChange(item, quantity)
   }
 
   return (
@@ -80,7 +65,7 @@ export function ShoppingListItemRow({
         <button
           type="button"
           onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={isPending || isSavingPurchase}
+          disabled={isPending || isSavingPurchase || isSavingQuantity}
           aria-label={`Eliminar ${item.name}`}
           className="absolute top-3 right-3 grid size-8 place-items-center rounded-full text-[#a75938] transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#ef9f86] dark:hover:bg-red-950/30 dark:hover:text-red-200"
         >
@@ -151,19 +136,19 @@ export function ShoppingListItemRow({
               unit={item.unit}
               minimum={0.01}
               label={item.name}
-              disabled={isPending || isSavingPurchase}
+              disabled={isPending}
               onValueChange={setQuantityDraft}
               onValueCommit={updateQuantity}
               className="mt-3 w-full text-[#41564b] sm:w-56 dark:text-[#d5ded8]"
               buttonClassName="border-[#d8dfd5] bg-[#edf0e9] text-[#5c6e64] hover:bg-[#e1e7de] dark:border-white/10 dark:bg-white/10 dark:text-[#c6d1ca] dark:hover:bg-white/15"
               fieldClassName="border-[#d8dfd5] bg-[#f7f8f5] text-[#41564b] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/10 dark:bg-white/5 dark:text-[#d5ded8]"
             />
-            {error || purchaseError ? (
+            {error || purchaseError || quantityError ? (
               <p
                 role="alert"
                 className="mt-2 text-xs font-medium text-red-700 dark:text-red-300"
               >
-                {error ?? purchaseError}
+                {error ?? quantityError ?? purchaseError}
               </p>
             ) : null}
           </div>
