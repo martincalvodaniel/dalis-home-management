@@ -5,16 +5,23 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { QuantityInputStepper } from "@/components/ui/quantity-input-stepper"
 import {
   deleteShoppingListItemAction,
-  setShoppingListItemPurchasedAction,
   setShoppingListItemQuantityAction,
 } from "@/features/shopping-list/actions"
 import type { ShoppingListItem } from "@/schemas/shopping-list-item"
 
 interface ShoppingListItemRowProps {
   item: ShoppingListItem
+  onTogglePurchased: (item: ShoppingListItem) => void
+  isSavingPurchase: boolean
+  purchaseError: string | null
 }
 
-export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
+export function ShoppingListItemRow({
+  item,
+  onTogglePurchased,
+  isSavingPurchase,
+  purchaseError,
+}: ShoppingListItemRowProps) {
   const [error, setError] = useState<string | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [quantityDraft, setQuantityDraft] = useState(String(item.quantity))
@@ -26,20 +33,7 @@ export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
 
   function togglePurchased() {
     setError(null)
-
-    startTransition(async () => {
-      try {
-        const result = await setShoppingListItemPurchasedAction(
-          item.id,
-          !item.isPurchased
-        )
-        if (!result.success) {
-          setError(result.message)
-        }
-      } catch {
-        setError("No se ha podido actualizar el producto.")
-      }
-    })
+    onTogglePurchased(item)
   }
 
   function removeItem() {
@@ -86,7 +80,7 @@ export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
         <button
           type="button"
           onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={isPending}
+          disabled={isPending || isSavingPurchase}
           aria-label={`Eliminar ${item.name}`}
           className="absolute top-3 right-3 grid size-8 place-items-center rounded-full text-[#a75938] transition hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 dark:text-[#ef9f86] dark:hover:bg-red-950/30 dark:hover:text-red-200"
         >
@@ -107,6 +101,7 @@ export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
             type="button"
             onClick={togglePurchased}
             disabled={isPending}
+            aria-pressed={item.isPurchased}
             aria-label={
               item.isPurchased
                 ? `Marcar ${item.name} como pendiente`
@@ -156,16 +151,19 @@ export function ShoppingListItemRow({ item }: ShoppingListItemRowProps) {
               unit={item.unit}
               minimum={0.01}
               label={item.name}
-              disabled={isPending}
+              disabled={isPending || isSavingPurchase}
               onValueChange={setQuantityDraft}
               onValueCommit={updateQuantity}
               className="mt-3 w-full text-[#41564b] sm:w-56 dark:text-[#d5ded8]"
               buttonClassName="border-[#d8dfd5] bg-[#edf0e9] text-[#5c6e64] hover:bg-[#e1e7de] dark:border-white/10 dark:bg-white/10 dark:text-[#c6d1ca] dark:hover:bg-white/15"
               fieldClassName="border-[#d8dfd5] bg-[#f7f8f5] text-[#41564b] focus-within:border-[#1d4f40] focus-within:ring-[#1d4f40]/15 dark:border-white/10 dark:bg-white/5 dark:text-[#d5ded8]"
             />
-            {error ? (
-              <p className="mt-2 text-xs font-medium text-red-700 dark:text-red-300">
-                {error}
+            {error || purchaseError ? (
+              <p
+                role="alert"
+                className="mt-2 text-xs font-medium text-red-700 dark:text-red-300"
+              >
+                {error ?? purchaseError}
               </p>
             ) : null}
           </div>
